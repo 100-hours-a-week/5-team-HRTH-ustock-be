@@ -53,5 +53,10 @@ jobs:
             docker network create ustock-network || true
             docker stop ustock-backend || true
             docker rm ustock-backend || true
-            docker run -d --name ustock-backend --network ustock-network ${{ secrets.DOCKERHUB_USERNAME }}/ustock-backend:${{ github.sha }}
+            docker run -d --name ustock-backend --network ustock-network \
+              -e DB_HOST=${{ secrets.DB_HOST }} \
+              -e DB_SCHEMA=${{ secrets.DB_SCHEMA }} \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              ${{ secrets.DOCKERHUB_USERNAME }}/ustock-backend:${{ github.sha }}
           EOF
