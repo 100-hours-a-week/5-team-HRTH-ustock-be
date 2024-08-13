@@ -79,6 +79,7 @@ jobs:
               -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} \
               mysql
           
+            sleep 20
             docker exec ustock-db mysql -u root -p${{ secrets.DB_PASSWORD }} \
               -e "CREATE DATABASE IF NOT EXISTS ${{ secrets.DB_SCHEMA }};\
               CREATE USER '${{ secrets.DB_USERNAME }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';\
