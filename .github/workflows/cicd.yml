@@ -40,6 +40,18 @@ jobs:
     needs: build-and-push
 
     steps:
+      - name: Get Public IP
+        id: ip
+        uses: haythem/public-ip@v1.3
+
+      - name: Allow SSH access from GitHub Actions
+        run: |
+          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
       - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
@@ -55,17 +67,30 @@ jobs:
             docker stop ustock-db || true
             docker rm ustock-backend || true
             docker rm ustock-db || true
+          
             docker run -d --name ustock-backend --network ustock-network \
               -e DB_HOST=${{ secrets.DB_HOST }} \
               -e DB_SCHEMA=${{ secrets.DB_SCHEMA }} \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
               ${{ secrets.DOCKERHUB_USERNAME }}/ustock-backend:${{ github.sha }}
+          
             docker run -d --name ustock-db --network ustock-network \
-              -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} mysql \
+              -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              mysql
+          
             docker exec ustock-db mysql -u root -p${{ secrets.DB_PASSWORD }} \
               -e "CREATE DATABASE IF NOT EXISTS ${{ secrets.DB_SCHEMA }};\
               CREATE USER '${{ secrets.DB_USERNAME }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';\
               GRANT ALL PRIVILEGES ON ${{ secrets.DB_SCHEMA }}.* TO '${{ secrets.DB_USERNAME }}'@'%';\
               FLUSH PRIVILEGES;"
           EOF
+
+      - name: Revoke SSH access from GitHub Actions
+        run: |
+          aws ec2 revoke-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+    
