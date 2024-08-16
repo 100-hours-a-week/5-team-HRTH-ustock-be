@@ -4,7 +4,7 @@ import com.hrth.ustock.dto.portfolio.PortfolioListDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
 import com.hrth.ustock.exception.HoldingNotFoundExeption;
 import com.hrth.ustock.exception.PortfolioNotFoundException;
-import com.hrth.ustock.exception.UserNotFoundExeption;
+import com.hrth.ustock.exception.UserNotFoundException;
 import com.hrth.ustock.service.PortfolioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ public class PortfolioController {
         // @TODO: 스프링 시큐리티로 유저 아이디 받아서 넘기기 - 현재 임시로
         try {
             return portfolioService.addPortfolio(name, 1L);
-        } catch (UserNotFoundExeption e) {
+        } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
