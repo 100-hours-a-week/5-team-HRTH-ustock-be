@@ -1,10 +1,7 @@
 package com.hrth.ustock.repository;
 
-import com.hrth.ustock.dto.chart.ChartResponseDTO;
 import com.hrth.ustock.entity.portfolio.Chart;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

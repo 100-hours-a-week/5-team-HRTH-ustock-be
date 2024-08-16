@@ -10,7 +10,7 @@ import com.hrth.ustock.entity.portfolio.Portfolio;
 import com.hrth.ustock.entity.portfolio.Stock;
 import com.hrth.ustock.exception.HoldingNotFoundExeption;
 import com.hrth.ustock.exception.PortfolioNotFoundException;
-import com.hrth.ustock.exception.UserNotFoundExeption;
+import com.hrth.ustock.exception.UserNotFoundException;
 import com.hrth.ustock.repository.HoldingRepository;
 import com.hrth.ustock.repository.PortfolioRepository;
 import com.hrth.ustock.repository.UserRepository;
@@ -39,12 +39,12 @@ public class PortfolioService {
         }
 
         list.forEach(h -> {
-            long before = (long)h.getQuantity()*h.getAverage();
-            long after = (long)h.getQuantity()*current;
-            portfolioUpdateDto.setPrincipal(portfolio.getPrincipal()+before);
-            portfolioUpdateDto.setRet(portfolio.getRet()+after-before);
+            long before = (long) h.getQuantity() * h.getAverage();
+            long after = (long) h.getQuantity() * current;
+            portfolioUpdateDto.setPrincipal(portfolio.getPrincipal() + before);
+            portfolioUpdateDto.setRet(portfolio.getRet() + after - before);
         });
-        portfolioUpdateDto.setBudget(portfolioUpdateDto.getPrincipal()+ portfolioUpdateDto.getRet());
+        portfolioUpdateDto.setBudget(portfolioUpdateDto.getPrincipal() + portfolioUpdateDto.getRet());
         portfolio.updatePortfolio(portfolioUpdateDto);
         portfolioRepository.save(portfolio);
     }
@@ -112,7 +112,7 @@ public class PortfolioService {
 
     @Transactional
     public ResponseEntity<?> addPortfolio(String name, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundExeption::new);
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Portfolio portfolio = Portfolio.builder()
                 .name(name)
                 .user(user)

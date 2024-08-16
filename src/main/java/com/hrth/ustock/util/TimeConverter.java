@@ -6,7 +6,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class TimeConverter {
-    private TimeConverter() {}
+    private TimeConverter() {
+    }
 
     public static String convertUnixTimeToKST(long unixTimestamp) {
         // Unix 타임을 Instant로 변환

@@ -1,7 +1,5 @@
 package com.hrth.ustock.entity.portfolio;
 
-import com.hrth.ustock.dto.holding.HoldingUpdateDto;
-import com.hrth.ustock.dto.portfolio.PortfolioEmbedDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

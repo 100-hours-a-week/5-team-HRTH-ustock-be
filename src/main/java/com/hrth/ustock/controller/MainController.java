@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 public class MainController {
     @GetMapping("/news")
-    public ResponseEntity<?> news(){
+    public ResponseEntity<?> news() {
         return null;
     }
 
     @GetMapping("/market")
-    public ResponseEntity<?> market(){
+    public ResponseEntity<?> market() {
         return null;
     }
 }

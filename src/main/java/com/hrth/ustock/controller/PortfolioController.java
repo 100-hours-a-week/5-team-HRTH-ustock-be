@@ -4,7 +4,6 @@ import com.hrth.ustock.dto.portfolio.PortfolioListDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
 import com.hrth.ustock.exception.HoldingNotFoundExeption;
 import com.hrth.ustock.exception.PortfolioNotFoundException;
-import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.exception.UserNotFoundExeption;
 import com.hrth.ustock.service.PortfolioService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,7 @@ public class PortfolioController {
     public ResponseEntity<?> createPortfolio(String name) {
 
         // @TODO: 스프링 시큐리티로 유저 아이디 받아서 넘기기 - 현재 임시로
-        try{
+        try {
             return portfolioService.addPortfolio(name, 1L);
         } catch (UserNotFoundExeption e) {
             return ResponseEntity.notFound().build();
@@ -45,10 +44,10 @@ public class PortfolioController {
     // 9. 개별 포트폴리오 조회
     @GetMapping("/{pfid}")
     public ResponseEntity<?> showPortfolioById(@PathVariable("pfid") Long pfid) {
-        try{
+        try {
             PortfolioResponseDto portfolio = portfolioService.getPortfolio(pfid);
             return ResponseEntity.ok().body(portfolio);
-        } catch (PortfolioNotFoundException e){
+        } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -57,9 +56,9 @@ public class PortfolioController {
     @PatchMapping("/{pfid}/{code}")
     public ResponseEntity<?> buyPortfolioStock(@PathVariable("pfid") Long pfid, @PathVariable("code") String code,
                                                int quantity, int price) {
-        try{
+        try {
             return portfolioService.buyStock(pfid, code, quantity, price);
-        } catch (HoldingNotFoundExeption e){
+        } catch (HoldingNotFoundExeption e) {
             return ResponseEntity.notFound().build();
         }
     }
