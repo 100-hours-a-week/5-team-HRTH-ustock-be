@@ -50,7 +50,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String refresh = jwtUtil.createJwt("refresh", userId, provider, providerId, role, 86400000L);
 
         // redis에 refresh 저장
-        redisTemplate.opsForValue().set("RT:"+userId, refresh, 86400000L, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set("RT:" + userId, refresh, 86400000L, TimeUnit.MILLISECONDS);
 
         // 응답 설정
         res.addCookie(createCookie("access", access));

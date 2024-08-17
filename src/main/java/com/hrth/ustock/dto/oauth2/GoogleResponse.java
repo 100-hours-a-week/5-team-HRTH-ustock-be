@@ -1,8 +1,5 @@
 package com.hrth.ustock.dto.oauth2;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Map;
 
 public class GoogleResponse implements OAuth2Response {
@@ -34,7 +31,7 @@ public class GoogleResponse implements OAuth2Response {
     }
 
     @Override
-    public String getPicture(){
+    public String getPicture() {
         return attribute.get("picture").toString();
     }
 }

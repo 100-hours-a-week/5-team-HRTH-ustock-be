@@ -41,20 +41,20 @@ public class JWTFilter extends OncePerRequestFilter {
                 refresh = cookie.getValue();
             }
         }
-        if((access == null || access.isEmpty()) && (refresh == null || refresh.isEmpty())){
+        if ((access == null || access.isEmpty()) && (refresh == null || refresh.isEmpty())) {
             filterChain.doFilter(request, response);
             return;
         }
 
         // access token 소멸시간 검증
-        if(!(access == null || access.isEmpty()) && !jwtUtil.isExpired(access)){
+        if (!(access == null || access.isEmpty()) && !jwtUtil.isExpired(access)) {
 
             // 토큰이 access인지 확인 (발급시 페이로드에 명시)
             String category = jwtUtil.getCategory(access);
 
             // 토큰이 access가 아닌 경우 UNAUTHORIZED return
             // 해결방법은 access token Application에서 수동 삭제
-            if(!category.equals("access")){
+            if (!category.equals("access")) {
                 PrintWriter writer = response.getWriter();
                 writer.print("invalid access token");
 

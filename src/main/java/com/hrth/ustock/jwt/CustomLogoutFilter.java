@@ -91,14 +91,14 @@ public class CustomLogoutFilter extends GenericFilterBean {
         }
 
         // 2. redis에서 username refresh get(null check)
-        String currentRefresh = (String) redisTemplate.opsForValue().get("RT:"+userId);
-        if(currentRefresh == null) {
+        String currentRefresh = (String) redisTemplate.opsForValue().get("RT:" + userId);
+        if (currentRefresh == null) {
 
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
         // 3. refresh와 redis-refresh 동일 체크
-        if(!currentRefresh.equals(refresh)){
+        if (!currentRefresh.equals(refresh)) {
 
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
