@@ -33,6 +33,7 @@
 .idea/**/libraries
 
 application.yml
+build/
 .gradle/*
 
 # Gradle and Maven with auto-import
