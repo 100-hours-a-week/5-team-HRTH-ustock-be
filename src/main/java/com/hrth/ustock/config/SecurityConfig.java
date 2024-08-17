@@ -59,6 +59,7 @@ public class SecurityConfig {
         // HTTP Basic 인증 방식 disable
         http
                 .httpBasic(AbstractHttpConfigurer::disable);
+
         // 로그인 무한루프 방지
         http
                 .addFilterAfter(new JWTFilter(jwtUtil, redisTemplate), OAuth2LoginAuthenticationFilter.class);
@@ -73,11 +74,10 @@ public class SecurityConfig {
         http
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class);
 
-        // 경로별 인가 작업
+        // 경로별 인가 작업 - 개발중 테스트용 /**, 배포할땐 제거해야함
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers("/reissue").permitAll()
+                        .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated());
 
         // 세션 설정 : STATELESS

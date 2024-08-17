@@ -31,6 +31,11 @@ public class JWTFilter extends OncePerRequestFilter {
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         Cookie[] cookies = request.getCookies();
+        // null check
+        if(cookies == null || cookies.length == 0) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         String access = null;
         String refresh = null;
         for (Cookie cookie : cookies) {
