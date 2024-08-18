@@ -38,10 +38,10 @@ public class RedisRepositoryConfig {
 
     @Bean
     public RedisTemplate<String, Integer> redisCurrentTemplate(){
-        RedisTemplate<String, Integer> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new GenericToStringSerializer<Integer>(Integer.class));
-        redisTemplate.setConnectionFactory(redisConnectionFactory());
-        return redisCurrentTemplate();
+        RedisTemplate<String, Integer> redisCurrentTemplate = new RedisTemplate<>();
+        redisCurrentTemplate.setKeySerializer(new StringRedisSerializer());
+        redisCurrentTemplate.setValueSerializer(new GenericToStringSerializer<Integer>(Integer.class));
+        redisCurrentTemplate.setConnectionFactory(redisConnectionFactory());
+        return redisCurrentTemplate;
     }
 }
