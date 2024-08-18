@@ -25,7 +25,7 @@ public class StockController {
     // redis에 매일 카테고리별로 상위 종목 5개 코드를 리스트로 저장? - 데이터 갱신할때 같이 받아오면 되지않을까
 
     // 6. 종목 검색
-    // 구현중 - price, changeRate 미반영
+    // TODO: price, changeRate 반영
     // return: stock: [{name, code, price, changeRate}, ...]
     @GetMapping("/search")
     public ResponseEntity<StockListDTO> searchStock(@RequestParam String query) {

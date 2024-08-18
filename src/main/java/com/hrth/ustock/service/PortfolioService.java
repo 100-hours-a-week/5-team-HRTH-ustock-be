@@ -167,7 +167,7 @@ public class PortfolioService {
                 throw new HoldingNotFoundExeption();
             } else {
                 // quantity, price = 0일시 삭제
-                if(holdingRequestDto.getQuantity() == 0 || holdingRequestDto.getPrice() == 0) {
+                if (holdingRequestDto.getQuantity() == 0 || holdingRequestDto.getPrice() == 0) {
                     holdingRepository.delete(target);
                     portfolio.getHoldings().remove(target);
                 } else {
@@ -177,13 +177,63 @@ public class PortfolioService {
                 }
             }
         } catch (HoldingNotFoundExeption e) {
-            // 보유 종목중에 없으면 return badrequest
+            // 보유 종목중에 없으면 return bad request
             return ResponseEntity.badRequest().build();
         }
 
         // TODO: 현재가 추가
         refreshPortfolio(portfolio, 100000);
         return ResponseEntity.ok().build();
+    }
+
+    // 12. 개별 종목 삭제
+    @Transactional
+    public ResponseEntity<?> deleteStock(Long pfid, String code) {
+        Portfolio portfolio = portfolioRepository.findById(pfid).orElseThrow(PortfolioNotFoundException::new);
+        try {
+            List<Holding> holdings = portfolio.getHoldings();
+            Holding target = null;
+            // 보유 종목 중에서 탐색, 없으면 catch 문으로
+            for (Holding h : holdings) {
+                if (h.getStock().getCode().equals(code)) {
+                    target = h;
+                }
+            }
+            if (target == null) {
+                throw new HoldingNotFoundExeption();
+            } else {
+                // 있으면 삭제
+                holdingRepository.delete(target);
+                portfolio.getHoldings().remove(target);
+            }
+        } catch (HoldingNotFoundExeption e) {
+            // 보유 종목중에 없으면 return bad request
+            return ResponseEntity.badRequest().build();
+        }
+
+        // TODO: 현재가 추가
+        refreshPortfolio(portfolio, 100000);
+        return ResponseEntity.ok().build();
+    }
+
+    // 13. 포트폴리오 삭제
+    @Transactional
+    public ResponseEntity<?> deletePortfolio(Long pfid) {
+        try {
+            Portfolio portfolio = portfolioRepository.findById(pfid).orElseThrow(PortfolioNotFoundException::new);
+            List<Holding> list = portfolio.getHoldings();
+            // 보유 종목 없을시 바로 삭제, 아니면 보유종목 전부 삭제
+            if (list == null || list.isEmpty()) {
+                portfolioRepository.delete(portfolio);
+                return ResponseEntity.ok().build();
+            } else {
+                holdingRepository.deleteAll(list);
+                portfolioRepository.delete(portfolio);
+                return ResponseEntity.ok().build();
+            }
+        } catch (PortfolioNotFoundException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @Transactional

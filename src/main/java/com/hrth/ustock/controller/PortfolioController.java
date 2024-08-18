@@ -80,11 +80,26 @@ public class PortfolioController {
         if (holdingRequestDto.getQuantity() < 0 || holdingRequestDto.getPrice() < 0) {
             return ResponseEntity.badRequest().build();
         }
-        try{
+        try {
             return portfolioService.editStock(pfid, code, holdingRequestDto);
-        } catch (HoldingNotFoundExeption | StockNotFoundException | PortfolioNotFoundException e) {
+        } catch (HoldingNotFoundExeption | PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
+    // 12. 개별 종목 삭제
+    @DeleteMapping("/{pfid}/{code}")
+    public ResponseEntity<?> deletePortfolioStock(@PathVariable("pfid") Long pfid, @PathVariable("code") String code) {
+        try {
+            return portfolioService.deleteStock(pfid, code);
+        } catch (HoldingNotFoundExeption | PortfolioNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // 13. 포트폴리오 삭제
+    @DeleteMapping("/{pfid}")
+    public ResponseEntity<?> deletePortfolio(@PathVariable("pfid") Long pfid) {
+        return portfolioService.deletePortfolio(pfid);
+    }
 }
