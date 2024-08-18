@@ -9,7 +9,7 @@ import com.hrth.ustock.entity.User;
 import com.hrth.ustock.entity.portfolio.Holding;
 import com.hrth.ustock.entity.portfolio.Portfolio;
 import com.hrth.ustock.entity.portfolio.Stock;
-import com.hrth.ustock.exception.HoldingNotFoundExeption;
+import com.hrth.ustock.exception.HoldingNotFoundException;
 import com.hrth.ustock.exception.PortfolioNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.exception.UserNotFoundException;
@@ -123,13 +123,13 @@ public class PortfolioService {
                 }
             }
             if (target == null) {
-                throw new HoldingNotFoundExeption();
+                throw new HoldingNotFoundException();
             } else {
                 // 보유중인 종목이면 추가 구매, 반영
                 target.additionalBuyHolding(holdingRequestDto.getQuantity(), holdingRequestDto.getPrice());
                 holdingRepository.save(target);
             }
-        } catch (HoldingNotFoundExeption e) {
+        } catch (HoldingNotFoundException e) {
             // 보유 종목중에 없으면 새로 등록
             Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
             Holding newHolding = Holding.builder()
@@ -164,7 +164,7 @@ public class PortfolioService {
                 }
             }
             if (target == null) {
-                throw new HoldingNotFoundExeption();
+                throw new HoldingNotFoundException();
             } else {
                 // quantity, price = 0일시 삭제
                 if (holdingRequestDto.getQuantity() == 0 || holdingRequestDto.getPrice() == 0) {
@@ -176,7 +176,7 @@ public class PortfolioService {
                     holdingRepository.save(target);
                 }
             }
-        } catch (HoldingNotFoundExeption e) {
+        } catch (HoldingNotFoundException e) {
             // 보유 종목중에 없으면 return not found
             return ResponseEntity.notFound().build();
         }
@@ -200,13 +200,13 @@ public class PortfolioService {
                 }
             }
             if (target == null) {
-                throw new HoldingNotFoundExeption();
+                throw new HoldingNotFoundException();
             } else {
                 // 있으면 삭제
                 holdingRepository.delete(target);
                 portfolio.getHoldings().remove(target);
             }
-        } catch (HoldingNotFoundExeption e) {
+        } catch (HoldingNotFoundException e) {
             // 보유 종목중에 없으면 return not found
             return ResponseEntity.notFound().build();
         }

@@ -3,7 +3,7 @@ package com.hrth.ustock.controller;
 import com.hrth.ustock.dto.holding.HoldingRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioListDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
-import com.hrth.ustock.exception.HoldingNotFoundExeption;
+import com.hrth.ustock.exception.HoldingNotFoundException;
 import com.hrth.ustock.exception.PortfolioNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.exception.UserNotFoundException;
@@ -82,7 +82,7 @@ public class PortfolioController {
         }
         try {
             return portfolioService.editStock(pfid, code, holdingRequestDto);
-        } catch (HoldingNotFoundExeption | PortfolioNotFoundException e) {
+        } catch (HoldingNotFoundException | PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -92,7 +92,7 @@ public class PortfolioController {
     public ResponseEntity<?> deletePortfolioStock(@PathVariable("pfid") Long pfid, @PathVariable("code") String code) {
         try {
             return portfolioService.deleteStock(pfid, code);
-        } catch (HoldingNotFoundExeption | PortfolioNotFoundException e) {
+        } catch (HoldingNotFoundException | PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
