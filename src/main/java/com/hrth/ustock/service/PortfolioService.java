@@ -177,8 +177,8 @@ public class PortfolioService {
                 }
             }
         } catch (HoldingNotFoundExeption e) {
-            // 보유 종목중에 없으면 return bad request
-            return ResponseEntity.badRequest().build();
+            // 보유 종목중에 없으면 return not found
+            return ResponseEntity.notFound().build();
         }
 
         // TODO: 현재가 추가
@@ -207,8 +207,8 @@ public class PortfolioService {
                 portfolio.getHoldings().remove(target);
             }
         } catch (HoldingNotFoundExeption e) {
-            // 보유 종목중에 없으면 return bad request
-            return ResponseEntity.badRequest().build();
+            // 보유 종목중에 없으면 return not found
+            return ResponseEntity.notFound().build();
         }
 
         // TODO: 현재가 추가
