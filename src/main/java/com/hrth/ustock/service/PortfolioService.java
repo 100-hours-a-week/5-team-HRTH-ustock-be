@@ -109,6 +109,7 @@ public class PortfolioService {
         return ResponseEntity.ok().build();
     }
 
+    // 10. 개별 종목 추가 매수
     @Transactional
     public ResponseEntity<?> buyStock(Long pfid, String code, HoldingRequestDto holdingRequestDto) {
         Portfolio portfolio = portfolioRepository.findById(pfid).orElseThrow(PortfolioNotFoundException::new);
@@ -142,6 +143,42 @@ public class PortfolioService {
             // 새 종목을 구매하면 포트폴리오 refresh가 제대로 되지 않는 문제 해결
             // TODO: 프론트엔드의 페이지 로드 방식 질문(구매 후 페이지 로드 or not)
             portfolio.getHoldings().add(newHolding);
+        }
+
+        // TODO: 현재가 추가
+        refreshPortfolio(portfolio, 100000);
+        return ResponseEntity.ok().build();
+    }
+
+    // 11. 개별 종목 수정
+    @Transactional
+    public ResponseEntity<?> editStock(Long pfid, String code, HoldingRequestDto holdingRequestDto) {
+        Portfolio portfolio = portfolioRepository.findById(pfid).orElseThrow(PortfolioNotFoundException::new);
+        try {
+            List<Holding> holdings = portfolio.getHoldings();
+            Holding target = null;
+            // 보유 종목 중에서 탐색, 없으면 catch 문으로
+            for (Holding h : holdings) {
+                if (h.getStock().getCode().equals(code)) {
+                    target = h;
+                }
+            }
+            if (target == null) {
+                throw new HoldingNotFoundExeption();
+            } else {
+                // quantity, price = 0일시 삭제
+                if(holdingRequestDto.getQuantity() == 0 || holdingRequestDto.getPrice() == 0) {
+                    holdingRepository.delete(target);
+                    portfolio.getHoldings().remove(target);
+                } else {
+                    // 보유중인 종목이면 수정
+                    target.updateHolding(holdingRequestDto.getQuantity(), holdingRequestDto.getPrice());
+                    holdingRepository.save(target);
+                }
+            }
+        } catch (HoldingNotFoundExeption e) {
+            // 보유 종목중에 없으면 return badrequest
+            return ResponseEntity.badRequest().build();
         }
 
         // TODO: 현재가 추가

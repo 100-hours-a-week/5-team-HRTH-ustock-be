@@ -3,6 +3,7 @@ package com.hrth.ustock.controller;
 import com.hrth.ustock.dto.holding.HoldingRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioListDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
+import com.hrth.ustock.exception.HoldingNotFoundExeption;
 import com.hrth.ustock.exception.PortfolioNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.exception.UserNotFoundException;
@@ -68,6 +69,21 @@ public class PortfolioController {
         } catch (IllegalArgumentException e) {
             // argument not match
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // 11. 개별 종목 수정
+    @PutMapping("/{pfid}/{code}")
+    public ResponseEntity<?> editPortfolioStock(@PathVariable("pfid") Long pfid, @PathVariable("code") String code,
+                                                @RequestBody HoldingRequestDto holdingRequestDto) {
+        // 갯수, 현재가 예외처리
+        if (holdingRequestDto.getQuantity() < 0 || holdingRequestDto.getPrice() < 0) {
+            return ResponseEntity.badRequest().build();
+        }
+        try{
+            return portfolioService.editStock(pfid, code, holdingRequestDto);
+        } catch (HoldingNotFoundExeption | StockNotFoundException | PortfolioNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 
