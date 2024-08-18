@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class HoldingUpdateDto {
+public class HoldingRequestDto {
     private int quantity = 0;
     private int price = 0;
 }
