@@ -32,7 +32,8 @@
 .idea/**/gradle.xml
 .idea/**/libraries
 
-src/main/resources/application.yml
+application.yml
+build/
 .gradle/*
 
 # Gradle and Maven with auto-import
