@@ -5,11 +5,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ChartRepository extends JpaRepository<Chart, Long> {
     // 과거~현재 오름차순
     List<Chart> findAllByTimeBetweenOrderByTimeAsc(Long start, Long end);
+
+    // 제일 최신 데이터
+    List<Chart> findTop2ByStockCodeOrderByIdDesc(String stockCode);
 
 //    // 일봉 차트 데이터와 뉴스 매핑
 //    @Query("SELECT c.time, c.open, c.high, c.low, c.close, n.title, n.url " +

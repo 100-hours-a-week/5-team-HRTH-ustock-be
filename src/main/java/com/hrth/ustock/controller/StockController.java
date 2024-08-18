@@ -6,10 +6,7 @@ import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.service.StockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -42,5 +39,11 @@ public class StockController {
             // argument not match
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    // 14. 주식 상세정보 조회
+    @GetMapping("/{code}")
+    public ResponseEntity<?> findStockByCode(@PathVariable String code) {
+        return stockService.getStockInfo(code);
     }
 }
