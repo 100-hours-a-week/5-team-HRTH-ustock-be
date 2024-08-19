@@ -2,6 +2,7 @@ package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.holding.HoldingRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioListDto;
+import com.hrth.ustock.dto.portfolio.PortfolioRequestDTO;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
 import com.hrth.ustock.exception.HoldingNotFoundException;
 import com.hrth.ustock.exception.PortfolioNotFoundException;
@@ -17,14 +18,16 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/portfolio")
 public class PortfolioController {
     private final PortfolioService portfolioService;
+    private static final long tempUserId = 1L;
 
     // 7. 포트폴리오 생성
     @PostMapping
-    public ResponseEntity<?> createPortfolio(String name) {
+    public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDTO portfolioRequestDTO) {
 
-        // TODO: 스프링 시큐리티로 유저 아이디 받아서 넘기기 - 현재 임시로
+        // TODO: 스프링 시큐리티로 유저 아이디 받아서 넘기기 userId
         try {
-            return portfolioService.addPortfolio(name, 1L);
+            portfolioService.addPortfolio(portfolioRequestDTO, tempUserId);
+            return ResponseEntity.ok().build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
@@ -36,7 +39,7 @@ public class PortfolioController {
 
         // TODO: 스프링 시큐리티로 유저 아이디 받아서 넘기기 userId
         try {
-            PortfolioListDto list = portfolioService.getPortfolioList(1L);
+            PortfolioListDto list = portfolioService.getPortfolioList(tempUserId);
             return ResponseEntity.ok().body(list);
         } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -44,10 +47,11 @@ public class PortfolioController {
     }
 
     // 9. 개별 포트폴리오 조회
-    @GetMapping("/{pfid}")
-    public ResponseEntity<?> showPortfolioById(@PathVariable("pfid") Long pfid) {
+    @GetMapping("/{pfId}")
+    public ResponseEntity<?> showPortfolioById(@PathVariable("pfId") Long pfId) {
+
         try {
-            PortfolioResponseDto portfolio = portfolioService.getPortfolio(pfid);
+            PortfolioResponseDto portfolio = portfolioService.getPortfolio(pfId);
             return ResponseEntity.ok().body(portfolio);
         } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -55,51 +59,56 @@ public class PortfolioController {
     }
 
     // 10. 개별 종목 추가 매수
-    @PatchMapping("/{pfid}/{code}")
-    public ResponseEntity<?> buyPortfolioStock(@PathVariable("pfid") Long pfid, @PathVariable("code") String code,
-                                               @RequestBody HoldingRequestDto holdingRequestDto) {
-        // 갯수, 현재가 예외처리
+    @PatchMapping("/{pfId}/{code}")
+    public ResponseEntity<?> buyPortfolioStock(
+            @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto
+    ) {
+
         if (holdingRequestDto.getQuantity() <= 0 || holdingRequestDto.getPrice() <= 0) {
             return ResponseEntity.badRequest().build();
         }
         try {
-            return portfolioService.buyStock(pfid, code, holdingRequestDto);
+            portfolioService.buyStock(pfId, code, holdingRequestDto);
+            return ResponseEntity.ok().build();
         } catch (PortfolioNotFoundException | StockNotFoundException e) {
             return ResponseEntity.notFound().build();
-        } catch (IllegalArgumentException e) {
-            // argument not match
-            return ResponseEntity.badRequest().build();
         }
     }
 
     // 11. 개별 종목 수정
-    @PutMapping("/{pfid}/{code}")
-    public ResponseEntity<?> editPortfolioStock(@PathVariable("pfid") Long pfid, @PathVariable("code") String code,
-                                                @RequestBody HoldingRequestDto holdingRequestDto) {
-        // 갯수, 현재가 예외처리
+    @PutMapping("/{pfId}/{code}")
+    public ResponseEntity<?> editPortfolioStock(
+            @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto
+    ) {
+
         if (holdingRequestDto.getQuantity() < 0 || holdingRequestDto.getPrice() < 0) {
             return ResponseEntity.badRequest().build();
         }
         try {
-            return portfolioService.editStock(pfid, code, holdingRequestDto);
+            portfolioService.editHolding(pfId, code, holdingRequestDto);
+            return ResponseEntity.ok().build();
         } catch (HoldingNotFoundException | PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     // 12. 개별 종목 삭제
-    @DeleteMapping("/{pfid}/{code}")
-    public ResponseEntity<?> deletePortfolioStock(@PathVariable("pfid") Long pfid, @PathVariable("code") String code) {
+    @DeleteMapping("/{pfId}/{code}")
+    public ResponseEntity<?> deletePortfolioStock(@PathVariable("pfId") Long pfId, @PathVariable("code") String code) {
+
         try {
-            return portfolioService.deleteStock(pfid, code);
+            portfolioService.deleteHolding(pfId, code);
+            return ResponseEntity.ok().build();
         } catch (HoldingNotFoundException | PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     // 13. 포트폴리오 삭제
-    @DeleteMapping("/{pfid}")
-    public ResponseEntity<?> deletePortfolio(@PathVariable("pfid") Long pfid) {
-        return portfolioService.deletePortfolio(pfid);
+    @DeleteMapping("/{pfId}")
+    public ResponseEntity<?> deletePortfolio(@PathVariable("pfId") Long pfId) {
+
+        portfolioService.deletePortfolio(pfId);
+        return ResponseEntity.ok().build();
     }
 }

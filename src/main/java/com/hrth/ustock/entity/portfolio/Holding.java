@@ -18,7 +18,7 @@ public class Holding {
     @Column(name = "holdings_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "pf_id")
     private Portfolio portfolio;
 

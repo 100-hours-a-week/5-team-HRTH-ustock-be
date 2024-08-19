@@ -10,8 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChartResponseDTO {
-    private Long time;
-    // 나중에 물어보기
+    private long time;
     private List<ChartDTO> candle;
     private List<NewsEmbedDto> news;
 }

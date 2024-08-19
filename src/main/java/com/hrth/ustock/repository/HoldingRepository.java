@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
 public interface HoldingRepository extends JpaRepository<Holding, Long> {
-    Optional<Holding> findHoldingByPortfolioIdAndStockCode(Long pfid, String code);
+
+    Optional<Holding> findHoldingByPortfolioIdAndStockCode(Long pfId, String code);
 }

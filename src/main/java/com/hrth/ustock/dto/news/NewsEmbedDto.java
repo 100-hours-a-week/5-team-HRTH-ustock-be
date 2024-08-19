@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NewsEmbedDto {
-    private String title = "";
-    private String url = "";
+    private String title;
+    private String url;
 }

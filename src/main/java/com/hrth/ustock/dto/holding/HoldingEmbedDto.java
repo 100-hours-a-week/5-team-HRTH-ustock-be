@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class HoldingEmbedDto {
-    private String code = "";
-    private String name = "";
-    private Integer quantity = 0;
-    private Integer average = 0;
-    private Double ror = 0.0;
+    private String code;
+    private String name;
+    private int quantity;
+    private int average;
+    private double ror;
 }

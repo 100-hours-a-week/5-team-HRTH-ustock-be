@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
@@ -28,10 +27,9 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
         Cookie[] cookies = request.getCookies();
-        // null check
         if(cookies == null || cookies.length == 0) {
             filterChain.doFilter(request, response);
             return;
@@ -53,11 +51,9 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // access token 소멸시간 검증
         if (!(access == null || access.isEmpty()) && !jwtUtil.isExpired(access)) {
-
-            // 토큰이 access인지 확인 (발급시 페이로드에 명시)
             String category = jwtUtil.getCategory(access);
 
-            // 토큰이 access가 아닌 경우 UNAUTHORIZED return
+            // 토큰의 카테고리가 access가 아닌 경우 UNAUTHORIZED return
             // 해결방법은 access token Application에서 수동 삭제
             if (!category.equals("access")) {
                 PrintWriter writer = response.getWriter();
@@ -68,8 +64,7 @@ public class JWTFilter extends OncePerRequestFilter {
             }
         } else {
             // Access Token이 만료된 경우 Refresh Token으로 재발급
-            if (refresh != null && !jwtUtil.isExpired(refresh)
-                    && jwtUtil.getCategory(refresh).equals("refresh")) {
+            if (refresh != null && !jwtUtil.isExpired(refresh) && jwtUtil.getCategory(refresh).equals("refresh")) {
                 Long userId = jwtUtil.getUserId(refresh);
                 String provider = jwtUtil.getProvider(refresh);
                 String providerId = jwtUtil.getProviderId(refresh);
@@ -82,28 +77,23 @@ public class JWTFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                // 해당 코드와 CustomSuccessHandler가 겹침 - 추후에 수정
-                // 새로운 Access Token 생성
                 String newAccessToken = jwtUtil.createJwt("access", userId, provider, providerId, role, 600000L);
                 String newRefreshToken = jwtUtil.createJwt("refresh", userId, provider, providerId, role, 86400000L);
 
                 // Redis에 새 Refresh Token 저장
                 redisTemplate.opsForValue().set("RT:" + userId, newRefreshToken, 86400000L, TimeUnit.MILLISECONDS);
 
-                // 클라이언트에 새로운 Access Token과 Refresh Token 전송
                 response.addCookie(createCookie("access", newAccessToken));
                 response.addCookie(createCookie("refresh", newRefreshToken));
-
-                // 새 Access Token으로 사용자 정보 설정
                 access = newAccessToken;
             } else {
+
                 // Refresh Token이 유효하지 않은 경우
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
         }
 
-        // 토큰에서 username과 role 획득 후 userOauthDTO에 값 set
         UserOauthDTO userOauthDTO = UserOauthDTO.builder()
                 .userId(jwtUtil.getUserId(access))
                 .provider(jwtUtil.getProvider(access))
@@ -111,12 +101,12 @@ public class JWTFilter extends OncePerRequestFilter {
                 .role(jwtUtil.getRole(access))
                 .build();
 
-        // UserDetails에 회원 객체 정보 담기
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(userOauthDTO);
 
         // 스프링 시큐리티 인증 토큰 생성
         Authentication authToken = new UsernamePasswordAuthenticationToken(
                 customOAuth2User, null, customOAuth2User.getAuthorities());
+
         // 세션에 사용자 등록
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
@@ -125,7 +115,8 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(24 * 60 * 60);
+        cookie.setMaxAge(100 * 60 * 60);
+        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         return cookie;

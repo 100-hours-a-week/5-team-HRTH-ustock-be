@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.news;
+package com.hrth.ustock.dto.portfolio;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class NewsResponseDto {
+public class PortfolioRequestDTO {
     private String name;
-    private String code;
-    private String title;
-    private String url;
-    private String company;
 }

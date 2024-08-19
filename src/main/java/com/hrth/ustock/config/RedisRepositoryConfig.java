@@ -18,9 +18,7 @@ public class RedisRepositoryConfig {
 
     private final RedisProperties redisProperties;
 
-    // lettuce
     // RedisConnectionFactory 인터페이스를 통해 LettuceConnectionFactory를 생성하여 반환
-    // RedisProperties로 yaml/properties에 저장한 host, post를 가지고 와서 연결한다.
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
@@ -40,7 +38,7 @@ public class RedisRepositoryConfig {
     public RedisTemplate<String, Integer> redisCurrentTemplate(){
         RedisTemplate<String, Integer> redisCurrentTemplate = new RedisTemplate<>();
         redisCurrentTemplate.setKeySerializer(new StringRedisSerializer());
-        redisCurrentTemplate.setValueSerializer(new GenericToStringSerializer<Integer>(Integer.class));
+        redisCurrentTemplate.setValueSerializer(new GenericToStringSerializer<>(Integer.class));
         redisCurrentTemplate.setConnectionFactory(redisConnectionFactory());
         return redisCurrentTemplate;
     }

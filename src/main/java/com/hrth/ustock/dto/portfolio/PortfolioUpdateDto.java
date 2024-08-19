@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PortfolioUpdateDto {
-    private Long budget = 0L;
-    private Long principal = 0L;
-    private Long ret = 0L;
+    private long budget;
+    private long principal;
+    private long ret;
 }

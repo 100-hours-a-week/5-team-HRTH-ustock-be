@@ -16,30 +16,28 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(length = 50, unique = true)
     private String nickname;
 
-    @Column(length = 20)
     private String provider;
 
     @Column(name = "provider_id")
     private String providerId;
 
-    @Column(length = 50, name = "provider_name")
+    @Column(name = "provider_name")
     private String providerName;
 
-    @Column(columnDefinition = "TEXT", name = "profile_image")
+    @Column(name = "profile_image")
     private String profileImage;
 
-    @Column(columnDefinition = "TEXT", name = "provider_image")
+    @Column(name = "provider_image")
     private String providerImage;
 
-    @Column(length = 20)
     private String role;
 
     @OneToMany(mappedBy = "user")
@@ -51,9 +49,20 @@ public class User {
         this.role = role;
     }
 
+    public UserOauthDTO toOAuthDTO() {
+        return UserOauthDTO.builder()
+                .userId(this.userId)
+                .provider(this.provider)
+                .providerId(this.providerId)
+                .providerName(this.providerName)
+                .picture(this.providerImage)
+                .role(this.role)
+                .build();
+    }
+
     public void updateUserOAuth(UserOauthDTO userOauthDTO) {
         this.providerImage = userOauthDTO.getPicture();
-        this.providerName = userOauthDTO.getName();
+        this.providerName = userOauthDTO.getProviderName();
     }
 
     public void updateNickname(String nickname) {

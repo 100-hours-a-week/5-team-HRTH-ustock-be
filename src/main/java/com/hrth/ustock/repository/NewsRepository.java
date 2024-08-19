@@ -6,8 +6,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface NewsRepository extends JpaRepository<News, Long> {
+
     // 종목별 시작시간~종료시간 뉴스 목록
     List<News> findAllByStockCodeAndTimeBetween(String code, Long start, Long end);
 

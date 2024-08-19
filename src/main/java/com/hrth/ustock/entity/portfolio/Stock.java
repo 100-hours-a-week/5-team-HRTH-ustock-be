@@ -18,21 +18,19 @@ import lombok.NoArgsConstructor;
 @Table(name = "stocks")
 public class Stock {
     @Id
-    @Column(length = 6, name = "stock_code")
+    @Column(name = "stock_code")
     private String code;
 
-    @Column(length = 150, name = "stock_name")
+    @Column(name = "stock_name")
     private String name;
 
-    @Column(columnDefinition = "TEXT")
     private String logo;
 
     public StockDTO toDTO() {
-        StockDTO stockDTO = StockDTO.builder()
+        return StockDTO.builder()
                 .code(this.code)
                 .name(this.name)
                 .logo(this.logo)
                 .build();
-        return stockDTO;
     }
 }

@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PortfolioEmbedDto {
-    private Long id = 0L;
-    private String name = "";
-    private Long budget = 0L;
-    private Double ror = 0.0;
+    private long id;
+    private String name;
+    private long budget;
+    private double ror;
 }

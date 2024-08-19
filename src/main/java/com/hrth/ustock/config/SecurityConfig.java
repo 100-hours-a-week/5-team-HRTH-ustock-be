@@ -39,7 +39,7 @@ public class SecurityConfig {
 
                     CorsConfiguration configuration = new CorsConfiguration();
 
-                    configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                    configuration.setAllowedOrigins(Collections.singletonList("https://ustock.site/"));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -48,42 +48,33 @@ public class SecurityConfig {
                             List.of("Set-Cookie"));
                     return configuration;
                 }));
-        // csrf disable
         http
-                .csrf(AbstractHttpConfigurer::disable);
+                // csrf disable
+                .csrf(AbstractHttpConfigurer::disable)
 
-        // from 로그인 방식 disable
-        http
-                .formLogin(AbstractHttpConfigurer::disable);
+                // from 로그인 방식 disable
+                .formLogin(AbstractHttpConfigurer::disable)
 
-        // HTTP Basic 인증 방식 disable
-        http
-                .httpBasic(AbstractHttpConfigurer::disable);
+                // HTTP Basic 인증 방식 disable
+                .httpBasic(AbstractHttpConfigurer::disable)
 
-        // 로그인 무한루프 방지
-        http
-                .addFilterAfter(new JWTFilter(jwtUtil, redisTemplate), OAuth2LoginAuthenticationFilter.class);
-        // OAuth2
-        http
+                // 로그인 무한루프 방지
+                .addFilterAfter(new JWTFilter(jwtUtil, redisTemplate), OAuth2LoginAuthenticationFilter.class)
+
+                // OAuth2
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfoEndpointConfig ->
                                 userInfoEndpointConfig.userService(customOAuth2UserService))
                         .successHandler(customSuccessHandler)
-                );
-        // 로그아웃 필터
-        http
-                .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class);
+                )
 
-        // 경로별 인가 작업 - 개발중 테스트용 /**, 배포할땐 제거해야함
-        http
-                .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/**").permitAll()
-                        .anyRequest().authenticated());
+                // 로그아웃 필터
+                .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class)
 
-        // 세션 설정 : STATELESS
-        http
+                // 세션 설정 : STATELESS
                 .sessionManagement((session) -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
         return http.build();
     }
 }

@@ -24,12 +24,9 @@ public class News {
     @Column(name = "news_date")
     private Long time;
 
-    @Column(columnDefinition = "TEXT")
     private String title;
 
-    @Column(columnDefinition = "TEXT")
     private String url;
 
-    @Column(length = 100)
     private String publisher;
 }

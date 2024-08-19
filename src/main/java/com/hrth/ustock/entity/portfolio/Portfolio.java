@@ -27,7 +27,6 @@ public class Portfolio {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(length = 150)
     private String name;
 
     private Long budget;
@@ -36,18 +35,16 @@ public class Portfolio {
 
     private Long ret;
 
-    @OneToMany(mappedBy = "portfolio", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "portfolio", fetch = FetchType.EAGER)
     private List<Holding> holdings = new ArrayList<>();
 
     public PortfolioEmbedDto toPortfolioDto() {
-        PortfolioEmbedDto dto = PortfolioEmbedDto.builder()
-                .id(id)
-                .name(name)
-                .budget(budget)
-                .ror((double) ret / principal * 100)
+        return PortfolioEmbedDto.builder()
+                .id(this.id)
+                .name(this.name)
+                .budget(this.budget)
+                .ror((this.principal == 0L) ? 0.0 : (double) this.ret / this.principal * 100)
                 .build();
-        dto.setRor(dto.getRor().isNaN() ? 0.0 : dto.getRor());
-        return dto;
     }
 
     public void updatePortfolio(PortfolioUpdateDto portfolioUpdateDto) {

@@ -7,6 +7,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NewsRequestDto {
-    private int code = 0;
-    private int period = 0;
+    private int code;
+    private int period;
 }

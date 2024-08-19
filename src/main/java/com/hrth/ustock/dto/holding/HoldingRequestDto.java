@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class HoldingRequestDto {
-    private int quantity = 0;
-    private int price = 0;
+    private int quantity;
+    private int price;
 }

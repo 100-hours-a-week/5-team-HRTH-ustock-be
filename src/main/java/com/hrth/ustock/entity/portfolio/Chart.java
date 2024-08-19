@@ -22,8 +22,11 @@ public class Chart {
     private Stock stock;
 
     private int open;
+
     private int close;
+
     private int high;
+
     private int low;
 
     private Long time;
