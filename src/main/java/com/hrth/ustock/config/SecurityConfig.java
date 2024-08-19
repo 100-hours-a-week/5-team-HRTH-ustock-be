@@ -49,9 +49,6 @@ public class SecurityConfig {
                     return configuration;
                 }));
         http
-                // csrf disable
-                .csrf(AbstractHttpConfigurer::disable)
-
                 // from 로그인 방식 disable
                 .formLogin(AbstractHttpConfigurer::disable)
 
