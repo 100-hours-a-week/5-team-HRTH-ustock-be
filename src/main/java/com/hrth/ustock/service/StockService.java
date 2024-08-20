@@ -1,5 +1,6 @@
 package com.hrth.ustock.service;
 
+import com.hrth.ustock.dto.stock.MarketResponseDto;
 import com.hrth.ustock.dto.stock.StockDTO;
 import com.hrth.ustock.dto.stock.StockListDTO;
 import com.hrth.ustock.dto.stock.StockResponseDTO;
@@ -9,20 +10,28 @@ import com.hrth.ustock.exception.ChartNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.repository.ChartRepository;
 import com.hrth.ustock.repository.StockRepository;
+import com.hrth.ustock.util.KisApiAuthManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 import java.time.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class StockService {
+    public static final String KOSPI = "0001";
+    public static final String KOSDAQ = "1001";
+
     private final StockRepository stockRepository;
     private final ChartRepository chartRepository;
+    private final KisApiAuthManager authManager;
 
     private static final ZoneId KST_ZONE = ZoneId.of("Asia/Seoul");
     private static final ZonedDateTime MARKET_OPEN = ZonedDateTime.of(
@@ -89,8 +98,55 @@ public class StockService {
     }
 
     // 현재가 조회
-    public int getCurrentPrice(Chart chart) {
+    private int getCurrentPrice(Chart chart) {
         // TODO: 현재가 api로 갱신
         return chart.getClose();
+    }
+
+    public Map<String, Object> getMarketInfo() {
+        Map<String, String> kospi = requestToKisApi(KOSPI);
+        Map<String, String> kosdaq = requestToKisApi(KOSDAQ);
+
+        Map<String, Object> marketInfo = new HashMap<>();
+        marketInfo.put("kospi", makeMarketDto(kospi));
+        marketInfo.put("kosdaq", makeMarketDto(kosdaq));
+
+        return marketInfo;
+    }
+
+    private Map<String, String> requestToKisApi(String marketCode) {
+        RestClient restClient = RestClient.builder()
+                .baseUrl("https://openapi.koreainvestment.com:9443")
+                .build();
+
+        String queryParams = "?fid_cond_mrkt_div_code=U"
+                + "&fid_input_iscd=" + marketCode;
+
+        Map response = restClient.get()
+                .uri("/uapi/domestic-stock/v1/quotations/inquire-index-price" + queryParams)
+                .headers(httpHeaders -> {
+                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                    httpHeaders.setBearerAuth(authManager.generateToken());
+                    httpHeaders.set("appkey", authManager.getAppKey());
+                    httpHeaders.set("appsecret", authManager.getAppSecret());
+                    httpHeaders.set("tr_id", "FHPUP02100000");
+                    httpHeaders.set("custtype", "P");
+                })
+                .retrieve()
+                .body(Map.class);
+
+        return (Map<String, String>) response.get("output");
+    }
+
+    private MarketResponseDto makeMarketDto(Map<String, String> responseMap) {
+        double price = Double.parseDouble(responseMap.get("bstp_nmix_prpr"));
+        double change = Double.parseDouble(responseMap.get("bstp_nmix_prdy_vrss"));
+        double changeRate = Double.parseDouble(responseMap.get("bstp_nmix_prdy_ctrt"));
+
+        return MarketResponseDto.builder()
+                .price(price)
+                .change(change)
+                .changeRate(changeRate)
+                .build();
     }
 }

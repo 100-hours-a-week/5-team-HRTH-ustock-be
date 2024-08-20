@@ -1,5 +1,6 @@
 package com.hrth.ustock.controller;
 
+import com.hrth.ustock.dto.stock.MarketResponseDto;
 import com.hrth.ustock.dto.stock.StockDTO;
 import com.hrth.ustock.dto.stock.StockListDTO;
 import com.hrth.ustock.dto.stock.StockResponseDTO;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,5 +37,17 @@ public class StockController {
 
         StockResponseDTO stockResponseDTO = stockService.getStockInfo(code);
         return ResponseEntity.ok(stockResponseDTO);
+    }
+
+    @GetMapping("/market")
+    public ResponseEntity<?> marketInformation() {
+        Map<String, Object> marketInfo;
+        try {
+            marketInfo = stockService.getMarketInfo();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("한국투자 API 조회 실패");
+        }
+
+        return ResponseEntity.ok(marketInfo);
     }
 }
