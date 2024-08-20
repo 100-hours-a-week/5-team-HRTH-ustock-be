@@ -1,9 +1,9 @@
 package com.hrth.ustock.service;
 
 import com.hrth.ustock.dto.stock.MarketResponseDto;
-import com.hrth.ustock.dto.stock.StockDTO;
+import com.hrth.ustock.dto.stock.StockDto;
 import com.hrth.ustock.dto.stock.StockListDTO;
-import com.hrth.ustock.dto.stock.StockResponseDTO;
+import com.hrth.ustock.dto.stock.StockResponseDto;
 import com.hrth.ustock.entity.portfolio.Chart;
 import com.hrth.ustock.entity.portfolio.Stock;
 import com.hrth.ustock.exception.ChartNotFoundException;
@@ -12,6 +12,7 @@ import com.hrth.ustock.repository.ChartRepository;
 import com.hrth.ustock.repository.StockRepository;
 import com.hrth.ustock.util.KisApiAuthManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,15 +23,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
 public class StockService {
     public static final String KOSPI = "0001";
     public static final String KOSDAQ = "1001";
+    public static final int TOP_RANK_RANGE = 5;
 
     private final StockRepository stockRepository;
     private final ChartRepository chartRepository;
+
+    private final RestClient restClient;
     private final KisApiAuthManager authManager;
 
     private static final ZoneId KST_ZONE = ZoneId.of("Asia/Seoul");
@@ -52,19 +57,19 @@ public class StockService {
         if (list == null || list.isEmpty()) {
             throw new StockNotFoundException();
         }
-        List<StockDTO> StockDTOList = new ArrayList<>();
+        List<StockDto> stockDtoList = new ArrayList<>();
         for (Stock stock : list) {
-            StockDTOList.add(stock.toDTO());
+            stockDtoList.add(stock.toDTO());
         }
 
         return StockListDTO.builder()
-                .stocks(StockDTOList)
+                .stocks(stockDtoList)
                 .build();
     }
 
     // 14. 주식 상세정보 조회
     @Transactional
-    public StockResponseDTO getStockInfo(String code) {
+    public StockResponseDto getStockInfo(String code) {
 
         Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
         List<Chart> charts = chartRepository.findTop2ByStockCodeOrderByIdDesc(code);
@@ -82,13 +87,13 @@ public class StockService {
         if (now.isAfter(MARKET_OPEN) && now.isBefore(MARKET_CLOSE)) {
             int yesterday = charts.get(0).getClose();
             increase = current - yesterday;
-            rate = (yesterday==0) ? 0.0 : (double) increase / yesterday * 100;
+            rate = (yesterday == 0) ? 0.0 : (double) increase / yesterday * 100;
         } else {
             increase = charts.get(0).getClose() - charts.get(1).getClose();
-            rate = (charts.get(1).getClose()==0) ? 0.0 : (double) increase / charts.get(1).getClose() * 100;
+            rate = (charts.get(1).getClose() == 0) ? 0.0 : (double) increase / charts.get(1).getClose() * 100;
         }
 
-        return StockResponseDTO.builder()
+        return StockResponseDto.builder()
                 .code(stock.getCode())
                 .name(stock.getName())
                 .price(current)
@@ -104,8 +109,8 @@ public class StockService {
     }
 
     public Map<String, Object> getMarketInfo() {
-        Map<String, String> kospi = requestToKisApi(KOSPI);
-        Map<String, String> kosdaq = requestToKisApi(KOSDAQ);
+        Map<String, String> kospi = requestMarketInfo(KOSPI);
+        Map<String, String> kosdaq = requestMarketInfo(KOSDAQ);
 
         Map<String, Object> marketInfo = new HashMap<>();
         marketInfo.put("kospi", makeMarketDto(kospi));
@@ -114,24 +119,13 @@ public class StockService {
         return marketInfo;
     }
 
-    private Map<String, String> requestToKisApi(String marketCode) {
-        RestClient restClient = RestClient.builder()
-                .baseUrl("https://openapi.koreainvestment.com:9443")
-                .build();
-
+    private Map<String, String> requestMarketInfo(String marketCode) {
         String queryParams = "?fid_cond_mrkt_div_code=U"
                 + "&fid_input_iscd=" + marketCode;
 
         Map response = restClient.get()
                 .uri("/uapi/domestic-stock/v1/quotations/inquire-index-price" + queryParams)
-                .headers(httpHeaders -> {
-                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                    httpHeaders.setBearerAuth(authManager.generateToken());
-                    httpHeaders.set("appkey", authManager.getAppKey());
-                    httpHeaders.set("appsecret", authManager.getAppSecret());
-                    httpHeaders.set("tr_id", "FHPUP02100000");
-                    httpHeaders.set("custtype", "P");
-                })
+                .headers(setRequestHeaders("FHPUP02100000"))
                 .retrieve()
                 .body(Map.class);
 
@@ -148,5 +142,112 @@ public class StockService {
                 .change(change)
                 .changeRate(changeRate)
                 .build();
+    }
+
+    public List<StockResponseDto> getStockList(String order) {
+        List<Map<String, String>> responseList = switch (order) {
+            case "top", "trade" -> requestOrderByTrade();
+            case "capital" -> requestOrderByCapital();
+            case "change" -> requestOrderByChange();
+            default -> throw new IllegalArgumentException();
+        };
+
+        List<StockResponseDto> stockList = new ArrayList<>();
+
+        int range = "top".equals(order) ? TOP_RANK_RANGE : responseList.size();
+        for (int i = 0; i < range; i++) {
+            stockList.add(makeStockResponseDto(responseList.get(i)));
+        }
+
+        return stockList;
+    }
+
+    private List<Map<String, String>> requestOrderByTrade() {
+        String queryParams = "?fid_cond_mrkt_div_code=J" +
+                "&fid_cond_scr_div_code=20171" +
+                "&fid_div_cls_code=1" +
+                "&fid_input_iscd=0000" +
+                "&fid_trgt_cls_code=0" +
+                "&fid_blng_cls_code=0" +
+                "&fid_trgt_cls_code=111111111" +
+                "&fid_trgt_exls_cls_code=1111111111" +
+                "&fid_input_price_1=" +
+                "&fid_input_price_2=" +
+                "&fid_vol_cnt=" +
+                "&fid_input_date_1=";
+
+        Map response = restClient.get()
+                .uri("/uapi/domestic-stock/v1/quotations/volume-rank" + queryParams)
+                .headers(setRequestHeaders("FHPST01710000"))
+                .retrieve()
+                .body(Map.class);
+
+        return (List<Map<String, String>>) response.get("output");
+    }
+
+    private List<Map<String, String>> requestOrderByCapital() {
+        String queryParams = "?fid_cond_mrkt_div_code=J" +
+                "&fid_cond_scr_div_code=20174" +
+                "&fid_div_cls_code=1" +
+                "&fid_input_iscd=0000" +
+                "&fid_trgt_cls_code=0" +
+                "&fid_trgt_exls_cls_code=0" +
+                "&fid_input_price_1=" +
+                "&fid_input_price_2=" +
+                "&fid_vol_cnt=";
+
+        Map response = restClient.get()
+                .uri("/uapi/domestic-stock/v1/ranking/market-cap" + queryParams)
+                .headers(setRequestHeaders("FHPST01740000"))
+                .retrieve()
+                .body(Map.class);
+
+        return (List<Map<String, String>>) response.get("output");
+    }
+
+    private List<Map<String, String>> requestOrderByChange() {
+        String queryParams = "?fid_cond_mrkt_div_code=J" +
+                "&fid_cond_scr_div_code=20170" +
+                "&fid_input_iscd=0000" +
+                "&fid_rank_sort_cls_code=0" +
+                "&fid_input_cnt_1=0" +
+                "&fid_prc_cls_code=1" +
+                "&fid_trgt_cls_code=0" +
+                "&fid_trgt_exls_cls_code=0" +
+                "&fid_div_cls_code=0" +
+                "&fid_input_price_1=" +
+                "&fid_input_price_2=" +
+                "&fid_rsfl_rate1=" +
+                "&fid_rsfl_rate2=" +
+                "&fid_vol_cnt=";
+
+        Map response = restClient.get()
+                .uri("/uapi/domestic-stock/v1/ranking/fluctuation" + queryParams)
+                .headers(setRequestHeaders("FHPST01700000"))
+                .retrieve()
+                .body(Map.class);
+
+        return (List<Map<String, String>>) response.get("output");
+    }
+
+    private StockResponseDto makeStockResponseDto(Map<String, String> responseMap) {
+        return StockResponseDto.builder()
+                .name(responseMap.get("hts_kor_isnm"))
+                .code(responseMap.get("mksc_shrn_iscd"))
+                .price(Integer.parseInt(responseMap.get("stck_prpr")))
+                .change(Integer.parseInt(responseMap.get("prdy_vrss")))
+                .changeRate(Double.parseDouble(responseMap.get("prdy_ctrt")))
+                .build();
+    }
+
+    private Consumer<HttpHeaders> setRequestHeaders(String trId) {
+        return httpHeaders -> {
+            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            httpHeaders.setBearerAuth(authManager.generateToken());
+            httpHeaders.set("appkey", authManager.getAppKey());
+            httpHeaders.set("appsecret", authManager.getAppSecret());
+            httpHeaders.set("tr_id", trId);
+            httpHeaders.set("custtype", "P");
+        };
     }
 }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StockDTO {
+public class StockDto {
     private String code;
     private String name;
     private String logo;
