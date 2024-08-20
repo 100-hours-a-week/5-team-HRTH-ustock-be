@@ -31,18 +31,18 @@ public class Holding {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private long quantity;
+    private int quantity;
 
-    private long average;
+    private int average;
 
-    public void additionalBuyHolding(long quantity, long price) {
-        long total = this.quantity * this.average;
-        total += quantity * price;
+    public void additionalBuyHolding(int quantity, int price) {
+        long total = (long) this.quantity * this.average;
+        total += (long) quantity * price;
         this.quantity += quantity;
-        this.average = total / this.quantity;
+        this.average = (int)(total / this.quantity);
     }
 
-    public void updateHolding(long quantity, long price) {
+    public void updateHolding(int quantity, int price) {
         this.quantity = quantity;
         this.average = price;
     }
