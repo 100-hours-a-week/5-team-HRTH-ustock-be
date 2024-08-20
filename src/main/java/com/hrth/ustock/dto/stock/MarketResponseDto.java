@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StockDTO {
-    private String code;
-    private String name;
-    private String logo;
+public class MarketResponseDto {
+    private double price;
+    private double change;
+    private double changeRate;
 }

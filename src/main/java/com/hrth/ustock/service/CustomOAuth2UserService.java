@@ -3,7 +3,7 @@ package com.hrth.ustock.service;
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.oauth2.GoogleResponse;
 import com.hrth.ustock.dto.oauth2.OAuth2Response;
-import com.hrth.ustock.dto.oauth2.UserOauthDTO;
+import com.hrth.ustock.dto.oauth2.UserOauthDto;
 import com.hrth.ustock.entity.User;
 import com.hrth.ustock.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
+    private static final String ROLE_USER = "ROLE_USER";
     private final UserRepository userRepository;
 
     @Override
@@ -38,22 +39,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .provider(oAuth2Response.getProvider())
                     .providerId(oAuth2Response.getProviderId())
                     .providerImage(oAuth2Response.getPicture())
-                    .role("ROLE_USER")
+                    .role(ROLE_USER)
                     .build();
             User saved = userRepository.save(newUser);
-            return new CustomOAuth2User(saved.toOAuthDTO());
+            return new CustomOAuth2User(saved.toOAuthDto());
         } else {
             // provider 로부터 변경된 user 정보 update
-            UserOauthDTO userOauthDTO = UserOauthDTO.builder()
-                    .userId(existData.getUserId())
-                    .provider(existData.getProvider())
-                    .providerId(existData.getProviderId())
+            UserOauthDto userOauthDTO = UserOauthDto.builder()
                     .providerName(oAuth2Response.getName())
                     .picture(oAuth2Response.getPicture())
-                    .role(existData.getRole())
                     .build();
             existData.updateUserOAuth(userOauthDTO);
-            return new CustomOAuth2User(userOauthDTO);
+            return new CustomOAuth2User(existData.toOAuthDto());
         }
     }
 

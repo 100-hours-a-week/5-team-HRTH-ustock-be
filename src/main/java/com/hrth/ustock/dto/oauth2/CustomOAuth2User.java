@@ -14,7 +14,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomOAuth2User implements OAuth2User {
 
-    private final UserOauthDTO userOauthDTO;
+    private final UserOauthDto userOauthDTO;
 
     @Override
     public Map<String, Object> getAttributes() {

@@ -1,5 +1,6 @@
 package com.hrth.ustock.jwt;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,62 +20,27 @@ public class JWTUtil {
     }
 
     public Long getUserId(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("userId", Long.class);
+        return getPayload(token).get("userId", Long.class);
     }
 
     public String getProvider(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("provider", String.class);
+        return getPayload(token).get("provider", String.class);
     }
 
     public String getProviderId(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("providerId", String.class);
+        return getPayload(token).get("providerId", String.class);
     }
 
     public String getCategory(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("category", String.class);
+        return getPayload(token).get("category", String.class);
     }
 
     public String getRole(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("role", String.class);
+        return getPayload(token).get("role", String.class);
     }
 
     public Boolean isExpired(String token) {
-        try {
-            return Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload()
-                    .getExpiration()
-                    .before(new Date());
-        } catch (Exception e) {
-            return true;
-        }
+        return getPayload(token).getExpiration().before(new Date());
     }
 
     public String createJwt(String category, Long userId, String provider, String providerId, String role, Long expiredMs) {
@@ -88,5 +54,13 @@ public class JWTUtil {
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    private Claims getPayload(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
