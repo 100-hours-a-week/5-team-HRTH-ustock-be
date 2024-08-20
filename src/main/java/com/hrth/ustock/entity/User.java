@@ -1,6 +1,7 @@
 package com.hrth.ustock.entity;
 
-import com.hrth.ustock.dto.oauth2.UserOauthDTO;
+import com.hrth.ustock.dto.oauth2.UserOauthDto;
+import com.hrth.ustock.entity.portfolio.Holding;
 import com.hrth.ustock.entity.portfolio.Portfolio;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,14 +44,17 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Portfolio> portfolios;
 
+    @OneToMany(mappedBy = "user")
+    private List<Holding> holdings;
+
     public void updateUser(String nickname, String profileImage, String role) {
         this.nickname = nickname;
         this.profileImage = profileImage;
         this.role = role;
     }
 
-    public UserOauthDTO toOAuthDTO() {
-        return UserOauthDTO.builder()
+    public UserOauthDto toOAuthDto() {
+        return UserOauthDto.builder()
                 .userId(this.userId)
                 .provider(this.provider)
                 .providerId(this.providerId)
@@ -60,9 +64,9 @@ public class User {
                 .build();
     }
 
-    public void updateUserOAuth(UserOauthDTO userOauthDTO) {
-        this.providerImage = userOauthDTO.getPicture();
-        this.providerName = userOauthDTO.getProviderName();
+    public void updateUserOAuth(UserOauthDto userOauthDto) {
+        this.providerImage = userOauthDto.getPicture();
+        this.providerName = userOauthDto.getProviderName();
     }
 
     public void updateNickname(String nickname) {

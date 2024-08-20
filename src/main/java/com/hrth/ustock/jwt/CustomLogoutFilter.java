@@ -1,6 +1,5 @@
 package com.hrth.ustock.jwt;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -35,6 +34,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
             filterChain.doFilter(request, response);
             return;
         }
+
         String requestMethod = request.getMethod();
         if (!requestMethod.equals("POST")) {
             filterChain.doFilter(request, response);
@@ -60,11 +60,13 @@ public class CustomLogoutFilter extends GenericFilterBean {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
+
         String currentRefresh = (String) redisTemplate.opsForValue().get("RT:" + userId);
         if (currentRefresh == null) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
+
         if (!currentRefresh.equals(refresh)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
@@ -72,7 +74,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
         //로그아웃 진행
         redisTemplate.delete(currentRefresh);
-        
+
         //Access, Refresh 토큰 Cookie 값 0 세팅 후 클라이언트 측 쿠키 갱신
         Cookie accessLogout = new Cookie("access", null);
         accessLogout.setMaxAge(0);
