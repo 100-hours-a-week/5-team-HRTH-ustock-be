@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UserOauthDTO {
+public class UserOauthDto {
     private long userId;
     private String role;
     private String provider;

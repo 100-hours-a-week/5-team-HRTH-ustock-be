@@ -1,14 +1,13 @@
 package com.hrth.ustock.jwt;
 
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
-import com.hrth.ustock.dto.oauth2.UserOauthDTO;
+import com.hrth.ustock.dto.oauth2.UserOauthDto;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,6 +21,9 @@ import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
+    public static final long ACCESS_EXPIRE = 600000L;
+    public static final long REFRESH_EXPIRE = 86400000L;
+    public static final int COOKIE_EXPIRE = 360000;
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -30,10 +32,11 @@ public class JWTFilter extends OncePerRequestFilter {
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         Cookie[] cookies = request.getCookies();
-        if(cookies == null || cookies.length == 0) {
+        if (cookies == null || cookies.length == 0) {
             filterChain.doFilter(request, response);
             return;
         }
+
         String access = null;
         String refresh = null;
         for (Cookie cookie : cookies) {
@@ -44,6 +47,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 refresh = cookie.getValue();
             }
         }
+
         if ((access == null || access.isEmpty()) && (refresh == null || refresh.isEmpty())) {
             filterChain.doFilter(request, response);
             return;
@@ -64,37 +68,36 @@ public class JWTFilter extends OncePerRequestFilter {
             }
         } else {
             // Access Token이 만료된 경우 Refresh Token으로 재발급
-            if (refresh != null && !jwtUtil.isExpired(refresh) && jwtUtil.getCategory(refresh).equals("refresh")) {
-                Long userId = jwtUtil.getUserId(refresh);
-                String provider = jwtUtil.getProvider(refresh);
-                String providerId = jwtUtil.getProviderId(refresh);
-                String role = jwtUtil.getRole(refresh);
-
-                // Redis에서 해당 Refresh Token이 유효한지 확인
-                String isLogout = (String) redisTemplate.opsForValue().get("RT:" + userId);
-                if (ObjectUtils.isEmpty(isLogout)) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    return;
-                }
-
-                String newAccessToken = jwtUtil.createJwt("access", userId, provider, providerId, role, 600000L);
-                String newRefreshToken = jwtUtil.createJwt("refresh", userId, provider, providerId, role, 86400000L);
-
-                // Redis에 새 Refresh Token 저장
-                redisTemplate.opsForValue().set("RT:" + userId, newRefreshToken, 86400000L, TimeUnit.MILLISECONDS);
-
-                response.addCookie(createCookie("access", newAccessToken));
-                response.addCookie(createCookie("refresh", newRefreshToken));
-                access = newAccessToken;
-            } else {
-
+            if (refresh == null || jwtUtil.isExpired(refresh) || !jwtUtil.getCategory(refresh).equals("refresh")) {
                 // Refresh Token이 유효하지 않은 경우
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
+
+            Long userId = jwtUtil.getUserId(refresh);
+            String provider = jwtUtil.getProvider(refresh);
+            String providerId = jwtUtil.getProviderId(refresh);
+            String role = jwtUtil.getRole(refresh);
+
+            // Redis에서 해당 Refresh Token이 유효한지 확인
+            String isLogout = (String) redisTemplate.opsForValue().get("RT:" + userId);
+            if (ObjectUtils.isEmpty(isLogout)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+            String newAccessToken = jwtUtil.createJwt("access", userId, provider, providerId, role, ACCESS_EXPIRE);
+            String newRefreshToken = jwtUtil.createJwt("refresh", userId, provider, providerId, role, REFRESH_EXPIRE);
+
+            // Redis에 새 Refresh Token 저장
+            redisTemplate.opsForValue().set("RT:" + userId, newRefreshToken, REFRESH_EXPIRE, TimeUnit.MILLISECONDS);
+
+            response.addCookie(createCookie("access", newAccessToken));
+            response.addCookie(createCookie("refresh", newRefreshToken));
+            access = newAccessToken;
         }
 
-        UserOauthDTO userOauthDTO = UserOauthDTO.builder()
+        UserOauthDto userOauthDTO = UserOauthDto.builder()
                 .userId(jwtUtil.getUserId(access))
                 .provider(jwtUtil.getProvider(access))
                 .providerId(jwtUtil.getProviderId(access))
@@ -115,10 +118,11 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(100 * 60 * 60);
+        cookie.setMaxAge(COOKIE_EXPIRE);
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
+        cookie.setDomain(".ustock.site");
         return cookie;
     }
 }
