@@ -25,11 +25,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static com.hrth.ustock.service.StockServiceConst.*;
+
 @Service
 @RequiredArgsConstructor
 public class StockService {
-    public static final String KOSPI = "0001";
-    public static final String KOSDAQ = "1001";
     public static final int TOP_RANK_RANGE = 5;
 
     private final StockRepository stockRepository;
@@ -109,8 +109,8 @@ public class StockService {
     }
 
     public Map<String, Object> getMarketInfo() {
-        Map<String, String> kospi = requestMarketInfo(KOSPI);
-        Map<String, String> kosdaq = requestMarketInfo(KOSDAQ);
+        Map<String, String> kospi = requestMarketInfo(KOSPI_CODE);
+        Map<String, String> kosdaq = requestMarketInfo(KOSDAQ_CODE);
 
         Map<String, Object> marketInfo = new HashMap<>();
         marketInfo.put("kospi", makeMarketDto(kospi));
@@ -133,9 +133,9 @@ public class StockService {
     }
 
     private MarketResponseDto makeMarketDto(Map<String, String> responseMap) {
-        double price = Double.parseDouble(responseMap.get("bstp_nmix_prpr"));
-        double change = Double.parseDouble(responseMap.get("bstp_nmix_prdy_vrss"));
-        double changeRate = Double.parseDouble(responseMap.get("bstp_nmix_prdy_ctrt"));
+        double price = Double.parseDouble(responseMap.get(MARKET_CURRENT_PRICE));
+        double change = Double.parseDouble(responseMap.get(CHANGE_FROM_PREVIOUS_MARKET));
+        double changeRate = Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_MARKET));
 
         return MarketResponseDto.builder()
                 .price(price)
@@ -232,11 +232,11 @@ public class StockService {
 
     private StockResponseDto makeStockResponseDto(Map<String, String> responseMap) {
         return StockResponseDto.builder()
-                .name(responseMap.get("hts_kor_isnm"))
-                .code(responseMap.get("mksc_shrn_iscd"))
-                .price(Integer.parseInt(responseMap.get("stck_prpr")))
-                .change(Integer.parseInt(responseMap.get("prdy_vrss")))
-                .changeRate(Double.parseDouble(responseMap.get("prdy_ctrt")))
+                .name(responseMap.get(STOCK_NAME))
+                .code(responseMap.get(STOCK_CODE))
+                .price(Integer.parseInt(responseMap.get(STOCK_CURRENT_PRICE)))
+                .change(Integer.parseInt(responseMap.get(CHANGE_FROM_PREVIOUS_STOCK)))
+                .changeRate(Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_STOCK)))
                 .build();
     }
 
