@@ -1,21 +1,7 @@
-FROM gradle:8.2-jdk17 AS build
+FROM amazoncorretto:17-alpine-jdk
 
 WORKDIR /app
-
-COPY build.gradle settings.gradle ./
-
-RUN gradle dependencies --no-daemon
-
-COPY . /app
-
-RUN gradle clean build --no-daemon
-
-FROM openjdk:17-slim
-
-WORKDIR /app
-
-COPY --from=build /app/build/libs/*.jar /app/ustock.jar
-
-EXPOSE 8080
+# 각자의 프로젝트 파일에 맞게 변경하십셔
+COPY ./build/libs/ustock-0.0.1-SNAPSHOT.jar /app/ustock.jar
 
 CMD ["java", "-jar", "ustock.jar"]
