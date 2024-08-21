@@ -45,6 +45,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 customUserDetails.getUserOauthDTO().getUserId(),
                 customUserDetails.getUserOauthDTO().getProvider(),
                 customUserDetails.getUserOauthDTO().getProviderId(),
+                customUserDetails.getName(),
+                customUserDetails.getPicture(),
                 auth.getAuthority(),
                 ACCESS_EXPIRE
         );
@@ -53,6 +55,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 customUserDetails.getUserOauthDTO().getUserId(),
                 customUserDetails.getUserOauthDTO().getProvider(),
                 customUserDetails.getUserOauthDTO().getProviderId(),
+                customUserDetails.getName(),
+                customUserDetails.getPicture(),
                 auth.getAuthority(),
                 REFRESH_EXPIRE
         );
@@ -68,6 +72,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
         response.sendRedirect("https://ustock.site");
+//        response.sendRedirect("http://localhost:3000/");
     }
 
     private Cookie createCookie(String key, String value) {

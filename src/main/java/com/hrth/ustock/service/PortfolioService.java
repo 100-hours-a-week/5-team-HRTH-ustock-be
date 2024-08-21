@@ -74,13 +74,13 @@ public class PortfolioService {
         // 현재가 반영후에는 현재가로 ret 갱신, ror 계산 후 save
         holdings.forEach(h -> {
             Stock stock = h.getStock();
-            int ret = h.getQuantity() * tempCurrent - h.getQuantity() * h.getAverage();
+            long ret = (long) h.getQuantity() * tempCurrent - (long) h.getQuantity() * h.getAverage();
             HoldingEmbedDto holdingEmbedDto = HoldingEmbedDto.builder()
                     .code(stock.getCode())
                     .name(stock.getName())
                     .quantity(h.getQuantity())
                     .average(h.getAverage())
-                    .ror((h.getQuantity()*h.getAverage()==0) ? 0.0 : (double)(ret / (h.getQuantity() * h.getAverage())) * 100)
+                    .ror((h.getQuantity()*h.getAverage()==0) ? 0.0 : (double)(ret / ((long) h.getQuantity() * h.getAverage())) * 100)
                     .build();
             portfolioResponseDto.getStocks().add(holdingEmbedDto);
         });
