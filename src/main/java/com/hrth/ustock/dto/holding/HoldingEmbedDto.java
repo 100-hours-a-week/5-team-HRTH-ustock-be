@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class HoldingEmbedDto {
     private String code;
     private String name;
+    private String logo;
     private int quantity;
     private int average;
     private double ror;

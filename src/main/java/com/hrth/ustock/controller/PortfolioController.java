@@ -2,7 +2,7 @@ package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.holding.HoldingRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioListDto;
-import com.hrth.ustock.dto.portfolio.PortfolioRequestDTO;
+import com.hrth.ustock.dto.portfolio.PortfolioRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
 import com.hrth.ustock.exception.HoldingNotFoundException;
 import com.hrth.ustock.exception.PortfolioNotFoundException;
@@ -23,7 +23,7 @@ public class PortfolioController {
 
     // 7. 포트폴리오 생성
     @PostMapping
-    public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDTO portfolioRequestDTO) {
+    public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDto portfolioRequestDTO) {
 
         // TODO: 스프링 시큐리티로 유저 아이디 받아서 넘기기 userId
         try {
