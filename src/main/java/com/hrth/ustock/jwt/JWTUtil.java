@@ -31,6 +31,10 @@ public class JWTUtil {
         return getPayload(token).get("providerId", String.class);
     }
 
+    public String getProviderName(String token) { return getPayload(token).get("providerName", String.class); }
+
+    public String getProviderImage(String token) { return getPayload(token).get("providerImage", String.class); }
+
     public String getCategory(String token) {
         return getPayload(token).get("category", String.class);
     }
@@ -40,19 +44,21 @@ public class JWTUtil {
     }
 
     public Boolean isExpired(String token) {
-        try {
+        try{
             return getPayload(token).getExpiration().before(new Date());
         } catch (ExpiredJwtException e) {
             return true;
         }
     }
 
-    public String createJwt(String category, Long userId, String provider, String providerId, String role, Long expiredMs) {
+    public String createJwt(String category, Long userId, String provider, String providerId, String providerName, String providerImage, String role, Long expiredMs) {
         return Jwts.builder()
                 .claim("category", category)
                 .claim("userId", userId)
                 .claim("provider", provider)
                 .claim("providerId", providerId)
+                .claim("providerName", providerName)
+                .claim("providerImage", providerImage)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))

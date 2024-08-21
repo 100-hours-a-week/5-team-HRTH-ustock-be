@@ -9,8 +9,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChartResponseDTO {
-    private long time;
-    private List<ChartDTO> candle;
+public class ChartResponseDto {
+    private String date;
+    private ChartDto candle;
     private List<NewsEmbedDto> news;
 }

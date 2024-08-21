@@ -16,7 +16,7 @@ public class AppConfig {
     }
 
     @Bean
-    public DateConverter dateconverter() {
+    public DateConverter dateConverter() {
         return new DateConverter();
     }
 

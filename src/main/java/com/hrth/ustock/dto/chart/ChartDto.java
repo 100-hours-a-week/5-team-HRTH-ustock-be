@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChartDTO {
+public class ChartDto {
     private int open;
     private int close;
     private int high;

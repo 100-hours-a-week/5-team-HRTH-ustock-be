@@ -4,6 +4,7 @@ import com.hrth.ustock.jwt.CustomLogoutFilter;
 import com.hrth.ustock.jwt.JWTFilter;
 import com.hrth.ustock.jwt.JWTUtil;
 import com.hrth.ustock.oauth2.CustomSuccessHandler;
+import com.hrth.ustock.oauth2.OAuth2FailureHandler;
 import com.hrth.ustock.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Collections;
@@ -30,6 +33,7 @@ public class SecurityConfig {
     private final CustomSuccessHandler customSuccessHandler;
     private final RedisTemplate<String, Object> redisTemplate;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2FailureHandler oauth2FailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,7 +43,8 @@ public class SecurityConfig {
 
                     CorsConfiguration configuration = new CorsConfiguration();
 
-                    configuration.setAllowedOrigins(Collections.singletonList("https://ustock.site/"));
+                    configuration.setAllowedOrigins(Collections.singletonList("https://ustock.site"));
+//                    configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -60,16 +65,29 @@ public class SecurityConfig {
 
                 // OAuth2
                 .oauth2Login(oauth2 -> oauth2
+                        .successHandler(customSuccessHandler)
+                        .failureHandler(oauth2FailureHandler)
                         .userInfoEndpoint(userInfoEndpointConfig ->
                                 userInfoEndpointConfig.userService(customOAuth2UserService))
-                        .successHandler(customSuccessHandler)
+                )
+
+                // csrf 설정 - post 요청 + 로그아웃용
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .csrf(csrf -> csrf
+                        .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler())
                 )
 
                 // 로그아웃 필터
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class)
-
+                // 경로별 인가 작업 - 개발중 테스트용 /**,
+                // TODO: 배포할땐 제거해야함
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/**").permitAll()
+                        .anyRequest().authenticated())
+                .csrf(AbstractHttpConfigurer::disable)
                 // 세션 설정 : STATELESS
-                .sessionManagement((session) -> session
+                .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
         return http.build();

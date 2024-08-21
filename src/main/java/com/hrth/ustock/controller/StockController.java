@@ -7,21 +7,37 @@ import com.hrth.ustock.exception.ChartNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.service.StockService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/stocks")
 public class StockController {
-
     private final StockService stockService;
 
     private static final String DATE_PATTERN = "^[0-9]{4}/[0-9]{2}/[0-9]{2}$";
     private static final Pattern pattern = Pattern.compile(DATE_PATTERN);
+
+    @GetMapping
+    public ResponseEntity<?> stockList(@RequestParam String order) {
+        Map<String, List<StockResponseDto>> stockMap;
+        try {
+            stockMap = stockService.getStockList(order);
+        } catch (StockNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("주식 목록을 찾을 수 없습니다.");
+        }
+
+        if (stockMap == null)
+            return ResponseEntity.badRequest().body("잘못된 정렬 기준입니다.");
+
+        return ResponseEntity.ok(stockMap);
+    }
 
     // 6. 종목 검색
     @GetMapping("/search")
@@ -42,19 +58,14 @@ public class StockController {
     // 14. 주식 상세정보 조회
     @GetMapping("/{code}")
     public ResponseEntity<?> findStockByCode(@PathVariable String code) {
-
-        if( code.length() != 6) {
-            return ResponseEntity.badRequest().build();
-        }
-
+        StockResponseDto stockResponseDto;
         try {
-            StockResponseDto stockResponseDTO = stockService.getStockInfo(code);
-            return ResponseEntity.ok(stockResponseDTO);
-        } catch (StockNotFoundException e) {
-            return ResponseEntity.notFound().build();
+            stockResponseDto = stockService.getStockInfo(code);
         } catch (ChartNotFoundException e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("차트 정보를 조회할 수 없습니다.");
         }
+
+        return ResponseEntity.ok(stockResponseDto);
     }
 
     // 15. 종목 차트 조회
@@ -67,11 +78,21 @@ public class StockController {
             return ResponseEntity.badRequest().build();
         }
 
+        List<ChartResponseDto> list = stockService.getStockChartAndNews(code, period, start, end);
+        return ResponseEntity.ok(list);
+
+    }
+
+    //
+    @GetMapping("/market")
+    public ResponseEntity<?> marketInformation() {
+        Map<String, Object> marketInfo;
         try {
-            List<ChartResponseDto> chartListResponseDTO = stockService.getStockChartAndNews(code, period, start, end);
-            return ResponseEntity.ok(chartListResponseDTO);
-        } catch (StockNotFoundException e) {
-            return ResponseEntity.notFound().build();
+            marketInfo = stockService.getMarketInfo();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("한국투자 API 조회 실패");
         }
+
+        return ResponseEntity.ok(marketInfo);
     }
 }

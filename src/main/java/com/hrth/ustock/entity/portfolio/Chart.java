@@ -29,5 +29,6 @@ public class Chart {
 
     private int low;
 
-    private Long time;
+    @Column(name = "chart_date")
+    private String date;
 }
