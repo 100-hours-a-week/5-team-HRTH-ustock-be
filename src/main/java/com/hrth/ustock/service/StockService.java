@@ -144,7 +144,7 @@ public class StockService {
                 .build();
     }
 
-    public List<StockResponseDto> getStockList(String order) {
+    public Map<String, List<StockResponseDto>> getStockList(String order) {
         List<Map<String, String>> responseList = switch (order) {
             case "top", "trade" -> requestOrderByTrade();
             case "capital" -> requestOrderByCapital();
@@ -159,7 +159,10 @@ public class StockService {
             stockList.add(makeStockResponseDto(responseList.get(i)));
         }
 
-        return stockList;
+        Map<String, List<StockResponseDto>> stockMap = new HashMap<>();
+        stockMap.put("stock", stockList);
+
+        return stockMap;
     }
 
     private List<Map<String, String>> requestOrderByTrade() {
