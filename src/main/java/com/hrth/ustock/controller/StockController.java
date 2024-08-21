@@ -21,17 +21,17 @@ public class StockController {
 
     @GetMapping
     public ResponseEntity<?> stockList(@RequestParam String order) {
-        List<StockResponseDto> stockList;
+        Map<String, List<StockResponseDto>> stockMap;
         try {
-            stockList = stockService.getStockList(order);
+            stockMap = stockService.getStockList(order);
         } catch (StockNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("주식 목록을 찾을 수 없습니다.");
         }
 
-        if (stockList == null)
+        if (stockMap == null)
             return ResponseEntity.badRequest().body("잘못된 정렬 기준입니다.");
 
-        return ResponseEntity.ok(stockList);
+        return ResponseEntity.ok(stockMap);
     }
 
     // 6. 종목 검색
