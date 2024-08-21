@@ -113,6 +113,13 @@ public class PortfolioService {
 
     @Transactional
     public void buyStock(Long pfId, String code, HoldingRequestDto holdingRequestDto) {
+        Holding testHolding = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElse(null);
+
+        if (testHolding != null) {
+            additionalBuyStock(pfId, code, holdingRequestDto);
+            return;
+        }
+
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
         Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
         Holding holding = Holding.builder()
