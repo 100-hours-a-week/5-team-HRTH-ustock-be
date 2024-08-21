@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface HoldingRepository extends JpaRepository<Holding, Long> {
+
     List<Holding> findAllByUserUserId(Long userId);
+
     Optional<Holding> findHoldingByPortfolioIdAndStockCode(Long pfId, String code);
 }

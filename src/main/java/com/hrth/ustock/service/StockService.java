@@ -5,16 +5,16 @@ import com.hrth.ustock.dto.chart.ChartResponseDto;
 import com.hrth.ustock.dto.stock.MarketResponseDto;
 import com.hrth.ustock.dto.stock.StockDto;
 import com.hrth.ustock.dto.stock.StockResponseDto;
-import com.hrth.ustock.entity.portfolio.Chart;
 import com.hrth.ustock.entity.portfolio.Stock;
-import com.hrth.ustock.exception.ChartNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.repository.ChartRepository;
 import com.hrth.ustock.repository.NewsRepository;
 import com.hrth.ustock.repository.StockRepository;
 import com.hrth.ustock.util.DateConverter;
 import com.hrth.ustock.util.KisApiAuthManager;
+import com.hrth.ustock.util.RedisTTLCalculator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,11 +22,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
-import java.time.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.hrth.ustock.service.StockServiceConst.*;
@@ -40,24 +40,11 @@ public class StockService {
     private final ChartRepository chartRepository;
     private final NewsRepository newsRepository;
     private final DateConverter dateConverter;
-
+    private final RedisTTLCalculator redisTTLCalculator;
+    private final RedisTemplate<String, String> redisTemplate;
 
     private final RestClient restClient;
     private final KisApiAuthManager authManager;
-
-    private static final ZoneId KST_ZONE = ZoneId.of("Asia/Seoul");
-    private static final ZonedDateTime MARKET_OPEN = ZonedDateTime.of(
-            LocalDateTime.of(LocalDate.now(KST_ZONE), LocalTime.of(9, 0)),
-            KST_ZONE
-    );
-    private static final ZonedDateTime MARKET_CLOSE = ZonedDateTime.of(
-            LocalDateTime.of(LocalDate.now(KST_ZONE), LocalTime.of(15, 30)),
-            KST_ZONE
-    );
-
-    private static final int TEMP_CURRENT = 100000;
-    private static final double TEMP_CHANGE_RATE = 22.0;
-
 
     // 6. 종목 검색
     @Transactional
@@ -65,16 +52,24 @@ public class StockService {
 
         List<Stock> list = stockRepository.findAllByNameContaining(str);
 
-        // TODO: 현재가, 등락율 추가
         if (list == null || list.isEmpty()) {
             throw new StockNotFoundException();
         }
 
         List<StockDto> stockDtoList = new ArrayList<>();
         for (Stock stock : list) {
+            String currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "current");
+            String rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
+
+            if (currentSaved == null || rateSaved == null) {
+                cacheCurrentChangeChangeRate(stock.getCode());
+                currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "current");
+                rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
+            }
+
             StockDto stockDTO = stock.toDto();
-            stockDTO.setPrice(getCurrentPrice(stock.getCode()));
-            stockDTO.setChangeRate(getChangeRate(stock.getCode()));
+            stockDTO.setPrice(Integer.parseInt(currentSaved));
+            stockDTO.setChangeRate(Double.parseDouble(rateSaved));
             stockDtoList.add(stockDTO);
         }
 
@@ -84,28 +79,25 @@ public class StockService {
     // 14. 주식 상세정보 조회
     @Transactional
     public StockResponseDto getStockInfo(String code) {
-
         Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
-        Chart chart = chartRepository.findByStockCode(code).orElseThrow(ChartNotFoundException::new);
 
-        // 정규시장: 09:00~15:30, 이 시간에는 현재가로 등락/등락율 계산, 외에는 차트 데이터로 등락/등락율 계산
-        // 1차 구현: 전일 종가 = 현재가
-        // TODO: 현재가 develop
-        ZonedDateTime now = ZonedDateTime.now(KST_ZONE);
-        int current = getCurrentPrice(stock.getCode());
-        int increase;
-        if (now.isAfter(MARKET_OPEN) && now.isBefore(MARKET_CLOSE)) {
-            increase = current - chart.getOpen();
-        } else {
-            increase = current - chart.getClose();
+        String currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "current");
+        String changeSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "change");
+        String rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
+
+        if (currentSaved == null || changeSaved == null || rateSaved == null) {
+            cacheCurrentChangeChangeRate(stock.getCode());
+            currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "current");
+            changeSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "change");
+            rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
         }
-
         return StockResponseDto.builder()
                 .code(stock.getCode())
                 .name(stock.getName())
-                .price(current)
-                .change(increase)
-                .changeRate(getChangeRate(stock.getCode()))
+                .logo(stock.getLogo())
+                .price(Integer.parseInt(currentSaved))
+                .change(Integer.parseInt(changeSaved))
+                .changeRate(Double.parseDouble(rateSaved))
                 .build();
     }
 
@@ -121,23 +113,13 @@ public class StockService {
         };
     }
 
-    // 현재가 조회
-    private int getCurrentPrice(String code) {
-        // TODO: 현재가 api 로 갱신
-        return TEMP_CURRENT;
-    }
-
-    // 등락율 조회
-    private double getChangeRate(String code) {
-        return TEMP_CHANGE_RATE;
-    }
-
     // chart, news 범위 조회
     private List<ChartResponseDto> getChartByRangeList(String code, List<Pair<String, String>> dateList) {
         List<ChartResponseDto> chartListResponse = new ArrayList<>();
         for (Pair<String, String> data : dateList) {
             ChartResponseDto chartResponseDTO = new ChartResponseDto();
             chartResponseDTO.setCandle(ChartDto.builder().build());
+            chartResponseDTO.setNews(new ArrayList<>());
             chartResponseDTO.getCandle().setHigh(0);
             chartResponseDTO.getCandle().setLow(1000000000);
 
@@ -221,6 +203,18 @@ public class StockService {
         return stockMap;
     }
 
+    // 현재가, 전일대비, 전일 대비 부호, 전일 대비율 조회
+    public void cacheCurrentChangeChangeRate(String code) {
+        Map<String, String> response = requestPrice(code);
+
+        long second = redisTTLCalculator.calculateTTLForMidnightKST();
+
+        redisTemplate.opsForHash().put(code, "current", response.get(STOCK_CURRENT_PRICE));
+        redisTemplate.opsForHash().put(code, "change", response.get(CHANGE_FROM_PREVIOUS_STOCK));
+        redisTemplate.opsForHash().put(code, "changeRate", response.get(CHANGE_RATE_FROM_PREVIOUS_STOCK));
+        redisTemplate.expire(code, second, TimeUnit.SECONDS);
+    }
+
     private List<Map<String, String>> requestOrderByTrade() {
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_cond_scr_div_code=20171" +
@@ -287,6 +281,19 @@ public class StockService {
                 .body(Map.class);
 
         return (List<Map<String, String>>) response.get("output");
+    }
+
+    private Map<String, String> requestPrice(String code) {
+        String queryParams = "?fid_cond_mrkt_div_code=J" +
+                "&fid_input_iscd=" + code;
+
+        Map response = restClient.get()
+                .uri("/uapi/domestic-stock/v1/quotations/inquire-price" + queryParams)
+                .headers(setRequestHeaders("FHKST01010100"))
+                .retrieve()
+                .body(Map.class);
+
+        return (Map<String, String>) response.get("output");
     }
 
     private StockResponseDto makeStockResponseDto(Map<String, String> responseMap) {

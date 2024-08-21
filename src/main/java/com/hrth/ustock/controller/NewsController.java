@@ -17,6 +17,7 @@ public class NewsController {
     private final NewsService newsService;
     private static final long TEMP_USER_ID = 7L;
 
+    // 3. 나만의 뉴스
     @GetMapping("/my")
     public ResponseEntity<?> myHoldingsNews() {
         List<NewsResponseDto> list = newsService.findHoldingNews(TEMP_USER_ID);

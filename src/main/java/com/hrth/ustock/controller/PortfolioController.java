@@ -59,23 +59,6 @@ public class PortfolioController {
         }
     }
 
-    @PostMapping("/{pfId}/holding/{code}")
-    public ResponseEntity<?> buyPortfolioStock(
-            @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto) {
-
-        try {
-            portfolioService.buyStock(pfId, code, holdingRequestDto);
-        } catch (PortfolioNotFoundException | StockNotFoundException e) {
-            String message = e instanceof PortfolioNotFoundException ?
-                    "포트폴리오 정보를 찾을 수 없습니다." :
-                    "주식 정보를 찾을 수 없습니다.";
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
-        }
-
-        return ResponseEntity.ok().build();
-    }
-
     // 10. 개별 종목 추가 매수
     @PatchMapping("/{pfId}/holding/{code}")
     public ResponseEntity<?> buyAdditionalPortfolioStock(
@@ -131,6 +114,24 @@ public class PortfolioController {
             portfolioService.deletePortfolio(pfId);
         } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    // 18. 개별 종목 추가
+    @PostMapping("/{pfId}/holding/{code}")
+    public ResponseEntity<?> buyPortfolioStock(
+            @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto) {
+
+        try {
+            portfolioService.buyStock(pfId, code, holdingRequestDto);
+        } catch (PortfolioNotFoundException | StockNotFoundException e) {
+            String message = e instanceof PortfolioNotFoundException ?
+                    "포트폴리오 정보를 찾을 수 없습니다." :
+                    "주식 정보를 찾을 수 없습니다.";
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
         }
 
         return ResponseEntity.ok().build();
