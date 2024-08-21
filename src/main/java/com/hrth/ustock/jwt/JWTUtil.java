@@ -40,7 +40,11 @@ public class JWTUtil {
     }
 
     public Boolean isExpired(String token) {
-        return getPayload(token).getExpiration().before(new Date());
+        try {
+            return getPayload(token).getExpiration().before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;
+        }
     }
 
     public String createJwt(String category, Long userId, String provider, String providerId, String role, Long expiredMs) {
