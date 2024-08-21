@@ -1,6 +1,7 @@
 package com.hrth.ustock.controller;
 
-import com.hrth.ustock.dto.stock.StockListDTO;
+import com.hrth.ustock.dto.chart.ChartResponseDto;
+import com.hrth.ustock.dto.stock.StockDto;
 import com.hrth.ustock.dto.stock.StockResponseDto;
 import com.hrth.ustock.exception.ChartNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
@@ -12,12 +13,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/stocks")
 public class StockController {
     private final StockService stockService;
+
+    private static final String DATE_PATTERN = "^[0-9]{4}/[0-9]{2}/[0-9]{2}$";
+    private static final Pattern pattern = Pattern.compile(DATE_PATTERN);
 
     @GetMapping
     public ResponseEntity<?> stockList(@RequestParam String order) {
@@ -36,10 +41,14 @@ public class StockController {
 
     // 6. 종목 검색
     @GetMapping("/search")
-    public ResponseEntity<StockListDTO> searchStock(@RequestParam String query) {
+    public ResponseEntity<?> searchStock(@RequestParam String query) {
+
+        if(query.length() > 10) {
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
-            StockListDTO stockList = stockService.findByStockName(query);
+            List<StockDto> stockList = stockService.findByStockName(query);
             return ResponseEntity.ok(stockList);
         } catch (StockNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -59,6 +68,22 @@ public class StockController {
         return ResponseEntity.ok(stockResponseDto);
     }
 
+    // 15. 종목 차트 조회
+    @GetMapping("/{code}/chart")
+    public ResponseEntity<?> getStockChart(
+            @PathVariable String code, @RequestParam int period, @RequestParam String start, @RequestParam String end) {
+
+        if (!pattern.matcher(start).matches() || !pattern.matcher(end).matches() ||
+                period < 1 || period > 4 || code.length()!=6) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<ChartResponseDto> list = stockService.getStockChartAndNews(code, period, start, end);
+        return ResponseEntity.ok(list);
+
+    }
+
+    //
     @GetMapping("/market")
     public ResponseEntity<?> marketInformation() {
         Map<String, Object> marketInfo;
