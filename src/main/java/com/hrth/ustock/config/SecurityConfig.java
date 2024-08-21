@@ -68,6 +68,13 @@ public class SecurityConfig {
                 // 로그아웃 필터
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class)
 
+                // 경로별 인가 작업 - 개발중 테스트용 /**,
+                // TODO: 배포할땐 제거해야함
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/**").permitAll()
+                        .anyRequest().authenticated())
+                .csrf(AbstractHttpConfigurer::disable)
+
                 // 세션 설정 : STATELESS
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
