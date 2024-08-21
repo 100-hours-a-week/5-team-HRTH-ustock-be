@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PortfolioRequestDTO {
+public class PortfolioRequestDto {
     private String name;
 }
