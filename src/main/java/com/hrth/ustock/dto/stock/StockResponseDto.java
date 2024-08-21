@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class StockResponseDto {
     private String code;
     private String name;
+    private String logo;
     private int price;
     private int change;
     private double changeRate;
