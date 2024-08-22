@@ -5,7 +5,10 @@ import com.hrth.ustock.dto.chart.ChartResponseDto;
 import com.hrth.ustock.dto.stock.MarketResponseDto;
 import com.hrth.ustock.dto.stock.StockDto;
 import com.hrth.ustock.dto.stock.StockResponseDto;
+import com.hrth.ustock.entity.portfolio.Chart;
+import com.hrth.ustock.entity.portfolio.News;
 import com.hrth.ustock.entity.portfolio.Stock;
+import com.hrth.ustock.exception.ChartNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.repository.ChartRepository;
 import com.hrth.ustock.repository.NewsRepository;
@@ -92,6 +95,7 @@ public class StockService {
             changeSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "change");
             rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
         }
+
         return StockResponseDto.builder()
                 .code(stock.getCode())
                 .name(stock.getName())
@@ -103,46 +107,66 @@ public class StockService {
     }
 
     // 15. 종목 차트 조회
-    public List<ChartResponseDto> getStockChartAndNews(String code, int period, String start, String end) {
-        // 1: 일봉, 2: 주봉, 3: 월봉, 4: 연봉
+    public List<ChartResponseDto> getStockChartAndNews(String code, int period) {
+        // 1: 일봉, 2: 주봉, 3: 월봉
+        String start = dateConverter.getStartDateOneYearAgo();
+        String end = dateConverter.getCurrentDate();
         return switch (period) {
-            case 1 -> getChartByRangeList(code, dateConverter.getDailyRanges(start, end));
-            case 2 -> getChartByRangeList(code, dateConverter.getWeeklyRanges(start, end));
-            case 3 -> getChartByRangeList(code, dateConverter.getMonthlyRanges(start, end));
-            case 4 -> getChartByRangeList(code, dateConverter.getYearlyRanges(start, end));
+            case 1 -> getChartByRangeList(code, dateConverter.getDailyRanges(start, end), start, end);
+            case 2 -> getChartByRangeList(code, dateConverter.getWeeklyRanges(start, end), start, end);
+            case 3 -> getChartByRangeList(code, dateConverter.getMonthlyRanges(start, end), start, end);
             default -> null;
         };
     }
 
     // chart, news 범위 조회
-    private List<ChartResponseDto> getChartByRangeList(String code, List<Pair<String, String>> dateList) {
+    private List<ChartResponseDto> getChartByRangeList(String code, List<Pair<String, String>> dateList, String start, String end) {
         List<ChartResponseDto> chartListResponse = new ArrayList<>();
-        for (Pair<String, String> data : dateList) {
-            ChartResponseDto chartResponseDTO = new ChartResponseDto();
-            chartResponseDTO.setCandle(ChartDto.builder().build());
-            chartResponseDTO.setNews(new ArrayList<>());
-            chartResponseDTO.getCandle().setHigh(0);
-            chartResponseDTO.getCandle().setLow(1000000000);
+        List<Chart> chartList = chartRepository.findAllByStockCodeAndDateBetween(code, start, end);
+        List<News> newsList = newsRepository.findAllByStockCodeAndDateBetween(code, start, end);
 
-            chartRepository.findAllByStockCodeAndDateBetween(code, data.getFirst(), data.getSecond()).forEach(chart -> {
-                chartResponseDTO.setDate(data.getFirst());
-                if (chart.getDate().equals(data.getFirst())) {
-                    chartResponseDTO.getCandle().setOpen(chart.getOpen());
-                }
-                if (chart.getDate().equals(data.getSecond())) {
-                    chartResponseDTO.getCandle().setClose(chart.getClose());
-                }
-                if (chart.getHigh() > chartResponseDTO.getCandle().getHigh()) {
-                    chartResponseDTO.getCandle().setHigh(chart.getHigh());
-                }
-                if (chart.getLow() < chartResponseDTO.getCandle().getLow()) {
-                    chartResponseDTO.getCandle().setLow(chart.getLow());
-                }
-            });
-            newsRepository.findAllByStockCodeAndDateBetween(code, data.getFirst(), data.getSecond()).forEach(news -> {
-                chartResponseDTO.getNews().add(news.toEmbedDto());
-            });
-            chartListResponse.add(chartResponseDTO);
+        if (chartList == null || chartList.isEmpty()) {
+            throw new ChartNotFoundException();
+        }
+
+        for (Pair<String, String> data : dateList) {
+            String startDate = data.getFirst();
+            String endDate = data.getSecond();
+
+            ChartResponseDto chartResponseDto = new ChartResponseDto();
+            chartResponseDto.setCandle(ChartDto.builder().build());
+            chartResponseDto.setNews(new ArrayList<>());
+            chartResponseDto.getCandle().setHigh(0);
+            chartResponseDto.getCandle().setLow(10000000);
+            chartResponseDto.setDate(startDate);
+
+            chartList.stream()
+                    .filter(chart ->
+                            chart.getDate().compareTo(startDate) >= 0 && chart.getDate().compareTo(endDate) <= 0)
+                    .forEach(chart -> {
+                        if (chart.getDate().equals(startDate)) {
+                            chartResponseDto.getCandle().setOpen(chart.getOpen());
+                        }
+                        if (chart.getDate().equals(endDate)) {
+                            chartResponseDto.getCandle().setClose(chart.getClose());
+                        }
+                        if (chart.getHigh() > chartResponseDto.getCandle().getHigh()) {
+                            chartResponseDto.getCandle().setHigh(chart.getHigh());
+                        }
+                        if (chart.getLow() < chartResponseDto.getCandle().getLow()) {
+                            chartResponseDto.getCandle().setLow(chart.getLow());
+                        }
+                    });
+
+            if (chartResponseDto.getCandle().getHigh() == 0) {
+                continue;
+            }
+
+            newsList.stream()
+                    .filter(news ->
+                            news.getDate().compareTo(startDate) >= 0 && news.getDate().compareTo(endDate) <= 0)
+                    .forEach(news -> chartResponseDto.getNews().add(news.toEmbedDto()));
+            chartListResponse.add(chartResponseDto);
         }
         return chartListResponse;
     }

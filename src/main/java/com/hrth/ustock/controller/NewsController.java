@@ -2,6 +2,7 @@ package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.news.NewsResponseDto;
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
+import com.hrth.ustock.exception.HoldingNotFoundException;
 import com.hrth.ustock.service.NewsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +23,12 @@ public class NewsController {
     @GetMapping("/my")
     public ResponseEntity<?> myHoldingsNews(Authentication authentication) {
 
-        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
-        List<NewsResponseDto> list = newsService.findHoldingNews(customUserDetails.getUserId());
-        return ResponseEntity.ok(list);
+        try{
+            CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+            List<NewsResponseDto> list = newsService.findHoldingNews(customUserDetails.getUserId());
+            return ResponseEntity.ok(list);
+        } catch (HoldingNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

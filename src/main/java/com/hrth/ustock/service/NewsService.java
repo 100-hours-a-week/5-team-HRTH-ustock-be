@@ -2,6 +2,7 @@ package com.hrth.ustock.service;
 
 import com.hrth.ustock.dto.news.NewsResponseDto;
 import com.hrth.ustock.entity.portfolio.Holding;
+import com.hrth.ustock.exception.HoldingNotFoundException;
 import com.hrth.ustock.repository.HoldingRepository;
 import com.hrth.ustock.repository.NewsRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,10 @@ public class NewsService {
 
     public List<NewsResponseDto> findHoldingNews(Long userId) {
         List<Holding> holdings = holdingRepository.findAllByUserUserId(userId);
+
+        if(holdings == null || holdings.isEmpty()) {
+            throw new HoldingNotFoundException();
+        }
 
         List<String> codes = new ArrayList<>();
         List<NewsResponseDto> newsList = new ArrayList<>();

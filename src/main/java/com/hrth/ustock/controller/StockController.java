@@ -85,14 +85,15 @@ public class StockController {
     // 15. 종목 차트 조회
     @GetMapping("/{code}/chart")
     public ResponseEntity<?> getStockChart(
-            @PathVariable String code, @RequestParam int period, @RequestParam String start, @RequestParam String end) {
-
-        if (!pattern.matcher(start).matches() || !pattern.matcher(end).matches() ||
-                period < 1 || period > 4 || code.length() != 6) {
+            @PathVariable String code, @RequestParam int period) {
+        if (period < 1 || period > 3) {
             return ResponseEntity.badRequest().build();
         }
-
-        List<ChartResponseDto> list = stockService.getStockChartAndNews(code, period, start, end);
-        return ResponseEntity.ok(list);
+        try {
+            List<ChartResponseDto> list = stockService.getStockChartAndNews(code, period);
+            return ResponseEntity.ok(list);
+        } catch (ChartNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("차트 정보를 조회할 수 없습니다.");
+        }
     }
 }
