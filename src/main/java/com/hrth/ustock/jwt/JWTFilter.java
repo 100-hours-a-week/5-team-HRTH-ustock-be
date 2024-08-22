@@ -104,7 +104,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 .provider(jwtUtil.getProvider(access))
                 .providerId(jwtUtil.getProviderId(access))
                 .providerName(jwtUtil.getProviderName(access))
-                .picture(jwtUtil.getProviderImage(access))
+                .profile(jwtUtil.getProviderImage(access))
                 .role(jwtUtil.getRole(access))
                 .build();
 
@@ -125,8 +125,8 @@ public class JWTFilter extends OncePerRequestFilter {
         cookie.setMaxAge(COOKIE_EXPIRE);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setDomain(".ustock.site");
+//        cookie.setSecure(true);
+//        cookie.setDomain(".ustock.site");
         return cookie;
     }
 }

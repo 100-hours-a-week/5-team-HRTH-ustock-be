@@ -35,7 +35,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
-        // jwt를 만들 때 role, userId, provider, providerId 값으로 jwt를 만들었으니 그 값을 가져오기
+        // role, userId, provider, providerId, providerName, providerImage 값 가져오기
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
@@ -46,7 +46,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 customUserDetails.getUserOauthDTO().getProvider(),
                 customUserDetails.getUserOauthDTO().getProviderId(),
                 customUserDetails.getName(),
-                customUserDetails.getPicture(),
+                customUserDetails.getProfile(),
                 auth.getAuthority(),
                 ACCESS_EXPIRE
         );
@@ -56,7 +56,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 customUserDetails.getUserOauthDTO().getProvider(),
                 customUserDetails.getUserOauthDTO().getProviderId(),
                 customUserDetails.getName(),
-                customUserDetails.getPicture(),
+                customUserDetails.getProfile(),
                 auth.getAuthority(),
                 REFRESH_EXPIRE
         );
@@ -71,8 +71,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(createCookie("access", access));
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
-        response.sendRedirect("https://ustock.site");
-//        response.sendRedirect("http://localhost:3000/");
+//        response.sendRedirect("https://ustock.site");
+        response.sendRedirect("http://localhost:3000/auth/callback");
     }
 
     private Cookie createCookie(String key, String value) {
@@ -80,8 +80,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         cookie.setMaxAge(COOKIE_EXPIRE);
         cookie.setSecure(true);
         cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setDomain(".ustock.site");
+//        cookie.setHttpOnly(true);
+//        cookie.setDomain(".ustock.site");
         return cookie;
     }
 }

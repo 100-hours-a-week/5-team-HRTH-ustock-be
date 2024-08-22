@@ -59,13 +59,13 @@ public class User {
                 .provider(this.provider)
                 .providerId(this.providerId)
                 .providerName(this.providerName)
-                .picture(this.providerImage)
+                .profile(this.providerImage)
                 .role(this.role)
                 .build();
     }
 
     public void updateUserOAuth(UserOauthDto userOauthDto) {
-        this.providerImage = userOauthDto.getPicture();
+        this.providerImage = userOauthDto.getProfile();
         this.providerName = userOauthDto.getProviderName();
     }
 

@@ -19,6 +19,7 @@ import com.hrth.ustock.repository.PortfolioRepository;
 import com.hrth.ustock.repository.StockRepository;
 import com.hrth.ustock.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +28,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PortfolioService {
-    private static final int CURRENT_TEMP = 100_000;
-
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
     private final HoldingRepository holdingRepository;
     private final StockRepository stockRepository;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final StockService stockService;
 
     @Transactional(readOnly = true)
     public PortfolioListDto getPortfolioList(Long userId) {
@@ -44,7 +45,6 @@ public class PortfolioService {
             throw new PortfolioNotFoundException();
 
         list.forEach(p -> {
-            // TODO: 현재가 반영
             refreshPortfolio(p);
             portfolioListDto.setBudget(portfolioListDto.getBudget() + p.getBudget());
             portfolioListDto.setPrincipal(portfolioListDto.getPrincipal() + p.getPrincipal());
@@ -64,7 +64,6 @@ public class PortfolioService {
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
         List<Holding> holdings = portfolio.getHoldings();
 
-        // TODO: 현재가 추가 필요
         refreshPortfolio(portfolio);
         if (holdings == null || holdings.isEmpty()) {
             portfolioResponseDto.setName(portfolio.getName());
@@ -74,8 +73,14 @@ public class PortfolioService {
         // 현재가 반영전까진 현재 정보 기준으로 ror 계산
         // 현재가 반영후에는 현재가로 ret 갱신, ror 계산 후 save
         holdings.forEach(h -> {
-            Stock stock = h.getStock();
-            long ret = (long) h.getQuantity() * CURRENT_TEMP - (long) h.getQuantity() * h.getAverage();
+            String currentSaved = (String) redisTemplate.opsForHash().get(h.getStock().getCode(), "current");
+
+            if (currentSaved == null) {
+                stockService.cacheCurrentChangeChangeRate(h.getStock().getCode());
+                currentSaved = (String) redisTemplate.opsForHash().get(h.getStock().getCode(), "current");
+            }
+
+            long ret = (long) h.getQuantity() * Integer.parseInt(currentSaved) - (long) h.getQuantity() * h.getAverage();
 
             HoldingEmbedDto holdingEmbedDto = HoldingEmbedDto.builder()
                     .code(stock.getCode())
@@ -148,6 +153,7 @@ public class PortfolioService {
     public void deleteHolding(Long pfId, String code) {
 
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
+      
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
         holdingRepository.delete(target);
@@ -171,8 +177,6 @@ public class PortfolioService {
 
     @Transactional
     protected void refreshPortfolio(Portfolio portfolio) {
-
-        // TODO: 현재가 변경 - holdings의 stock별 현재가
         PortfolioUpdateDto portfolioUpdateDto = new PortfolioUpdateDto();
         List<Holding> list = portfolio.getHoldings();
 
@@ -180,8 +184,15 @@ public class PortfolioService {
 
         // budget = 원금+수익, principal = 갯수+평단가, ret = 갯수+현재가
         list.forEach(h -> {
+            String currentSaved = (String) redisTemplate.opsForHash().get(h.getStock().getCode(), "current");
+
+            if (currentSaved == null) {
+                stockService.cacheCurrentChangeChangeRate(h.getStock().getCode());
+                currentSaved = (String) redisTemplate.opsForHash().get(h.getStock().getCode(), "current");
+            }
+
             long before = (long) h.getQuantity() * h.getAverage();
-            long after = (long) h.getQuantity() * PortfolioService.CURRENT_TEMP;
+            long after = (long) h.getQuantity() * Integer.parseInt(currentSaved);
             portfolioUpdateDto.setPrincipal(portfolioUpdateDto.getPrincipal() + before);
             portfolioUpdateDto.setRet(portfolioUpdateDto.getRet() + after - before);
         });

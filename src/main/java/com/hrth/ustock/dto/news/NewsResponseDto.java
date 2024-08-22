@@ -13,6 +13,7 @@ public class NewsResponseDto {
     private String name;
     private String code;
     private String title;
+    private String date;
     private String url;
-    private String company;
+    private String publisher;
 }
