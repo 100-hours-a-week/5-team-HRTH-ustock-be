@@ -24,11 +24,11 @@ public class PortfolioController {
 
     // 7. 포트폴리오 생성
     @PostMapping
-    public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDTO portfolioRequestDTO, Authentication authentication) {
+    public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDto portfolioRequestDto, Authentication authentication) {
 
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
         try {
-            portfolioService.addPortfolio(portfolioRequestDTO, customUserDetails.getUserId());
+            portfolioService.addPortfolio(portfolioRequestDto, customUserDetails.getUserId());
             return ResponseEntity.ok().build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
