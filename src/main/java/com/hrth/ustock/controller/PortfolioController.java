@@ -21,14 +21,19 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/portfolio")
 public class PortfolioController {
     private final PortfolioService portfolioService;
+    private static final long TEMP_USER_ID = 7L;
 
     // 7. 포트폴리오 생성
     @PostMapping
     public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDto portfolioRequestDto, Authentication authentication) {
 
-        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        CustomOAuth2User customUserDetails;
+        if(authentication != null) {
+            customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        }
+
         try {
-            portfolioService.addPortfolio(portfolioRequestDto, customUserDetails.getUserId());
+            portfolioService.addPortfolio(portfolioRequestDto, TEMP_USER_ID);
             return ResponseEntity.ok().build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -39,9 +44,13 @@ public class PortfolioController {
     @GetMapping
     public ResponseEntity<?> showPortfolioList(Authentication authentication) {
 
-        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        CustomOAuth2User customUserDetails;
+        if(authentication != null) {
+            customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        }
+
         try {
-            PortfolioListDto list = portfolioService.getPortfolioList(customUserDetails.getUserId());
+            PortfolioListDto list = portfolioService.getPortfolioList(TEMP_USER_ID);
             return ResponseEntity.ok().body(list);
         } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -68,6 +77,7 @@ public class PortfolioController {
         if (holdingRequestDto.getQuantity() <= 0 || holdingRequestDto.getPrice() <= 0) {
             return ResponseEntity.badRequest().build();
         }
+
         try {
             portfolioService.additionalBuyStock(pfId, code, holdingRequestDto);
             return ResponseEntity.ok().build();

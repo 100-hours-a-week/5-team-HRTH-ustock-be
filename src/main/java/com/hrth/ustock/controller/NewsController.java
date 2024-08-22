@@ -18,14 +18,19 @@ import java.util.List;
 @RequestMapping("/v1/news")
 public class NewsController {
     private final NewsService newsService;
+    private static final long TEMP_USER_ID = 7L;
 
     // 3. 나만의 뉴스
     @GetMapping("/my")
     public ResponseEntity<?> myHoldingsNews(Authentication authentication) {
 
+        CustomOAuth2User customUserDetails;
+        if(authentication != null) {
+            customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        }
+
         try{
-            CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
-            List<NewsResponseDto> list = newsService.findHoldingNews(customUserDetails.getUserId());
+            List<NewsResponseDto> list = newsService.findHoldingNews(TEMP_USER_ID);
             return ResponseEntity.ok(list);
         } catch (HoldingNotFoundException e) {
             return ResponseEntity.notFound().build();

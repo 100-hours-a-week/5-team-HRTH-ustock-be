@@ -225,7 +225,7 @@ public class StockService {
 
         int range = "top".equals(order) ? TOP_RANK_RANGE : responseList.size();
         for (int i = 0; i < range; i++) {
-            stockList.add(makeStockResponseDto(responseList.get(i)));
+            stockList.add(makeStockResponseDto(responseList.get(i), order));
         }
 
         Map<String, List<StockResponseDto>> stockMap = new HashMap<>();
@@ -349,8 +349,10 @@ public class StockService {
         return (Map<String, String>) response.get("output");
     }
 
-    private StockResponseDto makeStockResponseDto(Map<String, String> responseMap) {
-        Stock stock = stockRepository.findByCode(responseMap.get(STOCK_CODE)).orElseThrow(StockNotFoundException::new);
+    private StockResponseDto makeStockResponseDto(Map<String, String> responseMap, String order) {
+        String stockCode = "change".equals(order) ? CHANGE_STOCK_CODE : STOCK_CODE;
+
+        Stock stock = stockRepository.findByCode(responseMap.get(stockCode)).orElseThrow(StockNotFoundException::new);
 
         return StockResponseDto.builder()
                 .name(responseMap.get(STOCK_NAME))
@@ -362,6 +364,7 @@ public class StockService {
                 .build();
     }
 
+    // 16. 스껄계산기
     public SkrrrCalculatorResponseDto calculateSkrrr(String code, SkrrrCalculatorRequestDto requestDto) {
         Map<String, String> redisMap = cacheCurrentChangeChangeRate(code);
 
@@ -373,6 +376,26 @@ public class StockService {
         String startDate = originDate.minusDays(5).format(newFormatter);
         String endDate = originDate.format(newFormatter);
 
+        // 주식 상장일자 체크
+        String publicParams = "PRDT_TYPE_CD=300" +
+                "PDNO" + code;
+
+        Map publicResponse = restClient.get()
+                .uri("/uapi/domestic-stock/v1/quotations/search-stock-info" + publicParams)
+                .headers(setRequestHeaders("CTPF1002R"))
+                .retrieve()
+                .body(Map.class);
+
+        Map<String, String> publicOutput = (Map<String, String>) publicResponse.get("output");
+
+        String publicDate = publicOutput.get("scts_mket_lstg_dt");
+        String privateDate = publicOutput.get("scts_mket_lstg_abol_dt");
+
+        if(publicDate.compareTo(startDate) > 0 || privateDate.compareTo(endDate) < 0 ) {
+            throw new StockNotPublicException();
+        }
+
+        // 과거 주식시세 요청
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_input_iscd=" + code +
                 "&fid_input_date_1=" + startDate +
@@ -396,9 +419,6 @@ public class StockService {
                 if (map.get(close) != null)
                     previous = map.get(close);
             }
-
-            // 위의 로직을 거쳤음에도 null이면 그 당시에는 상장되지 않은 것임
-            if (previous == null) throw new StockNotPublicException();
         }
 
         int currentPrice = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
