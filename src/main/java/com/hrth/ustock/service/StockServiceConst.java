@@ -11,6 +11,7 @@ public interface StockServiceConst {
     // 종목 순위
     String STOCK_NAME = "hts_kor_isnm";
     String STOCK_CODE = "mksc_shrn_iscd";
+    String CHANGE_STOCK_CODE = "stck_shrn_iscd";
     String STOCK_CURRENT_PRICE = "stck_prpr";
     String CHANGE_FROM_PREVIOUS_STOCK = "prdy_vrss";
     String CHANGE_RATE_FROM_PREVIOUS_STOCK = "prdy_ctrt";
