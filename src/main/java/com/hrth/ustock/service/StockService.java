@@ -91,6 +91,7 @@ public class StockService {
             changeSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "change");
             rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
         }
+
         return StockResponseDto.builder()
                 .code(stock.getCode())
                 .name(stock.getName())
@@ -102,13 +103,12 @@ public class StockService {
     }
 
     // 15. 종목 차트 조회
-    public List<ChartResponseDto> getStockChartAndNews(String code, int period, String start, String end) {
-        // 1: 일봉, 2: 주봉, 3: 월봉, 4: 연봉
+    public List<ChartResponseDto> getStockChartAndNews(String code, int period) {
+        // 1: 일봉, 2: 주봉, 3: 월봉
         return switch (period) {
-            case 1 -> getChartByRangeList(code, dateConverter.getDailyRanges(start, end));
-            case 2 -> getChartByRangeList(code, dateConverter.getWeeklyRanges(start, end));
-            case 3 -> getChartByRangeList(code, dateConverter.getMonthlyRanges(start, end));
-            case 4 -> getChartByRangeList(code, dateConverter.getYearlyRanges(start, end));
+            case 1 -> getChartByRangeList(code, dateConverter.getDailyRanges());
+            case 2 -> getChartByRangeList(code, dateConverter.getWeeklyRanges());
+            case 3 -> getChartByRangeList(code, dateConverter.getMonthlyRanges());
             default -> null;
         };
     }
@@ -116,6 +116,7 @@ public class StockService {
     // chart, news 범위 조회
     private List<ChartResponseDto> getChartByRangeList(String code, List<Pair<String, String>> dateList) {
         List<ChartResponseDto> chartListResponse = new ArrayList<>();
+
         for (Pair<String, String> data : dateList) {
             ChartResponseDto chartResponseDTO = new ChartResponseDto();
             chartResponseDTO.setCandle(ChartDto.builder().build());

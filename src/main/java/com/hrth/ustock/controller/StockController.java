@@ -85,14 +85,13 @@ public class StockController {
     // 15. 종목 차트 조회
     @GetMapping("/{code}/chart")
     public ResponseEntity<?> getStockChart(
-            @PathVariable String code, @RequestParam int period, @RequestParam String start, @RequestParam String end) {
+            @PathVariable String code, @RequestParam int period) {
 
-        if (!pattern.matcher(start).matches() || !pattern.matcher(end).matches() ||
-                period < 1 || period > 4 || code.length() != 6) {
+        if (period < 1 || period > 3) {
             return ResponseEntity.badRequest().build();
         }
 
-        List<ChartResponseDto> list = stockService.getStockChartAndNews(code, period, start, end);
+        List<ChartResponseDto> list = stockService.getStockChartAndNews(code, period);
         return ResponseEntity.ok(list);
     }
 }
