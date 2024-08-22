@@ -2,11 +2,11 @@ package com.hrth.ustock.service;
 
 import com.hrth.ustock.dto.chart.ChartDto;
 import com.hrth.ustock.dto.chart.ChartResponseDto;
-import com.hrth.ustock.dto.stock.MarketResponseDto;
-import com.hrth.ustock.dto.stock.StockDto;
-import com.hrth.ustock.dto.stock.StockResponseDto;
+import com.hrth.ustock.dto.stock.*;
+import com.hrth.ustock.entity.portfolio.Chart;
 import com.hrth.ustock.entity.portfolio.Stock;
 import com.hrth.ustock.exception.StockNotFoundException;
+import com.hrth.ustock.exception.StockNotPublicException;
 import com.hrth.ustock.repository.ChartRepository;
 import com.hrth.ustock.repository.NewsRepository;
 import com.hrth.ustock.repository.StockRepository;
@@ -14,6 +14,7 @@ import com.hrth.ustock.util.DateConverter;
 import com.hrth.ustock.util.KisApiAuthManager;
 import com.hrth.ustock.util.RedisTTLCalculator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,10 +34,14 @@ import java.util.function.Consumer;
 
 import static com.hrth.ustock.service.StockServiceConst.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StockService {
-    public static final int TOP_RANK_RANGE = 5;
+    private static final int TOP_RANK_RANGE = 5;
+    private static final String REDIS_CURRENT_KEY = "current";
+    public static final String REDIS_CHANGE_KEY = "change";
+    public static final String REDIS_CHANGE_RATE_KEY = "changeRate";
 
     private final StockRepository stockRepository;
     private final ChartRepository chartRepository;
@@ -59,8 +66,8 @@ public class StockService {
 
         List<StockDto> stockDtoList = new ArrayList<>();
         for (Stock stock : list) {
-            String currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "current");
-            String rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
+            String currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), REDIS_CURRENT_KEY);
+            String rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), REDIS_CHANGE_RATE_KEY);
 
             if (currentSaved == null || rateSaved == null) {
                 cacheCurrentChangeChangeRate(stock.getCode());
@@ -82,7 +89,7 @@ public class StockService {
     public StockResponseDto getStockInfo(String code) {
         Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
 
-        String currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "current");
+        String currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), REDIS_CURRENT_KEY);
         String changeSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "change");
         String rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
 
@@ -205,15 +212,37 @@ public class StockService {
     }
 
     // 현재가, 전일대비, 전일 대비 부호, 전일 대비율 조회
-    public void cacheCurrentChangeChangeRate(String code) {
+    protected Map<String, String> cacheCurrentChangeChangeRate(String code) {
         Map<String, String> response = requestPrice(code);
+
+        String current = (String) redisTemplate.opsForHash().get(code, REDIS_CURRENT_KEY);
+        String change = (String) redisTemplate.opsForHash().get(code, REDIS_CHANGE_KEY);
+        String changeRate = (String) redisTemplate.opsForHash().get(code, REDIS_CHANGE_RATE_KEY);
+
+        if (current != null && change != null && changeRate != null) {
+            return Map.of(
+                    "current", current,
+                    "change", change,
+                    "changeRate", changeRate
+            );
+        }
 
         long second = redisTTLCalculator.calculateTTLForMidnightKST();
 
-        redisTemplate.opsForHash().put(code, "current", response.get(STOCK_CURRENT_PRICE));
-        redisTemplate.opsForHash().put(code, "change", response.get(CHANGE_FROM_PREVIOUS_STOCK));
-        redisTemplate.opsForHash().put(code, "changeRate", response.get(CHANGE_RATE_FROM_PREVIOUS_STOCK));
+        String savedCurrent = response.get(STOCK_CURRENT_PRICE);
+        String savedChange = response.get(CHANGE_FROM_PREVIOUS_STOCK);
+        String savedChangeRate = response.get(CHANGE_RATE_FROM_PREVIOUS_STOCK);
+
+        redisTemplate.opsForHash().put(code, REDIS_CURRENT_KEY, savedCurrent);
+        redisTemplate.opsForHash().put(code, REDIS_CHANGE_KEY, savedChange);
+        redisTemplate.opsForHash().put(code, REDIS_CHANGE_RATE_KEY, savedChangeRate);
         redisTemplate.expire(code, second, TimeUnit.SECONDS);
+
+        return Map.of(
+                "current", savedCurrent,
+                "change", savedChange,
+                "changeRate", savedChangeRate
+        );
     }
 
     private List<Map<String, String>> requestOrderByTrade() {
@@ -307,6 +336,67 @@ public class StockService {
                 .price(Integer.parseInt(responseMap.get(STOCK_CURRENT_PRICE)))
                 .change(Integer.parseInt(responseMap.get(CHANGE_FROM_PREVIOUS_STOCK)))
                 .changeRate(Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_STOCK)))
+                .build();
+    }
+
+    public SkrrrCalculatorResponseDto calculateSkrrr(String code, SkrrrCalculatorRequestDto requestDto) {
+        Map<String, String> redisMap = cacheCurrentChangeChangeRate(code);
+
+        String date = requestDto.getDate();
+        DateTimeFormatter originFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        LocalDate originDate = LocalDate.parse(date, originFormatter);
+        DateTimeFormatter newFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        String startDate = originDate.minusDays(5).format(newFormatter);
+        String endDate = originDate.format(newFormatter);
+
+        String queryParams = "?fid_cond_mrkt_div_code=J" +
+                "&fid_input_iscd=" + code +
+                "&fid_input_date_1=" + startDate +
+                "&fid_input_date_2=" + endDate +
+                "&fid_period_div_code=D" +
+                "&fid_org_adj_prc=1";
+
+        Map response = restClient.get()
+                .uri("/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice" + queryParams)
+                .headers(setRequestHeaders("FHKST03010100"))
+                .retrieve()
+                .body(Map.class);
+
+        List<Map<String, String>> output = (List<Map<String, String>>) response.get("output2");
+
+        String close = "stck_clpr";
+        String previous = output.get(0).get(close);
+
+        if (previous == null) {
+            for (Map<String, String> map : output) {
+                if (map.get(close) != null)
+                    previous = map.get(close);
+            }
+
+            // 위의 로직을 거쳤음에도 null이면 그 당시에는 상장되지 않은 것임
+            if (previous == null) throw new StockNotPublicException();
+        }
+
+        int currentPrice = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
+        int previousPrice = Integer.parseInt(previous);
+        int quantity = (int) (requestDto.getPrice() / currentPrice);
+
+        long ret = (long) (currentPrice - previousPrice) * quantity;
+
+        int candy = 500;
+        int soul = 9_000;
+        int chicken = 23_000;
+        int iphone = 1_400_000;
+        int slave = 9_860;
+
+        return SkrrrCalculatorResponseDto.builder()
+                .price(ret)
+                .candy(String.valueOf(ret / candy))
+                .soul(String.valueOf(ret / soul))
+                .chicken(String.valueOf(ret / chicken))
+                .iphone(String.valueOf(ret / iphone))
+                .slave(String.valueOf(ret / slave))
                 .build();
     }
 
