@@ -3,7 +3,7 @@ package com.hrth.ustock.service;
 import com.hrth.ustock.dto.holding.HoldingEmbedDto;
 import com.hrth.ustock.dto.holding.HoldingRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioListDto;
-import com.hrth.ustock.dto.portfolio.PortfolioRequestDTO;
+import com.hrth.ustock.dto.portfolio.PortfolioRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
 import com.hrth.ustock.dto.portfolio.PortfolioUpdateDto;
 import com.hrth.ustock.entity.User;
@@ -83,11 +83,12 @@ public class PortfolioService {
             long ret = (long) h.getQuantity() * Integer.parseInt(currentSaved) - (long) h.getQuantity() * h.getAverage();
 
             HoldingEmbedDto holdingEmbedDto = HoldingEmbedDto.builder()
-                    .code(h.getStock().getCode())
-                    .name(h.getStock().getName())
+                    .code(stock.getCode())
+                    .name(stock.getName())
+                    .logo(stock.getLogo())
                     .quantity(h.getQuantity())
                     .average(h.getAverage())
-                    .ror((h.getQuantity() * h.getAverage() == 0) ? 0.0 : (double) ret / (h.getQuantity() * h.getAverage()) * 100)
+                    .ror((h.getQuantity() * h.getAverage() == 0) ? 0.0 : (double) ret / ((long) h.getQuantity() * h.getAverage()) * 100)
                     .build();
             portfolioResponseDto.getStocks().add(holdingEmbedDto);
         });
@@ -101,11 +102,11 @@ public class PortfolioService {
     }
 
     @Transactional
-    public void addPortfolio(PortfolioRequestDTO portfolioRequestDTO, Long userId) {
+    public void addPortfolio(PortfolioRequestDto portfolioRequestDto, Long userId) {
 
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Portfolio portfolio = Portfolio.builder()
-                .name(portfolioRequestDTO.getName())
+                .name(portfolioRequestDto.getName())
                 .user(user)
                 .budget(0L)
                 .principal(0L)
@@ -152,7 +153,7 @@ public class PortfolioService {
     public void deleteHolding(Long pfId, String code) {
 
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
-
+      
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
         holdingRepository.delete(target);

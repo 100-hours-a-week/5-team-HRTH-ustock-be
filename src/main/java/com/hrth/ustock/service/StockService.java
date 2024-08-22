@@ -297,9 +297,12 @@ public class StockService {
     }
 
     private StockResponseDto makeStockResponseDto(Map<String, String> responseMap) {
+        Stock stock = stockRepository.findByCode(responseMap.get(STOCK_CODE)).orElseThrow(StockNotFoundException::new);
+
         return StockResponseDto.builder()
                 .name(responseMap.get(STOCK_NAME))
                 .code(responseMap.get(STOCK_CODE))
+                .logo(stock.getLogo())
                 .price(Integer.parseInt(responseMap.get(STOCK_CURRENT_PRICE)))
                 .change(Integer.parseInt(responseMap.get(CHANGE_FROM_PREVIOUS_STOCK)))
                 .changeRate(Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_STOCK)))

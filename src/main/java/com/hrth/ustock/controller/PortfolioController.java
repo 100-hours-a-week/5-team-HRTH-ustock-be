@@ -3,7 +3,7 @@ package com.hrth.ustock.controller;
 import com.hrth.ustock.dto.holding.HoldingRequestDto;
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.portfolio.PortfolioListDto;
-import com.hrth.ustock.dto.portfolio.PortfolioRequestDTO;
+import com.hrth.ustock.dto.portfolio.PortfolioRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
 import com.hrth.ustock.exception.HoldingNotFoundException;
 import com.hrth.ustock.exception.PortfolioNotFoundException;
