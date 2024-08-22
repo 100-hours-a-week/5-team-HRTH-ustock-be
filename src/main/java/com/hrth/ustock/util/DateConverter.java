@@ -13,10 +13,10 @@ import java.util.List;
 public class DateConverter {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
-    public List<Pair<String, String>> getDailyRanges() {
+    public List<Pair<String, String>> getDailyRanges(String start, String end) {
         List<Pair<String, String>> ranges = new ArrayList<>();
-        LocalDate current = getLocalDate(getStartDateOneYearAgo());
-        LocalDate endDate = getLocalDate(getCurrentDate());
+        LocalDate current = getLocalDate(start);
+        LocalDate endDate = getLocalDate(end);
         while (!current.isAfter(endDate)) {
             ranges.add(Pair.of(current.format(formatter), current.format(formatter)));
             current = current.plusDays(1);
@@ -24,10 +24,10 @@ public class DateConverter {
         return ranges;
     }
 
-    public List<Pair<String, String>> getWeeklyRanges() {
+    public List<Pair<String, String>> getWeeklyRanges(String start, String end) {
         List<Pair<String, String>> ranges = new ArrayList<>();
-        LocalDate current = getLocalDate(getStartDateOneYearAgo());
-        LocalDate endDate = getLocalDate(getCurrentDate());
+        LocalDate current = getLocalDate(start);
+        LocalDate endDate = getLocalDate(end);
         while (!current.isAfter(endDate)) {
             LocalDate weekStart = getWeekStart(current);
             LocalDate weekEnd = getWeekEnd(current);
@@ -37,10 +37,10 @@ public class DateConverter {
         return ranges;
     }
 
-    public List<Pair<String, String>> getMonthlyRanges() {
+    public List<Pair<String, String>> getMonthlyRanges(String start, String end) {
         List<Pair<String, String>> ranges = new ArrayList<>();
-        LocalDate current = getLocalDate(getStartDateOneYearAgo());
-        LocalDate endDate = getLocalDate(getCurrentDate());
+        LocalDate current = getLocalDate(start);
+        LocalDate endDate = getLocalDate(end);
         while (!current.isAfter(endDate)) {
             LocalDate monthStart = getMonthStart(current);
             LocalDate monthEnd = getMonthEnd(current);

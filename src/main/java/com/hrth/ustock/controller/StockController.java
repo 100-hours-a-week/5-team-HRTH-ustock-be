@@ -86,12 +86,14 @@ public class StockController {
     @GetMapping("/{code}/chart")
     public ResponseEntity<?> getStockChart(
             @PathVariable String code, @RequestParam int period) {
-
         if (period < 1 || period > 3) {
             return ResponseEntity.badRequest().build();
         }
-
-        List<ChartResponseDto> list = stockService.getStockChartAndNews(code, period);
-        return ResponseEntity.ok(list);
+        try {
+            List<ChartResponseDto> list = stockService.getStockChartAndNews(code, period);
+            return ResponseEntity.ok(list);
+        } catch (ChartNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("차트 정보를 조회할 수 없습니다.");
+        }
     }
 }
