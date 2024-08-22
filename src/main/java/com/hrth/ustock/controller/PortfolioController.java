@@ -1,6 +1,7 @@
 package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.holding.HoldingRequestDto;
+import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.portfolio.PortfolioListDto;
 import com.hrth.ustock.dto.portfolio.PortfolioRequestDTO;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
@@ -12,6 +13,7 @@ import com.hrth.ustock.service.PortfolioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,15 +21,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/portfolio")
 public class PortfolioController {
     private final PortfolioService portfolioService;
-    private static final long tempUserId = 7L;
 
     // 7. 포트폴리오 생성
     @PostMapping
-    public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDTO portfolioRequestDTO) {
+    public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDTO portfolioRequestDTO, Authentication authentication) {
 
-        // TODO: 스프링 시큐리티로 유저 아이디 받아서 넘기기 userId
+        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
         try {
-            portfolioService.addPortfolio(portfolioRequestDTO, tempUserId);
+            portfolioService.addPortfolio(portfolioRequestDTO, customUserDetails.getUserId());
             return ResponseEntity.ok().build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -36,11 +37,11 @@ public class PortfolioController {
 
     // 8. 포트폴리오 리스트 조회
     @GetMapping
-    public ResponseEntity<?> showPortfolioList() {
+    public ResponseEntity<?> showPortfolioList(Authentication authentication) {
 
-        // TODO: 스프링 시큐리티로 유저 아이디 받아서 넘기기 userId
+        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
         try {
-            PortfolioListDto list = portfolioService.getPortfolioList(tempUserId);
+            PortfolioListDto list = portfolioService.getPortfolioList(customUserDetails.getUserId());
             return ResponseEntity.ok().body(list);
         } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();

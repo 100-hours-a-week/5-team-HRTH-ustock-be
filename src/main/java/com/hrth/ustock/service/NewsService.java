@@ -2,7 +2,6 @@ package com.hrth.ustock.service;
 
 import com.hrth.ustock.dto.news.NewsResponseDto;
 import com.hrth.ustock.entity.portfolio.Holding;
-import com.hrth.ustock.entity.portfolio.Stock;
 import com.hrth.ustock.repository.HoldingRepository;
 import com.hrth.ustock.repository.NewsRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,7 @@ public class NewsService {
         List<String> codes = new ArrayList<>();
         List<NewsResponseDto> newsList = new ArrayList<>();
 
-        for(Holding holding : holdings) {
+        for (Holding holding : holdings) {
             codes.add(holding.getStock().getCode());
         }
 

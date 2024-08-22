@@ -47,7 +47,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             // provider 로부터 변경된 user 정보 update
             UserOauthDto userOauthDTO = UserOauthDto.builder()
                     .providerName(oAuth2User.getAttribute("name"))
-                    .picture(oAuth2User.getAttribute("picture"))
+                    .profile(oAuth2User.getAttribute("picture"))
                     .build();
             existData.updateUserOAuth(userOauthDTO);
             return new CustomOAuth2User(existData.toOAuthDto());
