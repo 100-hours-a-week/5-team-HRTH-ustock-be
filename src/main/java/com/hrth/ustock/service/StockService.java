@@ -48,9 +48,10 @@ public class StockService {
 
     // 6. 종목 검색
     @Transactional
-    public List<StockDto> findByStockName(String str) {
+    public List<StockDto> findByStockName(String name) {
 
-        List<Stock> list = stockRepository.findAllByNameContaining(str);
+        List<Stock> list = stockRepository.findByNameStartingWith(name);
+        list.addAll(stockRepository.findByNameContainingButNotStartingWith(name));
 
         if (list == null || list.isEmpty()) {
             throw new StockNotFoundException();
