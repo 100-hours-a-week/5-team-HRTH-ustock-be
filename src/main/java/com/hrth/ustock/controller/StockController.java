@@ -1,10 +1,13 @@
 package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.chart.ChartResponseDto;
+import com.hrth.ustock.dto.stock.SkrrrCalculatorRequestDto;
+import com.hrth.ustock.dto.stock.SkrrrCalculatorResponseDto;
 import com.hrth.ustock.dto.stock.StockDto;
 import com.hrth.ustock.dto.stock.StockResponseDto;
 import com.hrth.ustock.exception.ChartNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
+import com.hrth.ustock.exception.StockNotPublicException;
 import com.hrth.ustock.service.StockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -95,5 +98,17 @@ public class StockController {
         } catch (ChartNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("차트 정보를 조회할 수 없습니다.");
         }
+    }
+
+    @GetMapping("/{code}/skrrr")
+    public ResponseEntity<?> skrrrCalculator(@PathVariable String code, @ModelAttribute SkrrrCalculatorRequestDto requestDto) {
+        SkrrrCalculatorResponseDto skrrrCalculatorResponseDto;
+        try {
+            skrrrCalculatorResponseDto= stockService.calculateSkrrr(code, requestDto);
+        } catch (StockNotPublicException e) {
+            return ResponseEntity.badRequest().body("해당 주식이 상장되지 않은 날짜입니다.");
+        }
+
+        return ResponseEntity.ok(skrrrCalculatorResponseDto);
     }
 }

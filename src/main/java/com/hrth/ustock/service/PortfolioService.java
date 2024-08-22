@@ -24,10 +24,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class PortfolioService {
+    public static final String REDIS_CURRENT_KEY = "current";
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
     private final HoldingRepository holdingRepository;
@@ -73,22 +75,22 @@ public class PortfolioService {
         // 현재가 반영전까진 현재 정보 기준으로 ror 계산
         // 현재가 반영후에는 현재가로 ret 갱신, ror 계산 후 save
         holdings.forEach(h -> {
-            String currentSaved = (String) redisTemplate.opsForHash().get(h.getStock().getCode(), "current");
+            Map<String, String> redisMap =  stockService.cacheCurrentChangeChangeRate(h.getStock().getCode());
 
-            if (currentSaved == null) {
-                stockService.cacheCurrentChangeChangeRate(h.getStock().getCode());
-                currentSaved = (String) redisTemplate.opsForHash().get(h.getStock().getCode(), "current");
-            }
+            int quantity = h.getQuantity();
+            int average = h.getAverage();
+            int current = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
+            long ret = (long) quantity * current - (long) quantity * average;
 
-            long ret = (long) h.getQuantity() * Integer.parseInt(currentSaved) - (long) h.getQuantity() * h.getAverage();
 
+            Stock stock = h.getStock();
             HoldingEmbedDto holdingEmbedDto = HoldingEmbedDto.builder()
                     .code(stock.getCode())
                     .name(stock.getName())
                     .logo(stock.getLogo())
-                    .quantity(h.getQuantity())
-                    .average(h.getAverage())
-                    .ror((h.getQuantity() * h.getAverage() == 0) ? 0.0 : (double) ret / ((long) h.getQuantity() * h.getAverage()) * 100)
+                    .quantity(quantity)
+                    .average(average)
+                    .ror((quantity * average == 0) ? 0.0 : (double) ret / ((long) quantity * average) * 100)
                     .build();
             portfolioResponseDto.getStocks().add(holdingEmbedDto);
         });
@@ -191,15 +193,11 @@ public class PortfolioService {
 
         // budget = 원금+수익, principal = 갯수+평단가, ret = 갯수+현재가
         list.forEach(h -> {
-            String currentSaved = (String) redisTemplate.opsForHash().get(h.getStock().getCode(), "current");
-
-            if (currentSaved == null) {
-                stockService.cacheCurrentChangeChangeRate(h.getStock().getCode());
-                currentSaved = (String) redisTemplate.opsForHash().get(h.getStock().getCode(), "current");
-            }
+            Map<String, String> redisMap = stockService.cacheCurrentChangeChangeRate(h.getStock().getCode());
+            int current = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
 
             long before = (long) h.getQuantity() * h.getAverage();
-            long after = (long) h.getQuantity() * Integer.parseInt(currentSaved);
+            long after = (long) h.getQuantity() * current;
             portfolioUpdateDto.setPrincipal(portfolioUpdateDto.getPrincipal() + before);
             portfolioUpdateDto.setRet(portfolioUpdateDto.getRet() + after - before);
         });
