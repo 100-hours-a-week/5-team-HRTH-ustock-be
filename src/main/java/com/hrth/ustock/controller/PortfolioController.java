@@ -28,7 +28,7 @@ public class PortfolioController {
     public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDto portfolioRequestDto, Authentication authentication) {
 
         if(authentication == null) {
-            return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
@@ -45,7 +45,7 @@ public class PortfolioController {
     public ResponseEntity<?> showPortfolioList(Authentication authentication) {
 
         if(authentication == null) {
-            return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
