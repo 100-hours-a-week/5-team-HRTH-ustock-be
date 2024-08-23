@@ -8,7 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -17,7 +16,6 @@ import java.util.Map;
 @Slf4j
 @Component
 public class KisApiAuthManager {
-    public static final String TOKEN_KEY = "kis_api_token";
 
     @Getter
     private final String appKey;
@@ -41,11 +39,16 @@ public class KisApiAuthManager {
     }
 
     public String generateToken() {
-        String findToken = redisTemplate.opsForValue().get(TOKEN_KEY);
+        String findToken = redisTemplate.opsForValue().get("ACCESS_TOKEN");
+        String findTokenExpire = redisTemplate.opsForValue().get("ACCESS_TOKEN_EXPIRE");
 
-        log.info("Finding Token: {}", findToken);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime expireDate = LocalDateTime.parse(findTokenExpire, formatter);
+        LocalDateTime now = LocalDateTime.now();
 
-        if (findToken != null) return findToken;
+        log.info("expire date: {}, now: {}", expireDate, now);
+
+        if (!expireDate.isBefore(now)) return findToken;
 
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("grant_type", "client_credentials");
@@ -62,9 +65,8 @@ public class KisApiAuthManager {
         String token = (String) response.get("access_token");
         String tokenExpired = (String) response.get("access_token_token_expired");
 
-        redisTemplate.opsForValue().set(TOKEN_KEY, token);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        redisTemplate.expireAt(TOKEN_KEY, Instant.from(LocalDateTime.parse(tokenExpired, formatter)));
+        redisTemplate.opsForValue().set("ACCESS_TOKEN", token);
+        redisTemplate.opsForValue().set("ACCESS_TOKEN_EXPIRE", tokenExpired);
 
         log.info("Token Created: {}", token);
         return token;
