@@ -10,15 +10,13 @@ import com.hrth.ustock.entity.User;
 import com.hrth.ustock.entity.portfolio.Holding;
 import com.hrth.ustock.entity.portfolio.Portfolio;
 import com.hrth.ustock.entity.portfolio.Stock;
-import com.hrth.ustock.exception.HoldingNotFoundException;
-import com.hrth.ustock.exception.PortfolioNotFoundException;
-import com.hrth.ustock.exception.StockNotFoundException;
-import com.hrth.ustock.exception.UserNotFoundException;
+import com.hrth.ustock.exception.*;
 import com.hrth.ustock.repository.HoldingRepository;
 import com.hrth.ustock.repository.PortfolioRepository;
 import com.hrth.ustock.repository.StockRepository;
 import com.hrth.ustock.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
+import static com.hrth.ustock.service.StockServiceConst.*;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PortfolioService {
-    public static final String REDIS_CURRENT_KEY = "current";
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
     private final HoldingRepository holdingRepository;
@@ -66,17 +66,19 @@ public class PortfolioService {
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
         List<Holding> holdings = portfolio.getHoldings();
 
-        refreshPortfolio(portfolio);
         if (holdings == null || holdings.isEmpty()) {
             portfolioResponseDto.setName(portfolio.getName());
             return portfolioResponseDto;
         }
+        refreshPortfolio(portfolio);
 
-        // 현재가 반영전까진 현재 정보 기준으로 ror 계산
-        // 현재가 반영후에는 현재가로 ret 갱신, ror 계산 후 save
-        holdings.forEach(h -> {
-            Map<String, String> redisMap =  stockService.cacheCurrentChangeChangeRate(h.getStock().getCode());
-
+        // 현재가로 ret 갱신, ror 계산 후 save
+        for(Holding h : holdings) {
+            Map<String, String> redisMap =  stockService.getCurrentChangeChangeRate(h.getStock().getCode());
+            if(redisMap == null) {
+                log.info("no current for stock: {}", h.getStock().getCode());
+                continue;
+            }
             int quantity = h.getQuantity();
             int average = h.getAverage();
             int current = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
@@ -93,7 +95,7 @@ public class PortfolioService {
                     .ror((quantity * average == 0) ? 0.0 : (double) ret / ((long) quantity * average) * 100)
                     .build();
             portfolioResponseDto.getStocks().add(holdingEmbedDto);
-        });
+        }
 
         portfolioResponseDto.setName(portfolio.getName());
         portfolioResponseDto.setBudget(portfolio.getBudget());
@@ -192,15 +194,19 @@ public class PortfolioService {
         if (list == null || list.isEmpty()) return;
 
         // budget = 원금+수익, principal = 갯수+평단가, ret = 갯수+현재가
-        list.forEach(h -> {
-            Map<String, String> redisMap = stockService.cacheCurrentChangeChangeRate(h.getStock().getCode());
+        for(Holding h : list) {
+            Map<String, String> redisMap = stockService.getCurrentChangeChangeRate(h.getStock().getCode());
+            if(redisMap == null) {
+                log.info("no current for stock: {}", h.getStock().getCode());
+                continue;
+            }
             int current = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
 
             long before = (long) h.getQuantity() * h.getAverage();
             long after = (long) h.getQuantity() * current;
             portfolioUpdateDto.setPrincipal(portfolioUpdateDto.getPrincipal() + before);
             portfolioUpdateDto.setRet(portfolioUpdateDto.getRet() + after - before);
-        });
+        }
 
         portfolioUpdateDto.setBudget(portfolioUpdateDto.getPrincipal() + portfolioUpdateDto.getRet());
         portfolio.updatePortfolio(portfolioUpdateDto);

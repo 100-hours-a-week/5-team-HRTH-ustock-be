@@ -6,6 +6,7 @@ import com.hrth.ustock.dto.stock.SkrrrCalculatorResponseDto;
 import com.hrth.ustock.dto.stock.StockDto;
 import com.hrth.ustock.dto.stock.StockResponseDto;
 import com.hrth.ustock.exception.ChartNotFoundException;
+import com.hrth.ustock.exception.CurrentNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.exception.StockNotPublicException;
 import com.hrth.ustock.service.StockService;
@@ -25,7 +26,6 @@ public class StockController {
     private final StockService stockService;
 
     private static final String DATE_PATTERN = "^[0-9]{4}/[0-9]{2}/[0-9]{2}$";
-    private static final Pattern pattern = Pattern.compile(DATE_PATTERN);
 
     // 4. 오늘의 증시 정보 조회
     @GetMapping("/market")
@@ -80,6 +80,8 @@ public class StockController {
             stockResponseDto = stockService.getStockInfo(code);
         } catch (ChartNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("차트 정보를 조회할 수 없습니다.");
+        } catch (CurrentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("종목 정보를 조회할 수 없습니다.");
         }
 
         return ResponseEntity.ok(stockResponseDto);
@@ -107,6 +109,8 @@ public class StockController {
             skrrrCalculatorResponseDto= stockService.calculateSkrrr(code, requestDto);
         } catch (StockNotPublicException e) {
             return ResponseEntity.badRequest().body("해당 주식이 상장되지 않은 날짜입니다.");
+        } catch (CurrentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("종목 정보를 조회할 수 없습니다.");
         }
 
         return ResponseEntity.ok(skrrrCalculatorResponseDto);

@@ -7,6 +7,7 @@ import com.hrth.ustock.entity.portfolio.Chart;
 import com.hrth.ustock.entity.portfolio.News;
 import com.hrth.ustock.entity.portfolio.Stock;
 import com.hrth.ustock.exception.ChartNotFoundException;
+import com.hrth.ustock.exception.CurrentNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.exception.StockNotPublicException;
 import com.hrth.ustock.repository.ChartRepository;
@@ -31,7 +32,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.hrth.ustock.service.StockServiceConst.*;
@@ -59,27 +59,27 @@ public class StockService {
         List<Stock> list = stockRepository.findByNameStartingWith(name);
         list.addAll(stockRepository.findByNameContainingButNotStartingWith(name));
 
-        if (list == null || list.isEmpty()) {
+        if (list.isEmpty()) {
             throw new StockNotFoundException();
         }
 
         List<StockDto> stockDtoList = new ArrayList<>();
         for (Stock stock : list) {
-            String currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), REDIS_CURRENT_KEY);
-            String rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), REDIS_CHANGE_RATE_KEY);
+            Map<String, String> redisMap = getCurrentChangeChangeRate(stock.getCode());
 
-            if (currentSaved == null || rateSaved == null) {
-                cacheCurrentChangeChangeRate(stock.getCode());
-                currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "current");
-                rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
+            if(redisMap == null) {
+                log.info("no current for stock: {}", stock.getCode());
+                continue;
             }
+
+            String currentSaved = redisMap.get(REDIS_CURRENT_KEY);
+            String rateSaved = redisMap.get(REDIS_CHANGE_RATE_KEY);
 
             StockDto stockDTO = stock.toDto();
             stockDTO.setPrice(Integer.parseInt(currentSaved));
             stockDTO.setChangeRate(Double.parseDouble(rateSaved));
             stockDtoList.add(stockDTO);
         }
-
         return stockDtoList;
     }
 
@@ -88,16 +88,15 @@ public class StockService {
     public StockResponseDto getStockInfo(String code) {
         Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
 
-        String currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), REDIS_CURRENT_KEY);
-        String changeSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "change");
-        String rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
-
-        if (currentSaved == null || changeSaved == null || rateSaved == null) {
-            cacheCurrentChangeChangeRate(stock.getCode());
-            currentSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "current");
-            changeSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "change");
-            rateSaved = (String) redisTemplate.opsForHash().get(stock.getCode(), "changeRate");
+        Map<String, String> redisMap = getCurrentChangeChangeRate(stock.getCode());
+        if(redisMap == null) {
+            log.info("no current for stock: {}", stock.getCode());
+            throw new CurrentNotFoundException();
         }
+
+        String currentSaved = redisMap.get(REDIS_CURRENT_KEY);
+        String changeSaved = redisMap.get(REDIS_CHANGE_KEY);
+        String rateSaved = redisMap.get(REDIS_CHANGE_RATE_KEY);
 
         return StockResponseDto.builder()
                 .code(stock.getCode())
@@ -238,9 +237,7 @@ public class StockService {
     }
 
     // 현재가, 전일대비, 전일 대비 부호, 전일 대비율 조회
-    protected Map<String, String> cacheCurrentChangeChangeRate(String code) {
-        Map<String, String> response = requestPrice(code);
-
+    protected Map<String, String> getCurrentChangeChangeRate(String code) {
         String current = (String) redisTemplate.opsForHash().get(code, REDIS_CURRENT_KEY);
         String change = (String) redisTemplate.opsForHash().get(code, REDIS_CHANGE_KEY);
         String changeRate = (String) redisTemplate.opsForHash().get(code, REDIS_CHANGE_RATE_KEY);
@@ -251,24 +248,9 @@ public class StockService {
                     "change", change,
                     "changeRate", changeRate
             );
+        } else {
+            return null;
         }
-
-        long second = redisTTLCalculator.calculateTTLForMidnightKST();
-
-        String savedCurrent = response.get(STOCK_CURRENT_PRICE);
-        String savedChange = response.get(CHANGE_FROM_PREVIOUS_STOCK);
-        String savedChangeRate = response.get(CHANGE_RATE_FROM_PREVIOUS_STOCK);
-
-        redisTemplate.opsForHash().put(code, REDIS_CURRENT_KEY, savedCurrent);
-        redisTemplate.opsForHash().put(code, REDIS_CHANGE_KEY, savedChange);
-        redisTemplate.opsForHash().put(code, REDIS_CHANGE_RATE_KEY, savedChangeRate);
-        redisTemplate.expire(code, second, TimeUnit.SECONDS);
-
-        return Map.of(
-                "current", savedCurrent,
-                "change", savedChange,
-                "changeRate", savedChangeRate
-        );
     }
 
     private List<Map<String, String>> requestOrderByTrade() {
@@ -369,7 +351,6 @@ public class StockService {
 
     // 16. 스껄계산기
     public SkrrrCalculatorResponseDto calculateSkrrr(String code, SkrrrCalculatorRequestDto requestDto) {
-        Map<String, String> redisMap = cacheCurrentChangeChangeRate(code);
 
         String date = requestDto.getDate();
         DateTimeFormatter originFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
@@ -428,6 +409,11 @@ public class StockService {
             throw new StockNotPublicException();
         }
 
+        // 현재가 기반 계산
+        Map<String, String> redisMap = getCurrentChangeChangeRate(code);
+        if(redisMap == null) {
+            throw new CurrentNotFoundException();
+        }
         int currentPrice = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
         int previousPrice = Integer.parseInt(previous);
         int quantity = (int) (requestDto.getPrice() / currentPrice);

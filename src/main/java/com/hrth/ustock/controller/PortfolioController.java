@@ -12,6 +12,7 @@ import com.hrth.ustock.exception.UserNotFoundException;
 import com.hrth.ustock.service.PortfolioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +28,13 @@ public class PortfolioController {
     @PostMapping
     public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDto portfolioRequestDto, Authentication authentication) {
 
-        CustomOAuth2User customUserDetails;
-        if(authentication != null) {
-            customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        if(authentication == null) {
+            return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
         }
+        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
         try {
-            portfolioService.addPortfolio(portfolioRequestDto, TEMP_USER_ID);
+            portfolioService.addPortfolio(portfolioRequestDto, customUserDetails.getUserId());
             return ResponseEntity.ok().build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
