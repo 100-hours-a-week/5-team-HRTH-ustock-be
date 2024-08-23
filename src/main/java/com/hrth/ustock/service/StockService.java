@@ -41,9 +41,6 @@ import static com.hrth.ustock.service.StockServiceConst.*;
 @RequiredArgsConstructor
 public class StockService {
     private static final int TOP_RANK_RANGE = 5;
-    private static final String REDIS_CURRENT_KEY = "current";
-    public static final String REDIS_CHANGE_KEY = "change";
-    public static final String REDIS_CHANGE_RATE_KEY = "changeRate";
 
     private final StockRepository stockRepository;
     private final ChartRepository chartRepository;
@@ -378,7 +375,7 @@ public class StockService {
 
         // 주식 상장일자 체크
         String publicParams = "PRDT_TYPE_CD=300" +
-                "PDNO" + code;
+                "&PDNO=" + code;
 
         Map publicResponse = restClient.get()
                 .uri("/uapi/domestic-stock/v1/quotations/search-stock-info" + publicParams)
