@@ -163,11 +163,7 @@ public class StockService {
                 continue;
             } else if (chartResponseDto.getCandle().getOpen() == 0) {
                 // 시가 0으로 반환하지 않도록 수정
-                while (chartResponseDto.getCandle().getOpen() == 0) {
-                    chartList.forEach(chart -> {
-                        chartResponseDto.getCandle().setHigh(chart.getOpen());
-                    });
-                }
+                chartResponseDto.getCandle().setOpen(chartList.get(0).getOpen());
             }
 
             newsList.stream()
