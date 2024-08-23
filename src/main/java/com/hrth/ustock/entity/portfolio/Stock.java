@@ -26,7 +26,7 @@ public class Stock {
 
     private String logo;
 
-    public StockDto toDTO() {
+    public StockDto toDto() {
         return StockDto.builder()
                 .code(this.code)
                 .name(this.name)

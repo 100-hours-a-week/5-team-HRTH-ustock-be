@@ -77,6 +77,8 @@ public class JWTFilter extends OncePerRequestFilter {
             Long userId = jwtUtil.getUserId(refresh);
             String provider = jwtUtil.getProvider(refresh);
             String providerId = jwtUtil.getProviderId(refresh);
+            String providerName = jwtUtil.getProviderName(refresh);
+            String providerImage = jwtUtil.getProviderImage(refresh);
             String role = jwtUtil.getRole(refresh);
 
             // Redis에서 해당 Refresh Token이 유효한지 확인
@@ -86,8 +88,8 @@ public class JWTFilter extends OncePerRequestFilter {
                 return;
             }
 
-            String newAccessToken = jwtUtil.createJwt("access", userId, provider, providerId, role, ACCESS_EXPIRE);
-            String newRefreshToken = jwtUtil.createJwt("refresh", userId, provider, providerId, role, REFRESH_EXPIRE);
+            String newAccessToken = jwtUtil.createJwt("access", userId, provider, providerId, providerName, providerImage, role, ACCESS_EXPIRE);
+            String newRefreshToken = jwtUtil.createJwt("refresh", userId, provider, providerId, providerName, providerImage, role, REFRESH_EXPIRE);
 
             // Redis에 새 Refresh Token 저장
             redisTemplate.opsForValue().set("RT:" + userId, newRefreshToken, REFRESH_EXPIRE, TimeUnit.MILLISECONDS);
@@ -101,6 +103,8 @@ public class JWTFilter extends OncePerRequestFilter {
                 .userId(jwtUtil.getUserId(access))
                 .provider(jwtUtil.getProvider(access))
                 .providerId(jwtUtil.getProviderId(access))
+                .providerName(jwtUtil.getProviderName(access))
+                .profile(jwtUtil.getProviderImage(access))
                 .role(jwtUtil.getRole(access))
                 .build();
 
@@ -119,9 +123,9 @@ public class JWTFilter extends OncePerRequestFilter {
     private Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(COOKIE_EXPIRE);
-        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
+        cookie.setSecure(true);
         cookie.setDomain(".ustock.site");
         return cookie;
     }

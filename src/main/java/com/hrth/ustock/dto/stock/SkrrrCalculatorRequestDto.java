@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.portfolio;
+package com.hrth.ustock.dto.stock;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class PortfolioRequestDTO {
-    private String name;
+@AllArgsConstructor
+public class SkrrrCalculatorRequestDto {
+    private long price;
+    private String date;
 }

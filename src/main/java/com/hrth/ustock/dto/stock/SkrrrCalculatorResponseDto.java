@@ -9,10 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StockDto {
-    private String code;
-    private String name;
-    private String logo;
-    private int price;
-    private double changeRate;
+public class SkrrrCalculatorResponseDto {
+    private long price;
+    private String candy;
+    private String soul;
+    private String chicken;
+    private String iphone;
+    private String slave;
 }

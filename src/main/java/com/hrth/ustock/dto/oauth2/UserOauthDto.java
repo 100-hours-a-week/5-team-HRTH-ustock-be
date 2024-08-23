@@ -11,5 +11,5 @@ public class UserOauthDto {
     private String provider;
     private String providerId;
     private String providerName;
-    private String picture;
+    private String profile;
 }

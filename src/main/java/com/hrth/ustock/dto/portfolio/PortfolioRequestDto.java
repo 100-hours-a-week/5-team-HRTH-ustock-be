@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.holding;
+package com.hrth.ustock.dto.portfolio;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,11 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class HoldingEmbedDto {
-    private String code;
+public class PortfolioRequestDto {
     private String name;
-    private String logo;
-    private int quantity;
-    private int average;
-    private double ror;
 }

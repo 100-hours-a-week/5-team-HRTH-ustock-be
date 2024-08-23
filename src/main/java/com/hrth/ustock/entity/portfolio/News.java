@@ -1,5 +1,7 @@
 package com.hrth.ustock.entity.portfolio;
 
+import com.hrth.ustock.dto.news.NewsEmbedDto;
+import com.hrth.ustock.dto.news.NewsResponseDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,11 +24,29 @@ public class News {
     private Stock stock;
 
     @Column(name = "news_date")
-    private Long time;
+    private String date;
 
     private String title;
 
     private String url;
 
     private String publisher;
+
+    public NewsEmbedDto toEmbedDto() {
+        return NewsEmbedDto.builder()
+                .title(this.title)
+                .url(this.url)
+                .build();
+    }
+
+    public NewsResponseDto toResponseDto() {
+        return NewsResponseDto.builder()
+                .title(this.title)
+                .url(this.url)
+                .publisher(this.publisher)
+                .date(this.date)
+                .code(this.stock.getCode())
+                .name(this.stock.getName())
+                .build();
+    }
 }
