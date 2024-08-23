@@ -8,10 +8,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -40,15 +39,8 @@ public class KisApiAuthManager {
 
     public String generateToken() {
         String findToken = redisTemplate.opsForValue().get("ACCESS_TOKEN");
-        String findTokenExpire = redisTemplate.opsForValue().get("ACCESS_TOKEN_EXPIRE");
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime expireDate = LocalDateTime.parse(findTokenExpire, formatter);
-        LocalDateTime now = LocalDateTime.now();
-
-        log.info("expire date: {}, now: {}", expireDate, now);
-
-        if (!expireDate.isBefore(now)) return findToken;
+        log.info("token: {}", findToken);
+        if (findToken != null) return findToken;
 
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("grant_type", "client_credentials");
@@ -63,10 +55,10 @@ public class KisApiAuthManager {
                 .body(Map.class);
 
         String token = (String) response.get("access_token");
-        String tokenExpired = (String) response.get("access_token_token_expired");
+        int tokenExpired = (Integer) response.get("expires_in");
 
         redisTemplate.opsForValue().set("ACCESS_TOKEN", token);
-        redisTemplate.opsForValue().set("ACCESS_TOKEN_EXPIRE", tokenExpired);
+        redisTemplate.expire("ACCESS_TOKEN", tokenExpired, TimeUnit.SECONDS);
 
         log.info("Token Created: {}", token);
         return token;
