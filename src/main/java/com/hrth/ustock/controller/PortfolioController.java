@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/portfolio")
 public class PortfolioController {
     private final PortfolioService portfolioService;
-    private static final long TEMP_USER_ID = 7L;
 
     // 7. 포트폴리오 생성
     @PostMapping
@@ -45,13 +44,13 @@ public class PortfolioController {
     @GetMapping
     public ResponseEntity<?> showPortfolioList(Authentication authentication) {
 
-        CustomOAuth2User customUserDetails;
-        if(authentication != null) {
-            customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        if(authentication == null) {
+            return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
         }
+        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
         try {
-            PortfolioListDto list = portfolioService.getPortfolioList(TEMP_USER_ID);
+            PortfolioListDto list = portfolioService.getPortfolioList(customUserDetails.getUserId());
             return ResponseEntity.ok().body(list);
         } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();

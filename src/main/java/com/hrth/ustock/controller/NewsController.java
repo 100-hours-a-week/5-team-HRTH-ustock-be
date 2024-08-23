@@ -20,7 +20,6 @@ import java.util.List;
 @RequestMapping("/v1/news")
 public class NewsController {
     private final NewsService newsService;
-    private static final long TEMP_USER_ID = 7L;
 
     // 3. 나만의 뉴스
     @GetMapping("/user")

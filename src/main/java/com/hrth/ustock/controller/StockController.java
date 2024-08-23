@@ -25,8 +25,6 @@ import java.util.regex.Pattern;
 public class StockController {
     private final StockService stockService;
 
-    private static final String DATE_PATTERN = "^[0-9]{4}/[0-9]{2}/[0-9]{2}$";
-
     // 4. 오늘의 증시 정보 조회
     @GetMapping("/market")
     public ResponseEntity<?> marketInformation() {
@@ -59,10 +57,6 @@ public class StockController {
     // 6. 종목 검색
     @GetMapping("/search")
     public ResponseEntity<?> searchStock(@RequestParam String query) {
-
-        if (query.length() > 10) {
-            return ResponseEntity.badRequest().build();
-        }
 
         try {
             List<StockDto> stockList = stockService.findByStockName(query);
@@ -104,15 +98,13 @@ public class StockController {
 
     @GetMapping("/{code}/skrrr")
     public ResponseEntity<?> skrrrCalculator(@PathVariable String code, @ModelAttribute SkrrrCalculatorRequestDto requestDto) {
-        SkrrrCalculatorResponseDto skrrrCalculatorResponseDto;
         try {
-            skrrrCalculatorResponseDto= stockService.calculateSkrrr(code, requestDto);
+            SkrrrCalculatorResponseDto skrrrCalculatorResponseDto = stockService.calculateSkrrr(code, requestDto);
+            return ResponseEntity.ok(skrrrCalculatorResponseDto);
         } catch (StockNotPublicException e) {
             return ResponseEntity.badRequest().body("해당 주식이 상장되지 않은 날짜입니다.");
         } catch (CurrentNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("종목 정보를 조회할 수 없습니다.");
         }
-
-        return ResponseEntity.ok(skrrrCalculatorResponseDto);
     }
 }
