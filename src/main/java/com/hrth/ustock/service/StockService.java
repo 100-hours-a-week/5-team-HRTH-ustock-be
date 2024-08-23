@@ -150,9 +150,8 @@ public class StockService {
                         if (chart.getDate().equals(startDate)) {
                             chartResponseDto.getCandle().setOpen(chart.getOpen());
                         }
-                        if (chart.getDate().equals(endDate)) {
-                            chartResponseDto.getCandle().setClose(chart.getClose());
-                        }
+                        // 종가 0으로 반환하지 않도록 수정
+                        chartResponseDto.getCandle().setClose(chart.getClose());
                         if (chart.getHigh() > chartResponseDto.getCandle().getHigh()) {
                             chartResponseDto.getCandle().setHigh(chart.getHigh());
                         }
@@ -163,6 +162,13 @@ public class StockService {
 
             if (chartResponseDto.getCandle().getHigh() == 0) {
                 continue;
+            } else if (chartResponseDto.getCandle().getOpen() == 0) {
+                // 시가 0으로 반환하지 않도록 수정
+                while (chartResponseDto.getCandle().getOpen() == 0) {
+                    chartList.forEach(chart -> {
+                        chartResponseDto.getCandle().setHigh(chart.getOpen());
+                    });
+                }
             }
 
             newsList.stream()
@@ -353,7 +359,7 @@ public class StockService {
 
         return StockResponseDto.builder()
                 .name(responseMap.get(STOCK_NAME))
-                .code(responseMap.get(STOCK_CODE))
+                .code(responseMap.get(stockCode))
                 .logo(stock.getLogo())
                 .price(Integer.parseInt(responseMap.get(STOCK_CURRENT_PRICE)))
                 .change(Integer.parseInt(responseMap.get(CHANGE_FROM_PREVIOUS_STOCK)))
@@ -388,7 +394,7 @@ public class StockService {
         String publicDate = publicOutput.get("scts_mket_lstg_dt");
         String privateDate = publicOutput.get("scts_mket_lstg_abol_dt");
 
-        if(publicDate.compareTo(startDate) > 0 || privateDate.compareTo(endDate) < 0 ) {
+        if (publicDate.compareTo(startDate) > 0 || privateDate.compareTo(endDate) < 0) {
             throw new StockNotPublicException();
         }
 
@@ -416,6 +422,10 @@ public class StockService {
                 if (map.get(close) != null)
                     previous = map.get(close);
             }
+        }
+
+        if (previous == null) {
+            throw new StockNotPublicException();
         }
 
         int currentPrice = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
