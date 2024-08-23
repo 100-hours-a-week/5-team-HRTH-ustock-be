@@ -71,8 +71,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(createCookie("access", access));
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
-//        response.sendRedirect("https://ustock.site");
-        response.sendRedirect("http://localhost:3000/auth/callback");
+        response.sendRedirect("https://ustock.site/auth/callback");
+//        response.sendRedirect("http://localhost:3000/auth/callback");
     }
 
     private Cookie createCookie(String key, String value) {
@@ -80,8 +80,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         cookie.setMaxAge(COOKIE_EXPIRE);
         cookie.setSecure(true);
         cookie.setPath("/");
-//        cookie.setHttpOnly(true);
-//        cookie.setDomain(".ustock.site");
+        cookie.setHttpOnly(true);
+        cookie.setDomain(".ustock.site");
         return cookie;
     }
 }

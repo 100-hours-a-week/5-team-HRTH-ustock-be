@@ -12,6 +12,7 @@ import com.hrth.ustock.exception.UserNotFoundException;
 import com.hrth.ustock.service.PortfolioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -21,19 +22,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/portfolio")
 public class PortfolioController {
     private final PortfolioService portfolioService;
-    private static final long TEMP_USER_ID = 7L;
 
     // 7. 포트폴리오 생성
     @PostMapping
     public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDto portfolioRequestDto, Authentication authentication) {
 
-        CustomOAuth2User customUserDetails;
-        if(authentication != null) {
-            customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        if(authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
         try {
-            portfolioService.addPortfolio(portfolioRequestDto, TEMP_USER_ID);
+            portfolioService.addPortfolio(portfolioRequestDto, customUserDetails.getUserId());
             return ResponseEntity.ok().build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -44,13 +44,13 @@ public class PortfolioController {
     @GetMapping
     public ResponseEntity<?> showPortfolioList(Authentication authentication) {
 
-        CustomOAuth2User customUserDetails;
-        if(authentication != null) {
-            customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        if(authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
         try {
-            PortfolioListDto list = portfolioService.getPortfolioList(TEMP_USER_ID);
+            PortfolioListDto list = portfolioService.getPortfolioList(customUserDetails.getUserId());
             return ResponseEntity.ok().body(list);
         } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();

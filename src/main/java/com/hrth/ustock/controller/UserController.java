@@ -2,6 +2,7 @@ package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.oauth2.UserResponseDto;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,7 +18,7 @@ public class UserController {
     @GetMapping
     public ResponseEntity<?> getUserInfo(Authentication authentication) {
         if(authentication == null) {
-            return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
