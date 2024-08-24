@@ -82,7 +82,7 @@ public class SecurityConfig {
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class)
 
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/v1/stocks", "/v1/stocks/market", "/v1/stocks/").permitAll()
+                        .requestMatchers("/", "/v1/stocks", "/v1/stocks/market", "/v1/stocks/", "/v1/health", "/login", "/login/**").permitAll()
                         .anyRequest().authenticated())
                 // 경로별 인가 작업 - 개발중 테스트용 /**,
 //                .authorizeHttpRequests((auth) -> auth
