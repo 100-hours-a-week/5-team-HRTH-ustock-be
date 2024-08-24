@@ -363,7 +363,7 @@ public class StockService {
         String endDate = originDate.format(newFormatter);
 
         // 주식 상장일자 체크
-        String publicParams = "PRDT_TYPE_CD=300" +
+        String publicParams = "?PRDT_TYPE_CD=300" +
                 "&PDNO=" + code;
 
         Map publicResponse = restClient.get()
@@ -377,7 +377,7 @@ public class StockService {
         String publicDate = publicOutput.get("scts_mket_lstg_dt");
         String privateDate = publicOutput.get("scts_mket_lstg_abol_dt");
 
-        if (publicDate.compareTo(startDate) > 0 || privateDate.compareTo(endDate) < 0) {
+        if (publicDate.compareTo(startDate) > 0 || !"".equals(privateDate)) {
             throw new StockNotPublicException();
         }
 
@@ -387,7 +387,7 @@ public class StockService {
                 "&fid_input_date_1=" + startDate +
                 "&fid_input_date_2=" + endDate +
                 "&fid_period_div_code=D" +
-                "&fid_org_adj_prc=1";
+                "&fid_org_adj_prc=0";
 
         Map response = restClient.get()
                 .uri("/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice" + queryParams)
