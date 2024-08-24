@@ -15,7 +15,6 @@ import com.hrth.ustock.repository.NewsRepository;
 import com.hrth.ustock.repository.StockRepository;
 import com.hrth.ustock.util.DateConverter;
 import com.hrth.ustock.util.KisApiAuthManager;
-import com.hrth.ustock.util.RedisTTLCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -46,7 +45,6 @@ public class StockService {
     private final ChartRepository chartRepository;
     private final NewsRepository newsRepository;
     private final DateConverter dateConverter;
-    private final RedisTTLCalculator redisTTLCalculator;
     private final RedisTemplate<String, String> redisTemplate;
 
     private final RestClient restClient;
@@ -67,7 +65,7 @@ public class StockService {
         for (Stock stock : list) {
             Map<String, String> redisMap = getCurrentChangeChangeRate(stock.getCode());
 
-            if(redisMap == null) {
+            if (redisMap == null) {
                 log.info("no current for stock: {}", stock.getCode());
                 continue;
             }
@@ -89,7 +87,7 @@ public class StockService {
         Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
 
         Map<String, String> redisMap = getCurrentChangeChangeRate(stock.getCode());
-        if(redisMap == null) {
+        if (redisMap == null) {
             log.info("no current for stock: {}", stock.getCode());
             throw new CurrentNotFoundException();
         }
@@ -333,7 +331,15 @@ public class StockService {
     private StockResponseDto makeStockResponseDto(Map<String, String> responseMap, String order) {
         String stockCode = "change".equals(order) ? CHANGE_STOCK_CODE : STOCK_CODE;
 
-        Stock stock = stockRepository.findByCode(responseMap.get(stockCode)).orElseThrow(StockNotFoundException::new);
+        Stock stock = stockRepository.findByCode(responseMap.get(stockCode)).orElse(null);
+        if (stock == null) {
+            stock = stockRepository.save(
+                    Stock.builder()
+                            .name(responseMap.get(STOCK_NAME))
+                            .code(responseMap.get(stockCode))
+                            .build()
+            );
+        }
 
         return StockResponseDto.builder()
                 .name(responseMap.get(STOCK_NAME))
@@ -407,7 +413,7 @@ public class StockService {
 
         // 현재가 기반 계산
         Map<String, String> redisMap = getCurrentChangeChangeRate(code);
-        if(redisMap == null) {
+        if (redisMap == null) {
             throw new CurrentNotFoundException();
         }
         int currentPrice = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
