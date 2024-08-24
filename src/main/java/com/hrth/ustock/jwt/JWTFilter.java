@@ -126,7 +126,7 @@ public class JWTFilter extends OncePerRequestFilter {
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
-        cookie.setDomain(".ustock.site");
+        cookie.setDomain("ustock.site");
         return cookie;
     }
 }

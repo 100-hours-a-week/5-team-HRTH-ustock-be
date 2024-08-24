@@ -23,16 +23,6 @@ public class CronController {
         }
     }
 
-    // 주중 오후 4시에 당일(원주가) 차트 데이터 저장
-    @Scheduled(cron = "0 0 16 ? * MON-FRI")
-    public void setClosedChartData() {
-        try {
-            stockCronService.saveClosedChartData();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     // 화-토 오전 9시 (setChartData와 겹치지 않게 10분 일찍 수행)에 전일(수정주가) 차트 데이터 mysql에 저장, redis 차트 데이터 정리
     @Scheduled(cron = "0 50 08 ? * TUE-SAT")
     public void setEditedChartData() {
@@ -48,16 +38,6 @@ public class CronController {
     public void testChartData() {
         try {
             stockCronService.saveStockChartData();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // 주중 오후 4시에 당일(원주가) 차트 데이터 저장
-    @GetMapping("/test/2")
-    public void testClosedChartData() {
-        try {
-            stockCronService.saveClosedChartData();
         } catch (Exception e) {
             e.printStackTrace();
         }

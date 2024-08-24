@@ -86,19 +86,15 @@ public class StockCronService {
 
             // chart data
             // redis에 json String으로 저장함
-            List<Map<String, String>> charts;
-
             String high = output2.get(0).get(STOCK_HIGH);
             String low = output2.get(0).get(STOCK_LOW);
             String open = output2.get(0).get(STOCK_OPEN);
             String close = output2.get(0).get(STOCK_CLOSE);
 
-            try {
-                String result = (String) redisTemplate.opsForHash().get(code, REDIS_CHART_KEY);
-                charts = redisJsonManager.stringJsonConvert(result);
-            } catch (JsonProcessingException e) {
-                charts = new ArrayList<>();
-            }
+            List<Map<String, String>> charts;
+            String result = (String) redisTemplate.opsForHash().get(code, REDIS_CHART_KEY);
+
+            charts = result == null ? new ArrayList<>() : redisJsonManager.stringJsonConvert(result);
 
             Map<String, String> chart = new HashMap<>();
             chart.put(REDIS_CHART_HIGH_KEY, high);
@@ -108,85 +104,9 @@ public class StockCronService {
             chart.put(REDIS_CHART_DATE_KEY, redisDate);
             charts.add(chart);
 
-            try {
-                String jsonString = redisJsonManager.jsonStringConvert(charts);
-                redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
-            } catch (JsonProcessingException e) {
-                log.info("saveStockChartData: cron job failed, code: {}", code);
-                continue;
-            }
+            String jsonString = redisJsonManager.jsonStringConvert(charts);
+            redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
 
-            TimeDelay.delay(100);
-        }
-    }
-
-    @Transactional
-    public void saveClosedChartData() {
-        String startDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(requestFormatter);
-        String redisDate = minuteFormatter();
-
-        List<Stock> allStocks = stockRepository.findAll();
-        for (Stock stock : allStocks) {
-            String code = stock.getCode();
-            String queryParams = "?fid_cond_mrkt_div_code=J" +
-                    "&fid_input_iscd=" + code +
-                    "&fid_input_date_1=" + startDate +
-                    "&fid_input_date_2=" + startDate +
-                    "&fid_period_div_code=D" +
-                    "&fid_org_adj_prc=1";
-
-            Map response = restClient.get()
-                    .uri("/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice" + queryParams)
-                    .headers(setRequestHeaders("FHKST03010100"))
-                    .retrieve()
-                    .body(Map.class);
-
-            Map<String, String> output1 = (Map<String, String>) response.get("output1");
-            List<Map<String, String>> output2 = (List<Map<String, String>>) response.get("output2");
-
-            if (output1 == null || output2.isEmpty() || output2.get(0).isEmpty()) {
-                log.info("saveStockChartData: api request failed, code: {}", code);
-                continue;
-            }
-
-            // stock data
-            String current = output1.get(STOCK_CURRENT_PRICE);
-            String change = output1.get(CHANGE_FROM_PREVIOUS_STOCK);
-            String changeRate = output1.get(CHANGE_RATE_FROM_PREVIOUS_STOCK);
-
-            redisTemplate.opsForHash().put(code, REDIS_CURRENT_KEY, current);
-            redisTemplate.opsForHash().put(code, REDIS_CHANGE_KEY, change);
-            redisTemplate.opsForHash().put(code, REDIS_CHANGE_RATE_KEY, changeRate);
-
-            // chart data
-            String high = output2.get(0).get(STOCK_HIGH);
-            String low = output2.get(0).get(STOCK_LOW);
-            String open = output2.get(0).get(STOCK_OPEN);
-            String close = output2.get(0).get(STOCK_CLOSE);
-
-            List<Map<String, String>> charts;
-            try {
-                String result = (String) redisTemplate.opsForHash().get(code, REDIS_CHART_KEY);
-                charts = redisJsonManager.stringJsonConvert(result);
-            } catch (JsonProcessingException e) {
-                charts = new ArrayList<>();
-            }
-
-            Map<String, String> chart = new HashMap<>();
-            chart.put(REDIS_CHART_HIGH_KEY, high);
-            chart.put(REDIS_CHART_LOW_KEY, low);
-            chart.put(REDIS_CHART_OPEN_KEY, open);
-            chart.put(REDIS_CHART_CLOSE_KEY, close);
-            chart.put(REDIS_CHART_DATE_KEY, redisDate);
-            charts.add(chart);
-
-            try {
-                String jsonString = redisJsonManager.jsonStringConvert(charts);
-                redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
-            } catch (JsonProcessingException e) {
-                log.info("saveStockChartData: cron job failed, code: {}", code);
-                continue;
-            }
             TimeDelay.delay(100);
         }
     }
