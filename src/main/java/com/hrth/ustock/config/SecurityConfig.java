@@ -72,20 +72,20 @@ public class SecurityConfig {
                 )
 
                 // csrf 설정 - post 요청 + 로그아웃용
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-                .csrf(csrf -> csrf
-                        .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler())
-                )
+//                .csrf(csrf -> csrf
+//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+//                .csrf(csrf -> csrf
+//                        .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler())
+//                )
 
                 // 로그아웃 필터
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class)
-                // 경로별 인가 작업 - 개발중 테스트용 /**,
-                // TODO: 배포할땐 제거해야함
+                // 테스트용, 모든 경로 허용
 //                .authorizeHttpRequests((auth) -> auth
 //                        .requestMatchers("/**").permitAll()
 //                        .anyRequest().authenticated())
-//                .csrf(AbstractHttpConfigurer::disable)
+                // csrf 설정 disable
+                .csrf(AbstractHttpConfigurer::disable)
                 // 세션 설정 : STATELESS
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
