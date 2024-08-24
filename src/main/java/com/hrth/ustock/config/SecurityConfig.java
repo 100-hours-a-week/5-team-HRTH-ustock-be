@@ -84,11 +84,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/", "/v1/stocks", "/v1/stocks/market", "/v1/stocks/", "/v1/health", "/login", "/login/**").permitAll()
                         .anyRequest().authenticated())
+                .csrf(AbstractHttpConfigurer::disable)
                 // 경로별 인가 작업 - 개발중 테스트용 /**,
 //                .authorizeHttpRequests((auth) -> auth
 //                        .requestMatchers("/**").permitAll()
 //                        .anyRequest().authenticated())
-//                .csrf(AbstractHttpConfigurer::disable)
                 // 세션 설정 : STATELESS
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
