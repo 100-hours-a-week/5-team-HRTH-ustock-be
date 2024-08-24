@@ -26,7 +26,7 @@ public class NewsController {
     @GetMapping("/user")
     public ResponseEntity<?> myHoldingsNews(Authentication authentication) {
         if (authentication == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ArrayList<>());
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
@@ -34,7 +34,6 @@ public class NewsController {
             List<NewsResponseDto> list = newsService.findHoldingNews(customUserDetails.getUserId());
             return ResponseEntity.ok(list);
         } catch (HoldingNotFoundException e) {
-            // 프론트엔드 요청사항: 보유중인 종목이 없다면 빈 리스트를 반환해주세요
             return ResponseEntity.ok(new ArrayList<>());
         }
     }
