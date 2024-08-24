@@ -80,12 +80,15 @@ public class SecurityConfig {
 
                 // 로그아웃 필터
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class)
-                // 테스트용, 모든 경로 허용
+
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/v1/stocks", "/v1/stocks/market", "v1/stocks/").permitAll()
+                        .anyRequest().authenticated())
+                // 경로별 인가 작업 - 개발중 테스트용 /**,
 //                .authorizeHttpRequests((auth) -> auth
 //                        .requestMatchers("/**").permitAll()
 //                        .anyRequest().authenticated())
-                // csrf 설정 disable
-                .csrf(AbstractHttpConfigurer::disable)
+//                .csrf(AbstractHttpConfigurer::disable)
                 // 세션 설정 : STATELESS
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
