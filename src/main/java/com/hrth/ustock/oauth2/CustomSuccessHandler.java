@@ -6,6 +6,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -86,6 +88,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
+        log.info("domain: {}", domain);
         cookie.setDomain(domain);
         return cookie;
     }
