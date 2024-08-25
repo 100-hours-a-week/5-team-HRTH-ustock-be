@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.ArrayList;
 import java.util.List;
 
-@EnableSentry(dsn = "https://f4549cec259eb3cf4977fbe8960b9405@o4507837261021184.ingest.us.sentry.io/4507837264035840")
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/v1/news")
