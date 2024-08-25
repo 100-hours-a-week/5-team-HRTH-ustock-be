@@ -10,6 +10,8 @@ import com.hrth.ustock.exception.CurrentNotFoundException;
 import com.hrth.ustock.exception.StockNotFoundException;
 import com.hrth.ustock.exception.StockNotPublicException;
 import com.hrth.ustock.service.StockService;
+import io.sentry.Sentry;
+import io.sentry.spring.jakarta.EnableSentry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+@EnableSentry(dsn = "https://f4549cec259eb3cf4977fbe8960b9405@o4507837261021184.ingest.us.sentry.io/4507837264035840")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/stocks")
@@ -46,6 +49,9 @@ public class StockController {
             stockMap = stockService.getStockList(order);
         } catch (StockNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("주식 목록을 찾을 수 없습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         if (stockMap == null)
@@ -63,6 +69,9 @@ public class StockController {
             return ResponseEntity.ok(stockList);
         } catch (StockNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -76,6 +85,9 @@ public class StockController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("차트 정보를 조회할 수 없습니다.");
         } catch (CurrentNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("종목 정보를 조회할 수 없습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return ResponseEntity.ok(stockResponseDto);
@@ -93,6 +105,9 @@ public class StockController {
             return ResponseEntity.ok(list);
         } catch (ChartNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("차트 정보를 조회할 수 없습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -105,6 +120,9 @@ public class StockController {
             return ResponseEntity.badRequest().body("해당 주식이 상장되지 않은 날짜입니다.");
         } catch (CurrentNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("종목 정보를 조회할 수 없습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
