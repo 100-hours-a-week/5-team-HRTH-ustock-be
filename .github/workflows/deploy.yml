@@ -26,7 +26,9 @@ jobs:
       - name: Create application.yml from Secret
         run: |
           mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_YML }}" > src/main/resources/application.yml
+          cat <<EOF > src/main/resources/application.yml
+          ${{ secrets.APPLICATION_YML }}
+          EOF
 
       - name: Build with Gradle
         run: |
@@ -53,6 +55,9 @@ jobs:
       - name: Set environment from production
         if: github.ref == 'refs/heads/main'
         run: echo "SPRING_PROFILES_ACTIVE=prod" >> $GITHUB_ENV
+
+      - name: Print Environment Variables
+        run: printenv | grep SPRING_PROFILES_ACTIVE
 
       - name: Build Docker Image
         run: docker build --build-arg SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }} -t sngbmyu/ustock-backend:${{ steps.current-time.outputs.formattedTime }} .
@@ -84,7 +89,7 @@ jobs:
         run: |
           sudo chmod +x deploy.sh
           sudo ./deploy.sh
-          
+
   deploy-to-ec2-prod:
     runs-on: [ self-hosted, Linux, X64, prod ]
     needs: build-and-push
