@@ -57,6 +57,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Set environment variables
+        run: echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> $GITHUB_ENV
+
       - name: Set environment for development
         if: github.ref == 'refs/heads/develop'
         run: echo "SPRING_PROFILES_ACTIVE=dev" >> $GITHUB_ENV
