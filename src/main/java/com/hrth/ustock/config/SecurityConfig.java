@@ -7,6 +7,7 @@ import com.hrth.ustock.oauth2.CustomSuccessHandler;
 import com.hrth.ustock.oauth2.OAuth2FailureHandler;
 import com.hrth.ustock.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -44,7 +48,7 @@ public class SecurityConfig {
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
 
                     CorsConfiguration configuration = new CorsConfiguration();
-
+                    log.info("url: {}", url);
                     configuration.setAllowedOrigins(Collections.singletonList(url));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
