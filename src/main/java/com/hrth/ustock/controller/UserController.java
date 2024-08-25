@@ -2,6 +2,8 @@ package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.oauth2.UserResponseDto;
+import io.sentry.Sentry;
+import io.sentry.spring.jakarta.EnableSentry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+@EnableSentry(dsn = "https://f4549cec259eb3cf4977fbe8960b9405@o4507837261021184.ingest.us.sentry.io/4507837264035840")
 @Controller
 @RequestMapping("/v1/user")
 public class UserController {
@@ -22,10 +25,15 @@ public class UserController {
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
-        return ResponseEntity.ok(UserResponseDto.builder()
-                .name(customUserDetails.getName())
-                .profile(customUserDetails.getProfile())
-                .build()
-        );
+        try{
+            return ResponseEntity.ok(UserResponseDto.builder()
+                    .name(customUserDetails.getName())
+                    .profile(customUserDetails.getProfile())
+                    .build()
+            );
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

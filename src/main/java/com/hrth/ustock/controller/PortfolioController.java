@@ -7,12 +7,15 @@ import com.hrth.ustock.dto.portfolio.PortfolioRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
 import com.hrth.ustock.exception.*;
 import com.hrth.ustock.service.PortfolioService;
+import io.sentry.Sentry;
+import io.sentry.spring.jakarta.EnableSentry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+@EnableSentry(dsn = "https://f4549cec259eb3cf4977fbe8960b9405@o4507837261021184.ingest.us.sentry.io/4507837264035840")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/portfolio")
@@ -33,6 +36,9 @@ public class PortfolioController {
             return ResponseEntity.ok().build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -50,6 +56,9 @@ public class PortfolioController {
             return ResponseEntity.ok().body(list);
         } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -62,6 +71,9 @@ public class PortfolioController {
             return ResponseEntity.ok().body(portfolio);
         } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -81,6 +93,9 @@ public class PortfolioController {
             return ResponseEntity.notFound().build();
         } catch (InputNotValidException e) {
             return ResponseEntity.badRequest().body("입력값이 범위를 초과하였습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -99,6 +114,9 @@ public class PortfolioController {
             return ResponseEntity.notFound().build();
         } catch (InputNotValidException e) {
             return ResponseEntity.badRequest().body("입력값이 범위를 초과하였습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return ResponseEntity.ok().build();
@@ -112,6 +130,9 @@ public class PortfolioController {
             portfolioService.deleteHolding(pfId, code);
         } catch (HoldingNotFoundException | PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return ResponseEntity.ok().build();
@@ -125,6 +146,9 @@ public class PortfolioController {
             portfolioService.deletePortfolio(pfId);
         } catch (PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return ResponseEntity.ok().build();
@@ -145,6 +169,9 @@ public class PortfolioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
         } catch (InputNotValidException e) {
             return ResponseEntity.badRequest().body("입력값이 범위를 초과하였습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return ResponseEntity.ok().build();

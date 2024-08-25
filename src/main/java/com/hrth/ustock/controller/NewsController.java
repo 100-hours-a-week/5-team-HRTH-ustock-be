@@ -4,6 +4,8 @@ import com.hrth.ustock.dto.news.NewsResponseDto;
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.exception.HoldingNotFoundException;
 import com.hrth.ustock.service.NewsService;
+import io.sentry.Sentry;
+import io.sentry.spring.jakarta.EnableSentry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.ArrayList;
 import java.util.List;
 
+@EnableSentry(dsn = "https://f4549cec259eb3cf4977fbe8960b9405@o4507837261021184.ingest.us.sentry.io/4507837264035840")
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/v1/news")
@@ -35,6 +38,9 @@ public class NewsController {
             return ResponseEntity.ok(list);
         } catch (HoldingNotFoundException e) {
             return ResponseEntity.ok(new ArrayList<>());
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
         }
     }
 }

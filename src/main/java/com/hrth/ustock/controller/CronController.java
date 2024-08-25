@@ -1,12 +1,15 @@
 package com.hrth.ustock.controller;
 
 import com.hrth.ustock.service.cron.StockCronService;
+import io.sentry.Sentry;
+import io.sentry.spring.jakarta.EnableSentry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@EnableSentry(dsn = "https://f4549cec259eb3cf4977fbe8960b9405@o4507837261021184.ingest.us.sentry.io/4507837264035840")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/scheduler")
@@ -19,7 +22,7 @@ public class CronController {
         try {
             stockCronService.saveStockChartData();
         } catch (Exception e) {
-            e.printStackTrace();
+            Sentry.captureException(e);
         }
     }
 
@@ -29,7 +32,7 @@ public class CronController {
         try {
             stockCronService.saveEditedChartData();
         } catch (Exception e) {
-            e.printStackTrace();
+            Sentry.captureException(e);
         }
     }
 
@@ -39,7 +42,7 @@ public class CronController {
         try {
             stockCronService.saveStockChartData();
         } catch (Exception e) {
-            e.printStackTrace();
+            Sentry.captureException(e);
         }
     }
 
@@ -49,7 +52,7 @@ public class CronController {
         try {
             stockCronService.saveEditedChartData();
         } catch (Exception e) {
-            e.printStackTrace();
+            Sentry.captureException(e);
         }
     }
 }

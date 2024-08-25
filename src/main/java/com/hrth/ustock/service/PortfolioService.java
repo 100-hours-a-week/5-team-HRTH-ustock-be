@@ -69,11 +69,11 @@ public class PortfolioService {
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
         List<Holding> holdings = portfolio.getHoldings();
 
+        refreshPortfolio(portfolio);
         if (holdings == null || holdings.isEmpty()) {
             portfolioResponseDto.setName(portfolio.getName());
             return portfolioResponseDto;
         }
-        refreshPortfolio(portfolio);
 
         // 현재가로 ret 갱신, ror 계산 후 save
         for (Holding h : holdings) {
