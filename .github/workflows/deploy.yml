@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - develop
 
 jobs:
   build-and-push:
@@ -45,16 +46,49 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Set environment for development
+        if: github.ref == 'refs/heads/develop'
+        run: echo "SPRING_PROFILES_ACTIVE=dev" >> $GITHUB_ENV
+
+      - name: Set environment from production
+        if: github.ref == 'refs/heads/main'
+        run: echo "SPRING_PROFILES_ACTIVE=prod" >> $GITHUB_ENV
+
       - name: Build Docker Image
-        run: docker build -t sngbmyu/ustock-backend:${{ steps.current-time.outputs.formattedTime }} .
+        run: docker build --build-arg SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }} -t sngbmyu/ustock-backend:${{ steps.current-time.outputs.formattedTime }} .
 
       - name: Push Image to Docker Hub
         run: docker push sngbmyu/ustock-backend:${{ steps.current-time.outputs.formattedTime }}
 
-  deploy-to-ec2:
-    runs-on: [ self-hosted, Linux, X64]
+  deploy-to-ec2-dev:
+    runs-on: [ self-hosted, Linux, X64, dev ]
     needs: build-and-push
-    if: ${{ needs.build-and-push.result == 'success' }}
+    if: ${{ needs.build-and-push.result == 'success' && github.ref == 'refs/heads/develop' }}
+
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Pull Image from Docker Hub
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ustock-backend:${{ needs.build-and-push.outputs.build_time }}
+
+      - name: Update docker-compose.yml with TAG
+        run: |
+          sed -i "s|ustock-backend:.*|ustock-backend:${{ needs.build-and-push.outputs.build_time }}|" ${{ secrets.DOCKER_COMPOSE_BLUE_PATH }}
+          sed -i "s|ustock-backend:.*|ustock-backend:${{ needs.build-and-push.outputs.build_time }}|" ${{ secrets.DOCKER_COMPOSE_GREEN_PATH }}
+
+      - name: Deploy Blue/Green Method
+        run: |
+          sudo chmod +x deploy.sh
+          sudo ./deploy.sh
+          
+  deploy-to-ec2-prod:
+    runs-on: [ self-hosted, Linux, X64, prod ]
+    needs: build-and-push
+    if: ${{ needs.build-and-push.result == 'success' && github.ref == 'refs/heads/main' }}
 
     steps:
       - name: Login to Docker Hub
