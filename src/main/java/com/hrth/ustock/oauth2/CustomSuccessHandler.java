@@ -6,6 +6,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,11 @@ import java.util.concurrent.TimeUnit;
 @Component
 @RequiredArgsConstructor
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+    @Value("${spring.config.url}")
+    private String url;
+    @Value("${spring.config.domain}")
+    private String domain;
 
     public static final long ACCESS_EXPIRE = 600000L;
     public static final long REFRESH_EXPIRE = 86400000L;
@@ -71,8 +77,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(createCookie("access", access));
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
-        response.sendRedirect("https://ustock.site/auth/callback");
-//        response.sendRedirect("http://localhost:3000/auth/callback");
+        response.sendRedirect(url + "/auth/callback");
     }
 
     private Cookie createCookie(String key, String value) {
@@ -81,7 +86,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setDomain("ustock.site");
+        cookie.setDomain(domain);
         return cookie;
     }
 }

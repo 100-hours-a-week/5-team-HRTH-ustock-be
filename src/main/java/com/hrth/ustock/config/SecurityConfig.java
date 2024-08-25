@@ -7,6 +7,7 @@ import com.hrth.ustock.oauth2.CustomSuccessHandler;
 import com.hrth.ustock.oauth2.OAuth2FailureHandler;
 import com.hrth.ustock.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,6 +28,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    @Value("${spring.config.url}")
+    private String url;
+
     private final JWTUtil jwtUtil;
     private final CustomSuccessHandler customSuccessHandler;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -41,8 +45,7 @@ public class SecurityConfig {
 
                     CorsConfiguration configuration = new CorsConfiguration();
 
-                    configuration.setAllowedOrigins(Collections.singletonList("https://ustock.site"));
-//                    configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                    configuration.setAllowedOrigins(Collections.singletonList(url));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));
