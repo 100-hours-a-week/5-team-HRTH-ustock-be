@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-import static com.hrth.ustock.service.StockServiceConst.*;
+import static com.hrth.ustock.service.StockServiceConst.REDIS_CURRENT_KEY;
 
 @Slf4j
 @Service
@@ -73,9 +73,9 @@ public class PortfolioService {
         refreshPortfolio(portfolio);
 
         // 현재가로 ret 갱신, ror 계산 후 save
-        for(Holding h : holdings) {
-            Map<String, String> redisMap =  stockService.getCurrentChangeChangeRate(h.getStock().getCode());
-            if(redisMap == null) {
+        for (Holding h : holdings) {
+            Map<String, String> redisMap = stockService.getCurrentChangeChangeRate(h.getStock().getCode());
+            if (redisMap == null) {
                 log.info("no current for stock: {}", h.getStock().getCode());
                 continue;
             }
@@ -129,6 +129,11 @@ public class PortfolioService {
             return;
         }
 
+        if (holdingRequestDto.getQuantity() > 99999
+                || holdingRequestDto.getPrice() * holdingRequestDto.getQuantity() > 999999999) {
+            throw new InputNotValidException();
+        }
+
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
         Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
         Holding holding = Holding.builder()
@@ -148,6 +153,13 @@ public class PortfolioService {
 
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
+        if (holdingRequestDto.getQuantity() > 99999
+                || holdingRequestDto.getPrice() * holdingRequestDto.getQuantity() > 999999999
+                || holdingRequestDto.getQuantity() + target.getQuantity() > 999999
+                || holdingRequestDto.getPrice() * holdingRequestDto.getQuantity() + target.getAverage() * target.getQuantity() > 999999999) {
+            throw new InputNotValidException();
+        }
+
         target.additionalBuyHolding(holdingRequestDto.getQuantity(), holdingRequestDto.getPrice());
     }
 
@@ -157,6 +169,10 @@ public class PortfolioService {
 
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
+        if (holdingRequestDto.getQuantity() > 99999
+                || holdingRequestDto.getPrice() * holdingRequestDto.getQuantity() > 999999999) {
+            throw new InputNotValidException();
+        }
         target.updateHolding(holdingRequestDto.getQuantity(), holdingRequestDto.getPrice());
     }
 
@@ -165,7 +181,7 @@ public class PortfolioService {
     public void deleteHolding(Long pfId, String code) {
 
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
-      
+
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
         holdingRepository.delete(target);
@@ -198,9 +214,9 @@ public class PortfolioService {
         }
 
         // budget = 원금+수익, principal = 갯수+평단가, ret = 갯수+현재가
-        for(Holding h : list) {
+        for (Holding h : list) {
             Map<String, String> redisMap = stockService.getCurrentChangeChangeRate(h.getStock().getCode());
-            if(redisMap == null) {
+            if (redisMap == null) {
                 log.info("no current for stock: {}", h.getStock().getCode());
                 continue;
             }
