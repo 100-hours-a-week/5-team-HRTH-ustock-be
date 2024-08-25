@@ -192,7 +192,10 @@ public class PortfolioService {
         PortfolioUpdateDto portfolioUpdateDto = new PortfolioUpdateDto();
         List<Holding> list = portfolio.getHoldings();
 
-        if (list == null || list.isEmpty()) return;
+        if (list == null || list.isEmpty()) {
+            portfolio.updatePortfolio(portfolioUpdateDto);
+            return;
+        }
 
         // budget = 원금+수익, principal = 갯수+평단가, ret = 갯수+현재가
         for(Holding h : list) {
