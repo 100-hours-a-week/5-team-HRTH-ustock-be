@@ -39,7 +39,6 @@ public class KisApiAuthManager {
 
     public String generateToken() {
         String findToken = redisTemplate.opsForValue().get("ACCESS_TOKEN");
-        log.info("token: {}", findToken);
         if (findToken != null) return findToken;
 
         Map<String, String> requestBody = new HashMap<>();

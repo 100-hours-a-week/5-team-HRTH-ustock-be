@@ -136,6 +136,7 @@ public class PortfolioService {
                 .stock(stock)
                 .average(holdingRequestDto.getPrice())
                 .quantity(holdingRequestDto.getQuantity())
+                .user(portfolio.getUser())
                 .build();
 
         holdingRepository.save(holding);

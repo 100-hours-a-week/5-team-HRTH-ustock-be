@@ -17,8 +17,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Collections;
@@ -80,11 +78,14 @@ public class SecurityConfig {
 
                 // 로그아웃 필터
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class)
-                // 테스트용, 모든 경로 허용
+
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/logout", "/v1/portfolio/**", "/v1/portfolio", "/v1/scheduler/test/**", "/v1/user").authenticated()
+                        .anyRequest().permitAll())
+                // 경로별 인가 작업 - 개발중 테스트용 /**,
 //                .authorizeHttpRequests((auth) -> auth
 //                        .requestMatchers("/**").permitAll()
 //                        .anyRequest().authenticated())
-                // csrf 설정 disable
                 .csrf(AbstractHttpConfigurer::disable)
                 // 세션 설정 : STATELESS
                 .sessionManagement(session -> session
