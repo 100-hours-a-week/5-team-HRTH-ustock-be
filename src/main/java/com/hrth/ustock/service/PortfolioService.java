@@ -30,6 +30,9 @@ import static com.hrth.ustock.service.StockServiceConst.REDIS_CURRENT_KEY;
 @Service
 @RequiredArgsConstructor
 public class PortfolioService {
+    public static final int MAX_QUANTITY = 99_999;
+    public static final int MAX_PRICE = 999_999_999;
+
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
     private final HoldingRepository holdingRepository;
@@ -129,8 +132,9 @@ public class PortfolioService {
             return;
         }
 
-        if (holdingRequestDto.getQuantity() > 99999
-                || holdingRequestDto.getPrice() * holdingRequestDto.getQuantity() > 999999999) {
+        int quantity = holdingRequestDto.getQuantity();
+        int price = holdingRequestDto.getPrice();
+        if (quantity > MAX_QUANTITY || price * quantity > MAX_PRICE) {
             throw new InputNotValidException();
         }
 
@@ -139,8 +143,8 @@ public class PortfolioService {
         Holding holding = Holding.builder()
                 .portfolio(portfolio)
                 .stock(stock)
-                .average(holdingRequestDto.getPrice())
-                .quantity(holdingRequestDto.getQuantity())
+                .average(price)
+                .quantity(quantity)
                 .user(portfolio.getUser())
                 .build();
 
@@ -153,14 +157,16 @@ public class PortfolioService {
 
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
-        if (holdingRequestDto.getQuantity() > 99999
-                || holdingRequestDto.getPrice() * holdingRequestDto.getQuantity() > 999999999
-                || holdingRequestDto.getQuantity() + target.getQuantity() > 999999
-                || holdingRequestDto.getPrice() * holdingRequestDto.getQuantity() + target.getAverage() * target.getQuantity() > 999999999) {
+        int price = holdingRequestDto.getPrice();
+        int quantity = holdingRequestDto.getQuantity();
+
+        if (quantity > MAX_QUANTITY || price * quantity > MAX_PRICE
+                || quantity + target.getQuantity() > MAX_QUANTITY
+                || price * quantity + target.getAverage() * target.getQuantity() > MAX_PRICE) {
             throw new InputNotValidException();
         }
 
-        target.additionalBuyHolding(holdingRequestDto.getQuantity(), holdingRequestDto.getPrice());
+        target.additionalBuyHolding(quantity, price);
     }
 
     // 11. 개별 종목 수정
@@ -169,11 +175,12 @@ public class PortfolioService {
 
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
-        if (holdingRequestDto.getQuantity() > 99999
-                || holdingRequestDto.getPrice() * holdingRequestDto.getQuantity() > 999999999) {
+        int quantity = holdingRequestDto.getQuantity();
+        int price = holdingRequestDto.getPrice();
+        if (quantity > MAX_QUANTITY || price * quantity > MAX_PRICE) {
             throw new InputNotValidException();
         }
-        target.updateHolding(holdingRequestDto.getQuantity(), holdingRequestDto.getPrice());
+        target.updateHolding(quantity, price);
     }
 
     // 12. 개별 종목 삭제
