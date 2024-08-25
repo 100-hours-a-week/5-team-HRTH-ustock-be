@@ -5,14 +5,10 @@ import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.portfolio.PortfolioListDto;
 import com.hrth.ustock.dto.portfolio.PortfolioRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
-import com.hrth.ustock.exception.HoldingNotFoundException;
-import com.hrth.ustock.exception.PortfolioNotFoundException;
-import com.hrth.ustock.exception.StockNotFoundException;
-import com.hrth.ustock.exception.UserNotFoundException;
+import com.hrth.ustock.exception.*;
 import com.hrth.ustock.service.PortfolioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +23,7 @@ public class PortfolioController {
     @PostMapping
     public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDto portfolioRequestDto, Authentication authentication) {
 
-        if(authentication == null) {
+        if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
@@ -44,7 +40,7 @@ public class PortfolioController {
     @GetMapping
     public ResponseEntity<?> showPortfolioList(Authentication authentication) {
 
-        if(authentication == null) {
+        if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
@@ -83,6 +79,8 @@ public class PortfolioController {
             return ResponseEntity.ok().build();
         } catch (PortfolioNotFoundException | StockNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (InputNotValidException e) {
+            return ResponseEntity.badRequest().body("입력값이 범위를 초과하였습니다.");
         }
     }
 
@@ -99,6 +97,8 @@ public class PortfolioController {
             portfolioService.editHolding(pfId, code, holdingRequestDto);
         } catch (HoldingNotFoundException | PortfolioNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (InputNotValidException e) {
+            return ResponseEntity.badRequest().body("입력값이 범위를 초과하였습니다.");
         }
 
         return ResponseEntity.ok().build();
@@ -143,6 +143,8 @@ public class PortfolioController {
                     "주식 정보를 찾을 수 없습니다.";
 
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+        } catch (InputNotValidException e) {
+            return ResponseEntity.badRequest().body("입력값이 범위를 초과하였습니다.");
         }
 
         return ResponseEntity.ok().build();

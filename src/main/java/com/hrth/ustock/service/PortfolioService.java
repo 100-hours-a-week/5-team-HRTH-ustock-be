@@ -24,12 +24,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-import static com.hrth.ustock.service.StockServiceConst.*;
+import static com.hrth.ustock.service.StockServiceConst.REDIS_CURRENT_KEY;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PortfolioService {
+    public static final int MAX_QUANTITY = 99_999;
+    public static final int MAX_PRICE = 999_999_999;
+
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
     private final HoldingRepository holdingRepository;
@@ -73,9 +76,9 @@ public class PortfolioService {
         refreshPortfolio(portfolio);
 
         // 현재가로 ret 갱신, ror 계산 후 save
-        for(Holding h : holdings) {
-            Map<String, String> redisMap =  stockService.getCurrentChangeChangeRate(h.getStock().getCode());
-            if(redisMap == null) {
+        for (Holding h : holdings) {
+            Map<String, String> redisMap = stockService.getCurrentChangeChangeRate(h.getStock().getCode());
+            if (redisMap == null) {
                 log.info("no current for stock: {}", h.getStock().getCode());
                 continue;
             }
@@ -129,13 +132,19 @@ public class PortfolioService {
             return;
         }
 
+        int quantity = holdingRequestDto.getQuantity();
+        int price = holdingRequestDto.getPrice();
+        if (quantity > MAX_QUANTITY || price * quantity > MAX_PRICE) {
+            throw new InputNotValidException();
+        }
+
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
         Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
         Holding holding = Holding.builder()
                 .portfolio(portfolio)
                 .stock(stock)
-                .average(holdingRequestDto.getPrice())
-                .quantity(holdingRequestDto.getQuantity())
+                .average(price)
+                .quantity(quantity)
                 .user(portfolio.getUser())
                 .build();
 
@@ -148,7 +157,16 @@ public class PortfolioService {
 
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
-        target.additionalBuyHolding(holdingRequestDto.getQuantity(), holdingRequestDto.getPrice());
+        int price = holdingRequestDto.getPrice();
+        int quantity = holdingRequestDto.getQuantity();
+
+        if (quantity > MAX_QUANTITY || price * quantity > MAX_PRICE
+                || quantity + target.getQuantity() > MAX_QUANTITY
+                || price * quantity + target.getAverage() * target.getQuantity() > MAX_PRICE) {
+            throw new InputNotValidException();
+        }
+
+        target.additionalBuyHolding(quantity, price);
     }
 
     // 11. 개별 종목 수정
@@ -157,7 +175,12 @@ public class PortfolioService {
 
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
-        target.updateHolding(holdingRequestDto.getQuantity(), holdingRequestDto.getPrice());
+        int quantity = holdingRequestDto.getQuantity();
+        int price = holdingRequestDto.getPrice();
+        if (quantity > MAX_QUANTITY || price * quantity > MAX_PRICE) {
+            throw new InputNotValidException();
+        }
+        target.updateHolding(quantity, price);
     }
 
     // 12. 개별 종목 삭제
@@ -165,7 +188,7 @@ public class PortfolioService {
     public void deleteHolding(Long pfId, String code) {
 
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
-      
+
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
         holdingRepository.delete(target);
@@ -198,9 +221,9 @@ public class PortfolioService {
         }
 
         // budget = 원금+수익, principal = 갯수+평단가, ret = 갯수+현재가
-        for(Holding h : list) {
+        for (Holding h : list) {
             Map<String, String> redisMap = stockService.getCurrentChangeChangeRate(h.getStock().getCode());
-            if(redisMap == null) {
+            if (redisMap == null) {
                 log.info("no current for stock: {}", h.getStock().getCode());
                 continue;
             }
