@@ -46,9 +46,9 @@ public class SecurityConfig {
         // cors
         http
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
-                    log.info("cors filter - request url: {}", request.getRequestURL());
                     CorsConfiguration configuration = new CorsConfiguration();
                     configuration.setAllowedOrigins(Collections.singletonList(url));
+                    log.info("URL: {}", url);
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));
