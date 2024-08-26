@@ -8,6 +8,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -15,6 +16,9 @@ import java.io.IOException;
 
 @RequiredArgsConstructor
 public class CustomLogoutFilter extends GenericFilterBean {
+
+    @Value("${spring.config.domain}")
+    private String domain;
 
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -81,12 +85,14 @@ public class CustomLogoutFilter extends GenericFilterBean {
         accessLogout.setPath("/");
         accessLogout.setHttpOnly(true);
         accessLogout.setSecure(true);
+        accessLogout.setDomain(domain);
 
         Cookie refreshLogout = new Cookie("refresh", null);
         refreshLogout.setMaxAge(0);
         refreshLogout.setPath("/");
         refreshLogout.setHttpOnly(true);
         refreshLogout.setSecure(true);
+        refreshLogout.setDomain(domain);
 
         response.addCookie(accessLogout);
         response.addCookie(refreshLogout);
