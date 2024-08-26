@@ -6,10 +6,7 @@ import com.hrth.ustock.dto.stock.*;
 import com.hrth.ustock.entity.portfolio.Chart;
 import com.hrth.ustock.entity.portfolio.News;
 import com.hrth.ustock.entity.portfolio.Stock;
-import com.hrth.ustock.exception.ChartNotFoundException;
-import com.hrth.ustock.exception.CurrentNotFoundException;
-import com.hrth.ustock.exception.StockNotFoundException;
-import com.hrth.ustock.exception.StockNotPublicException;
+import com.hrth.ustock.exception.*;
 import com.hrth.ustock.repository.ChartRepository;
 import com.hrth.ustock.repository.NewsRepository;
 import com.hrth.ustock.repository.StockRepository;
@@ -353,7 +350,6 @@ public class StockService {
 
     // 16. 스껄계산기
     public SkrrrCalculatorResponseDto calculateSkrrr(String code, SkrrrCalculatorRequestDto requestDto) {
-
         String date = requestDto.getDate();
         DateTimeFormatter originFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         LocalDate originDate = LocalDate.parse(date, originFormatter);
@@ -409,6 +405,10 @@ public class StockService {
 
         if (previous == null) {
             throw new StockNotPublicException();
+        }
+
+        if (requestDto.getPrice() < Integer.parseInt(previous)) {
+            throw new StockCanNotPurchaseException();
         }
 
         // 현재가 기반 계산

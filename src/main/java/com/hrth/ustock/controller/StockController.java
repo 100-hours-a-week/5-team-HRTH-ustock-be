@@ -5,10 +5,7 @@ import com.hrth.ustock.dto.stock.SkrrrCalculatorRequestDto;
 import com.hrth.ustock.dto.stock.SkrrrCalculatorResponseDto;
 import com.hrth.ustock.dto.stock.StockDto;
 import com.hrth.ustock.dto.stock.StockResponseDto;
-import com.hrth.ustock.exception.ChartNotFoundException;
-import com.hrth.ustock.exception.CurrentNotFoundException;
-import com.hrth.ustock.exception.StockNotFoundException;
-import com.hrth.ustock.exception.StockNotPublicException;
+import com.hrth.ustock.exception.*;
 import com.hrth.ustock.service.StockService;
 import io.sentry.Sentry;
 import io.sentry.spring.jakarta.EnableSentry;
@@ -117,6 +114,8 @@ public class StockController {
             return ResponseEntity.ok(skrrrCalculatorResponseDto);
         } catch (StockNotPublicException e) {
             return ResponseEntity.badRequest().body("해당 주식이 상장되지 않은 날짜입니다.");
+        } catch (StockCanNotPurchaseException e) {
+            return ResponseEntity.badRequest().body("해당 금액으로는 구매할 수 없습니다.");
         } catch (CurrentNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("종목 정보를 조회할 수 없습니다.");
         } catch (Exception e) {

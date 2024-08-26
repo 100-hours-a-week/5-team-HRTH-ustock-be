@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.hrth.ustock.service.StockServiceConst.REDIS_CURRENT_KEY;
 
@@ -110,7 +111,6 @@ public class PortfolioService {
 
     @Transactional
     public void addPortfolio(PortfolioRequestDto portfolioRequestDto, Long userId) {
-
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Portfolio portfolio = Portfolio.builder()
                 .name(portfolioRequestDto.getName())
@@ -119,6 +119,11 @@ public class PortfolioService {
                 .principal(0L)
                 .ret(0L)
                 .build();
+
+        Portfolio findPortfolio = portfolioRepository.findByNameAndUserUserId(portfolio.getName(), userId).orElse(null);
+        if (findPortfolio != null) {
+            throw new ExistPortfolioNameException();
+        }
 
         portfolioRepository.save(portfolio);
     }
