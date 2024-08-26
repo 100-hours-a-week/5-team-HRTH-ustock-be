@@ -2,7 +2,6 @@ package com.hrth.ustock.controller;
 
 import com.hrth.ustock.service.cron.StockCronService;
 import io.sentry.Sentry;
-import io.sentry.spring.jakarta.EnableSentry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +18,7 @@ public class CronController {
     @Scheduled(cron = "0 0/30 9-15 ? * MON-FRI")
     public void setChartData() {
         try {
-            stockCronService.saveStockChartData();
+            stockCronService.saveMarketData();
         } catch (Exception e) {
             Sentry.captureException(e);
         }
@@ -39,7 +38,7 @@ public class CronController {
     @GetMapping("/test/1")
     public void testChartData() {
         try {
-            stockCronService.saveStockChartData();
+            stockCronService.saveMarketData();
         } catch (Exception e) {
             Sentry.captureException(e);
         }

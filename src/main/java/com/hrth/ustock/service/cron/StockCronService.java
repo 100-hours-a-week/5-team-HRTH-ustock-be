@@ -1,6 +1,5 @@
 package com.hrth.ustock.service.cron;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hrth.ustock.entity.portfolio.Chart;
 import com.hrth.ustock.entity.portfolio.Stock;
 import com.hrth.ustock.repository.ChartRepository;
@@ -47,7 +46,7 @@ public class StockCronService {
     // 주중 오전 9시에 시작해서 30분마다 실행하고 오후 15시 30분에 끝남
     // 종목별 현재가, 차트 데이터 redis에 갱신
     @Transactional
-    public void saveStockChartData() {
+    public void saveMarketData() {
         String startDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(requestFormatter);
         String redisDate = minuteFormatter();
         List<Stock> allStocks = stockRepository.findAll();
@@ -59,7 +58,7 @@ public class StockCronService {
                     "&fid_input_date_1=" + startDate +
                     "&fid_input_date_2=" + startDate +
                     "&fid_period_div_code=D" +
-                    "&fid_org_adj_prc=1";
+                    "&fid_org_adj_prc=0";
 
             Map response = restClient.get()
                     .uri("/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice" + queryParams)
@@ -70,7 +69,7 @@ public class StockCronService {
             Map<String, String> output1 = (Map<String, String>) response.get("output1");
             List<Map<String, String>> output2 = (List<Map<String, String>>) response.get("output2");
 
-            if (output1 == null || output2.isEmpty() || output2.get(0).isEmpty()) {
+            if (output1 == null || output1.isEmpty()) {
                 log.info("saveStockChartData: api request failed, code: {}", code);
                 continue;
             }
@@ -86,10 +85,11 @@ public class StockCronService {
 
             // chart data
             // redis에 json String으로 저장함
-            String high = output2.get(0).get(STOCK_HIGH);
-            String low = output2.get(0).get(STOCK_LOW);
-            String open = output2.get(0).get(STOCK_OPEN);
-            String close = output2.get(0).get(STOCK_CLOSE);
+            String high = output1.get(STOCK_MARKET_HIGH);
+            String low = output1.get(STOCK_MARKET_LOW);
+            String open = output1.get(STOCK_MARKET_OPEN);
+            // 장 마감 전까진 종가가 없으니 현재가로 저장
+            String close = output1.get(STOCK_MARKET_CLOSE);
 
             List<Map<String, String>> charts;
             String result = (String) redisTemplate.opsForHash().get(code, REDIS_CHART_KEY);
