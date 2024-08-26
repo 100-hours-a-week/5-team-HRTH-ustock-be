@@ -35,6 +35,8 @@ public class PortfolioController {
             return ResponseEntity.ok().build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (ExistPortfolioNameException e) {
+            return ResponseEntity.badRequest().body("이미 존재하는 포트폴리오 이름입니다.");
         } catch (Exception e) {
             Sentry.captureException(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
