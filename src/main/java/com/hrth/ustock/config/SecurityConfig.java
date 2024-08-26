@@ -34,6 +34,8 @@ public class SecurityConfig {
 
     @Value("${spring.config.url}")
     private String url;
+    @Value("${spring.config.domain}")
+    private String domain;
 
     private final JWTUtil jwtUtil;
     private final CustomSuccessHandler customSuccessHandler;
@@ -51,7 +53,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
 
                 // 로그인 무한루프 방지
-                .addFilterAfter(new JWTFilter(jwtUtil, redisTemplate), OAuth2LoginAuthenticationFilter.class)
+                .addFilterAfter(new JWTFilter(domain, jwtUtil, redisTemplate), OAuth2LoginAuthenticationFilter.class)
 
                 // OAuth2
                 .oauth2Login(oauth2 -> oauth2
@@ -69,7 +71,7 @@ public class SecurityConfig {
 //                )
 
                 // 로그아웃 필터
-                .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class)
+                .addFilterBefore(new CustomLogoutFilter(domain, url, jwtUtil, redisTemplate), LogoutFilter.class)
 
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/logout", "/v1/portfolio/**", "/v1/portfolio", "/v1/scheduler/test/**", "/v1/user").authenticated()

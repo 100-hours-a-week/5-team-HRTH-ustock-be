@@ -8,7 +8,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,9 +25,7 @@ public class JWTFilter extends OncePerRequestFilter {
     public static final long REFRESH_EXPIRE = 86400000L;
     public static final int COOKIE_EXPIRE = 360000;
 
-    @Value("${spring.config.domain}")
-    private String domain;
-
+    private final String domain;
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;
 
