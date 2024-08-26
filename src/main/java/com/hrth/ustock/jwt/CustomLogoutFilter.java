@@ -8,8 +8,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
@@ -17,9 +17,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class CustomLogoutFilter extends GenericFilterBean {
 
-    @Value("${spring.config.domain}")
-    private String domain;
-
+    private final String domain;
+    private final String url;
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -27,11 +26,12 @@ public class CustomLogoutFilter extends GenericFilterBean {
     public void doFilter(
             ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-        doFilter((HttpServletRequest) request, (HttpServletResponse) response, chain);
+        this.doFilter((HttpServletRequest) request, (HttpServletResponse) response, chain);
     }
 
     private void doFilter(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+
 
         String requestUri = request.getRequestURI();
         if (!requestUri.matches("^\\/logout$")) {
@@ -96,6 +96,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
         response.addCookie(accessLogout);
         response.addCookie(refreshLogout);
-        response.setStatus(HttpServletResponse.SC_OK);
+        response.setStatus(HttpStatus.OK.value());
+        response.sendRedirect(url);
     }
 }
