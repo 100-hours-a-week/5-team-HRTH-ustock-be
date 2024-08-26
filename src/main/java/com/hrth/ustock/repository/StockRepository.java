@@ -20,4 +20,10 @@ public interface StockRepository extends JpaRepository<Stock, String> {
 
     @Query("SELECT s FROM Stock s WHERE s.name LIKE %:name% AND s.name NOT LIKE :name% ORDER BY s.name ASC")
     List<Stock> findByNameContainingButNotStartingWith(@Param("name") String name);
+
+    @Query("SELECT s FROM Stock s WHERE s.code LIKE :code% ORDER BY s.code ASC")
+    List<Stock> findByCodeStartingWith(@Param("code") String code);
+
+    @Query("SELECT s FROM Stock s WHERE s.code LIKE %:code% AND s.code NOT LIKE :code% ORDER BY s.code ASC")
+    List<Stock> findByCodeContainingButNotStartingWith(@Param("code") String code);
 }

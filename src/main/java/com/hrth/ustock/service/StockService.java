@@ -49,10 +49,15 @@ public class StockService {
 
     // 6. 종목 검색
     @Transactional
-    public List<StockResponseDto> findByStockName(String name) {
-
-        List<Stock> list = stockRepository.findByNameStartingWith(name);
-        list.addAll(stockRepository.findByNameContainingButNotStartingWith(name));
+    public List<StockResponseDto> searchStock(String query) {
+        List<Stock> list;
+        if (query.matches("^\\d{1,6}$|^Q\\d{1,6}$")) {
+            list = stockRepository.findByCodeStartingWith(query);
+            list.addAll(stockRepository.findByCodeContainingButNotStartingWith(query));
+        } else {
+            list = stockRepository.findByNameStartingWith(query);
+            list.addAll(stockRepository.findByNameContainingButNotStartingWith(query));
+        }
 
         if (list.isEmpty()) {
             throw new StockNotFoundException();
