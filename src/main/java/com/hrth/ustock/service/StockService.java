@@ -350,6 +350,15 @@ public class StockService {
                 .map(StockResponseDto::getCode)
                 .toList();
 
+        List<Stock> findStocks = stockRepository.findAllByCodeIn(stockCodeList);
+        for (Stock findStock : findStocks) {
+            for (StockResponseDto dto : stockList) {
+                if (dto.getCode().equals(findStock.getCode())) {
+                    dto.setLogo(findStock.getLogo());
+                }
+            }
+        }
+
         for (StockResponseDto stock : stockList) {
             if (!stockCodeList.contains(stock.getCode())) {
                 stockRepository.save(
