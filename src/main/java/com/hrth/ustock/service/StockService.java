@@ -49,7 +49,7 @@ public class StockService {
 
     // 6. 종목 검색
     @Transactional
-    public List<StockDto> findByStockName(String name) {
+    public List<StockResponseDto> findByStockName(String name) {
 
         List<Stock> list = stockRepository.findByNameStartingWith(name);
         list.addAll(stockRepository.findByNameContainingButNotStartingWith(name));
@@ -58,7 +58,7 @@ public class StockService {
             throw new StockNotFoundException();
         }
 
-        List<StockDto> stockDtoList = new ArrayList<>();
+        List<StockResponseDto> stockDtoList = new ArrayList<>();
         for (Stock stock : list) {
             Map<String, String> redisMap = getCurrentChangeChangeRate(stock.getCode());
 
@@ -70,11 +70,12 @@ public class StockService {
             String currentSaved = redisMap.get(REDIS_CURRENT_KEY);
             String rateSaved = redisMap.get(REDIS_CHANGE_RATE_KEY);
 
-            StockDto stockDTO = stock.toDto();
-            stockDTO.setPrice(Integer.parseInt(currentSaved));
-            stockDTO.setChangeRate(Double.parseDouble(rateSaved));
-            stockDtoList.add(stockDTO);
+            StockResponseDto stockDto = stock.toDto();
+            stockDto.setPrice(Integer.parseInt(currentSaved));
+            stockDto.setChangeRate(Double.parseDouble(rateSaved));
+            stockDtoList.add(stockDto);
         }
+
         return stockDtoList;
     }
 
@@ -207,6 +208,8 @@ public class StockService {
     }
 
     public Map<String, List<StockResponseDto>> getStockList(String order) {
+        // TODO: 언제 갱신됐는지 체크하고, 만약 갱신 시간이 지났다면 아래 코드를 동작시켜 레디스에 저장, 아니라면 레디스에서 꺼내기
+        // TODO: 갱신 기준은 현재 시간을 기준으로 30분 단위로 체크 (ex. 현재 시간이 13:20이라면, 갱신 기준은 13:00임)
         List<Map<String, String>> responseList = switch (order) {
             case "top", "trade" -> requestOrderByTrade();
             case "capital" -> requestOrderByCapital();
@@ -214,12 +217,8 @@ public class StockService {
             default -> throw new IllegalArgumentException();
         };
 
-        List<StockResponseDto> stockList = new ArrayList<>();
-
-        int range = "top".equals(order) ? TOP_RANK_RANGE : responseList.size();
-        for (int i = 0; i < range; i++) {
-            stockList.add(makeStockResponseDto(responseList.get(i), order));
-        }
+        // TODO: 이 아래로는 무조건 동작해야 함
+        List<StockResponseDto> stockList = makeStockResponseDto(responseList, order);
 
         Map<String, List<StockResponseDto>> stockMap = new HashMap<>();
         stockMap.put("stock", stockList);
@@ -325,27 +324,39 @@ public class StockService {
         return (Map<String, String>) response.get("output");
     }
 
-    private StockResponseDto makeStockResponseDto(Map<String, String> responseMap, String order) {
-        String stockCode = "change".equals(order) ? CHANGE_STOCK_CODE : STOCK_CODE;
+    private List<StockResponseDto> makeStockResponseDto(List<Map<String, String>> responseList, String order) {
+        int range = "top".equals(order) ? TOP_RANK_RANGE : responseList.size();
+        String stockCodeKey = "change".equals(order) ? CHANGE_STOCK_CODE : STOCK_CODE;
 
-        Stock stock = stockRepository.findByCode(responseMap.get(stockCode)).orElse(null);
-        if (stock == null) {
-            stock = stockRepository.save(
-                    Stock.builder()
-                            .name(responseMap.get(STOCK_NAME))
-                            .code(responseMap.get(stockCode))
-                            .build()
+        List<StockResponseDto> stockList = new ArrayList<>();
+        for (int i = 0; i < range; i++) {
+            Map<String, String> responseMap = responseList.get(i);
+            stockList.add(StockResponseDto.builder()
+                    .name(responseMap.get(STOCK_NAME))
+                    .code(responseMap.get(stockCodeKey))
+                    .price(Integer.parseInt(responseMap.get(STOCK_CURRENT_PRICE)))
+                    .change(Integer.parseInt(responseMap.get(CHANGE_FROM_PREVIOUS_STOCK)))
+                    .changeRate(Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_STOCK)))
+                    .build()
             );
         }
 
-        return StockResponseDto.builder()
-                .name(responseMap.get(STOCK_NAME))
-                .code(responseMap.get(stockCode))
-                .logo(stock.getLogo())
-                .price(Integer.parseInt(responseMap.get(STOCK_CURRENT_PRICE)))
-                .change(Integer.parseInt(responseMap.get(CHANGE_FROM_PREVIOUS_STOCK)))
-                .changeRate(Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_STOCK)))
-                .build();
+        List<String> stockCodeList = stockList.stream()
+                .map(StockResponseDto::getCode)
+                .toList();
+
+        for (StockResponseDto stock : stockList) {
+            if (!stockCodeList.contains(stock.getCode())) {
+                stockRepository.save(
+                        Stock.builder()
+                                .name(stock.getName())
+                                .code(stock.getCode())
+                                .build()
+                );
+            }
+        }
+
+        return stockList;
     }
 
     // 16. 스껄계산기

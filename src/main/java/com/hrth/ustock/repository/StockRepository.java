@@ -13,6 +13,8 @@ public interface StockRepository extends JpaRepository<Stock, String> {
 
     Optional<Stock> findByCode(String code);
 
+    List<Stock> findAllByCodeIn(List<String> codes);
+
     @Query("SELECT s FROM Stock s WHERE s.name LIKE :name% ORDER BY s.name ASC")
     List<Stock> findByNameStartingWith(@Param("name") String name);
 
