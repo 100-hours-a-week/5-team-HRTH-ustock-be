@@ -102,6 +102,9 @@ jobs:
           sudo chmod +x deploy.sh
           sudo ./deploy.sh
 
+      - name: Remove Old Docker Image for Development
+        run: docker image prune -af --filter "until=24h"
+
   deploy-to-ec2-prod:
     runs-on: [ self-hosted, Linux, X64, prod ]
     needs: build-and-push
@@ -127,5 +130,5 @@ jobs:
           sudo chmod +x deploy.sh
           sudo ./deploy.sh
 
-      - name: Remove Old Docker Image
+      - name: Remove Old Docker Image for Production
         run: docker image prune -af --filter "until=24h"
