@@ -347,7 +347,7 @@ public class StockService {
                 .toList();
 
         for (StockResponseDto stock : stockList) {
-            if (!findStockList.contains(stock)) {
+            if (!stockCodeList.contains(stock.getCode())) {
                 stockRepository.save(
                         Stock.builder()
                                 .name(stock.getName())
