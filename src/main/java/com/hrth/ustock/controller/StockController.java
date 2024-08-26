@@ -3,12 +3,10 @@ package com.hrth.ustock.controller;
 import com.hrth.ustock.dto.chart.ChartResponseDto;
 import com.hrth.ustock.dto.stock.SkrrrCalculatorRequestDto;
 import com.hrth.ustock.dto.stock.SkrrrCalculatorResponseDto;
-import com.hrth.ustock.dto.stock.StockDto;
 import com.hrth.ustock.dto.stock.StockResponseDto;
 import com.hrth.ustock.exception.*;
 import com.hrth.ustock.service.StockService;
 import io.sentry.Sentry;
-import io.sentry.spring.jakarta.EnableSentry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 @RestController
 @RequiredArgsConstructor
@@ -61,7 +58,7 @@ public class StockController {
     public ResponseEntity<?> searchStock(@RequestParam String query) {
 
         try {
-            List<StockDto> stockList = stockService.findByStockName(query);
+            List<StockResponseDto> stockList = stockService.findByStockName(query);
             return ResponseEntity.ok(stockList);
         } catch (StockNotFoundException e) {
             return ResponseEntity.notFound().build();

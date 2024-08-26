@@ -1,6 +1,6 @@
 package com.hrth.ustock.entity.portfolio;
 
-import com.hrth.ustock.dto.stock.StockDto;
+import com.hrth.ustock.dto.stock.StockResponseDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -26,8 +26,8 @@ public class Stock {
 
     private String logo;
 
-    public StockDto toDto() {
-        return StockDto.builder()
+    public StockResponseDto toDto() {
+        return StockResponseDto.builder()
                 .code(this.code)
                 .name(this.name)
                 .logo(this.logo)
