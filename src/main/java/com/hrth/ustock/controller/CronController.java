@@ -3,6 +3,7 @@ package com.hrth.ustock.controller;
 import com.hrth.ustock.service.cron.StockCronService;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/scheduler")
+@EnableScheduling
 public class CronController {
     private final StockCronService stockCronService;
 
