@@ -43,20 +43,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // cors
-        http
-                .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
-                    log.info("cors filter - request url: {}", request.getRequestURL());
-                    CorsConfiguration configuration = new CorsConfiguration();
-                    configuration.setAllowedOrigins(Collections.singletonList(url));
-                    configuration.setAllowedMethods(Collections.singletonList("*"));
-                    configuration.setAllowCredentials(true);
-                    configuration.setAllowedHeaders(Collections.singletonList("*"));
-                    configuration.setMaxAge(3600L);
-                    configuration.setExposedHeaders(
-                            List.of("Set-Cookie"));
-                    return configuration;
-                }));
         http
                 // from 로그인 방식 disable
                 .formLogin(AbstractHttpConfigurer::disable)

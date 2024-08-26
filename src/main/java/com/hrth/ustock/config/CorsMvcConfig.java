@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.Collections;
+
 @Configuration
 public class CorsMvcConfig implements WebMvcConfigurer {
     @Value("${spring.config.url}")
@@ -15,6 +17,9 @@ public class CorsMvcConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .exposedHeaders("Set-Cookie")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedOrigins(url);
+                .allowedOrigins(url)
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600L);
     }
 }
