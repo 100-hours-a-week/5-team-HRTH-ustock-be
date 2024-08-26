@@ -208,6 +208,8 @@ public class StockService {
     }
 
     public Map<String, List<StockResponseDto>> getStockList(String order) {
+        // TODO: 언제 갱신됐는지 체크하고, 만약 갱신 시간이 지났다면 아래 코드를 동작시켜 레디스에 저장, 아니라면 레디스에서 꺼내기
+        // TODO: 갱신 기준은 현재 시간을 기준으로 30분 단위로 체크 (ex. 현재 시간이 13:20이라면, 갱신 기준은 13:00임)
         List<Map<String, String>> responseList = switch (order) {
             case "top", "trade" -> requestOrderByTrade();
             case "capital" -> requestOrderByCapital();
@@ -215,6 +217,7 @@ public class StockService {
             default -> throw new IllegalArgumentException();
         };
 
+        // TODO: 이 아래로는 무조건 동작해야 함
         List<StockResponseDto> stockList = makeStockResponseDto(responseList, order);
 
         Map<String, List<StockResponseDto>> stockMap = new HashMap<>();
@@ -340,10 +343,6 @@ public class StockService {
 
         List<String> stockCodeList = stockList.stream()
                 .map(StockResponseDto::getCode)
-                .toList();
-
-        List<StockResponseDto> findStockList = stockRepository.findAllByCodeIn(stockCodeList).stream()
-                .map(Stock::toDto)
                 .toList();
 
         for (StockResponseDto stock : stockList) {
