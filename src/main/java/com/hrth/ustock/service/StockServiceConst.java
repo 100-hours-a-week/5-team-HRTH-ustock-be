@@ -21,6 +21,10 @@ public interface StockServiceConst {
     String STOCK_CURRENT_PRICE = "stck_prpr";
     String CHANGE_FROM_PREVIOUS_STOCK = "prdy_vrss";
     String CHANGE_RATE_FROM_PREVIOUS_STOCK = "prdy_ctrt";
+    String STOCK_MARKET_HIGH = "stck_hgpr";
+    String STOCK_MARKET_LOW = "stck_lwpr";
+    String STOCK_MARKET_OPEN = "stck_oprc";
+    String STOCK_MARKET_CLOSE = "stck_prpr";
 
     // redis 저장 키
     String REDIS_CURRENT_KEY = "current";

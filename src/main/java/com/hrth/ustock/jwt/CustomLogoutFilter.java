@@ -79,10 +79,14 @@ public class CustomLogoutFilter extends GenericFilterBean {
         Cookie accessLogout = new Cookie("access", null);
         accessLogout.setMaxAge(0);
         accessLogout.setPath("/");
+        accessLogout.setHttpOnly(true);
+        accessLogout.setSecure(true);
 
         Cookie refreshLogout = new Cookie("refresh", null);
         refreshLogout.setMaxAge(0);
         refreshLogout.setPath("/");
+        refreshLogout.setHttpOnly(true);
+        refreshLogout.setSecure(true);
 
         response.addCookie(accessLogout);
         response.addCookie(refreshLogout);
