@@ -58,7 +58,7 @@ public class StockController {
     public ResponseEntity<?> searchStock(@RequestParam String query) {
 
         try {
-            List<StockResponseDto> stockList = stockService.findByStockName(query);
+            List<StockResponseDto> stockList = stockService.searchStock(query);
             return ResponseEntity.ok(stockList);
         } catch (StockNotFoundException e) {
             return ResponseEntity.notFound().build();
