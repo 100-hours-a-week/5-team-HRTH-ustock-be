@@ -71,7 +71,7 @@ public class PortfolioController {
         try {
             portfolioService.getPortfolioList(customUserDetails.getUserId());
         } catch (PortfolioNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+            return ResponseEntity.ok().body(false);
         }
         return ResponseEntity.ok().body(true);
     }
