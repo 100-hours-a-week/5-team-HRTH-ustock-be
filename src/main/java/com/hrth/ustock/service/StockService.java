@@ -194,7 +194,18 @@ public class StockService {
             marketInfo = redisTemplate.opsForValue().get("marketInfo");
         }
 
-        return redisJsonManager.stringMapConvert(marketInfo);
+        Map<String, Object> redisResult = redisJsonManager.stringMapConvert(marketInfo);
+
+        if (redisResult == null) {
+            throw new RuntimeException();
+        }
+
+        Map<String, MarketResponseDto> map = new HashMap<>();
+        map.put("kospi", (MarketResponseDto) redisResult.get("kospi"));
+        map.put("kosdaq", (MarketResponseDto) redisResult.get("kosdaq"));
+
+        return map;
+
     }
 
     public Map<String, List<StockResponseDto>> getStockList(String order) {
@@ -237,7 +248,7 @@ public class StockService {
 
     private List<StockResponseDto> requestOrderByTrade(String order) {
         String redis_key = order.equals(REDIS_ORDER_TOP) ? REDIS_ORDER_TOP : REDIS_ORDER_TRADE;
-        String redisResult = (String) redisTemplate.opsForHash().get("ranking_" + redis_key, redis_key + minuteFormatter());
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + redis_key + "_" + minuteFormatter());
 
         if (redisResult != null) {
             return redisJsonManager.stringDtoConvert(redisResult);
@@ -266,7 +277,7 @@ public class StockService {
     }
 
     private List<StockResponseDto> requestOrderByCapital() {
-        String redisResult = (String) redisTemplate.opsForHash().get("ranking_" + "capital", "capital" + minuteFormatter());
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + "capital_" + minuteFormatter());
 
         if (redisResult != null) {
             return redisJsonManager.stringDtoConvert(redisResult);
@@ -292,7 +303,7 @@ public class StockService {
     }
 
     private List<StockResponseDto> requestOrderByChange() {
-        String redisResult = (String) redisTemplate.opsForHash().get("ranking_" + "change", "change" + minuteFormatter());
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + "change_" + minuteFormatter());
 
         if (redisResult != null) {
             return redisJsonManager.stringDtoConvert(redisResult);
@@ -331,9 +342,9 @@ public class StockService {
 
         List<StockResponseDto> stockList = makeStockResponseDto(output, redis_key);
 
-        String jsonString = redisJsonManager.dtoStringConvert(stockList);
-        redisTemplate.opsForHash().put("ranking_" + redis_key, redis_key + minuteFormatter(), jsonString);
-        redisTemplate.expire("ranking" + redis_key, 60 * 60, TimeUnit.SECONDS);
+        String dtoString = redisJsonManager.dtoStringConvert(stockList);
+        redisTemplate.opsForValue().set("ranking_" + redis_key + "_" + minuteFormatter(), dtoString);
+        redisTemplate.expire("ranking_" + redis_key + "_" + minuteFormatter(), 40 * 60, TimeUnit.SECONDS);
 
         return stockList;
     }
