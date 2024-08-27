@@ -74,7 +74,7 @@ public class SecurityConfig {
                 .addFilterBefore(new CustomLogoutFilter(domain, url, jwtUtil, redisTemplate), LogoutFilter.class)
 
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/logout", "/v1/portfolio/**", "/v1/portfolio", "/v1/scheduler/test/**", "/v1/user").authenticated()
+                        .requestMatchers("/logout", "/v1/portfolio/**", "/v1/portfolio", "/v1/user").authenticated()
                         .anyRequest().permitAll())
                 // 경로별 인가 작업 - 개발중 테스트용 /**,
 //                .authorizeHttpRequests((auth) -> auth
