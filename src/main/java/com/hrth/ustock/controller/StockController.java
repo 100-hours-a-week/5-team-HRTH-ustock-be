@@ -113,6 +113,8 @@ public class StockController {
             return ResponseEntity.badRequest().body("해당 주식이 상장되지 않은 날짜입니다.");
         } catch (StockCanNotPurchaseException e) {
             return ResponseEntity.badRequest().body("해당 금액으로는 구매할 수 없습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("잘못된 날짜 양식입니다.");
         } catch (CurrentNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("종목 정보를 조회할 수 없습니다.");
         } catch (Exception e) {
