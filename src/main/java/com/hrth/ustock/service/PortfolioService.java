@@ -31,7 +31,7 @@ import static com.hrth.ustock.service.StockServiceConst.REDIS_CURRENT_KEY;
 @RequiredArgsConstructor
 public class PortfolioService {
     public static final int MAX_QUANTITY = 99_999;
-    public static final int MAX_PRICE = 999_999_999;
+    public static final long MAX_PRICE = 9_999_999_999L;
 
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
@@ -83,7 +83,7 @@ public class PortfolioService {
                 continue;
             }
             int quantity = h.getQuantity();
-            int average = h.getAverage();
+            long average = h.getAverage();
             int current = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
             long ret = (long) quantity * current - (long) quantity * average;
 
@@ -137,7 +137,7 @@ public class PortfolioService {
         }
 
         int quantity = holdingRequestDto.getQuantity();
-        int price = holdingRequestDto.getPrice();
+        long price = holdingRequestDto.getPrice();
         if (quantity > MAX_QUANTITY || price > MAX_PRICE) {
             throw new InputNotValidException();
         }
@@ -161,7 +161,7 @@ public class PortfolioService {
 
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
-        int price = holdingRequestDto.getPrice();
+        long price = holdingRequestDto.getPrice();
         int quantity = holdingRequestDto.getQuantity();
 
         if (quantity > MAX_QUANTITY || price > MAX_PRICE) {
@@ -178,7 +178,7 @@ public class PortfolioService {
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
         int quantity = holdingRequestDto.getQuantity();
-        int price = holdingRequestDto.getPrice();
+        long price = holdingRequestDto.getPrice();
         if (quantity > MAX_QUANTITY || price > MAX_PRICE) {
             throw new InputNotValidException();
         }
