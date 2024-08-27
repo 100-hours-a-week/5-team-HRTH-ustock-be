@@ -1,5 +1,6 @@
 package com.hrth.ustock.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hrth.ustock.dto.chart.ChartDto;
 import com.hrth.ustock.dto.chart.ChartResponseDto;
 import com.hrth.ustock.dto.stock.MarketResponseDto;
@@ -50,11 +51,12 @@ public class StockService {
     private final ChartRepository chartRepository;
     private final NewsRepository newsRepository;
     private final DateConverter dateConverter;
-    private final RedisTemplate<String, String> redisTemplate;
 
     private final RestClient restClient;
+    private final ObjectMapper objectMapper;
     private final KisApiAuthManager authManager;
     private final RedisJsonManager redisJsonManager;
+    private final RedisTemplate<String, String> redisTemplate;
 
     private static final DateTimeFormatter redisFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd/HH/mm");
     private final StockCronService stockCronService;
@@ -188,21 +190,21 @@ public class StockService {
 
     public Map<String, MarketResponseDto> getMarketInfo() {
         String marketInfo = redisTemplate.opsForValue().get("market_info");
-
+        log.info(marketInfo);
         if (marketInfo == null) {
             stockCronService.saveMarketData();
             marketInfo = redisTemplate.opsForValue().get("market_info");
         }
 
         Map<String, Object> redisResult = redisJsonManager.stringMapConvert(marketInfo);
-
+        log.info("redisResult: {}", redisResult);
         if (redisResult == null) {
             throw new RuntimeException();
         }
 
         Map<String, MarketResponseDto> map = new HashMap<>();
-        map.put("kospi", (MarketResponseDto) redisResult.get("kospi"));
-        map.put("kosdaq", (MarketResponseDto) redisResult.get("kosdaq"));
+        map.put("kospi", objectMapper.convertValue(redisResult.get("kospi"), MarketResponseDto.class));
+        map.put("kosdaq", objectMapper.convertValue(redisResult.get("kosdaq"), MarketResponseDto.class));
 
         return map;
 
