@@ -187,11 +187,11 @@ public class StockService {
     }
 
     public Map<String, MarketResponseDto> getMarketInfo() {
-        String marketInfo = redisTemplate.opsForValue().get("marketInfo");
+        String marketInfo = redisTemplate.opsForValue().get("market_info");
 
         if (marketInfo == null) {
             stockCronService.saveMarketData();
-            marketInfo = redisTemplate.opsForValue().get("marketInfo");
+            marketInfo = redisTemplate.opsForValue().get("market_info");
         }
 
         Map<String, Object> redisResult = redisJsonManager.stringMapConvert(marketInfo);
