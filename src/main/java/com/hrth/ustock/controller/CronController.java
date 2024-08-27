@@ -21,7 +21,7 @@ public class CronController {
     @Scheduled(cron = "0 */15 8-16 * * MON-SAT")
     public void setChartData() {
         try {
-            stockCronService.saveStockChartData();
+            stockCronService.saveStockData();
         } catch (Exception e) {
             Sentry.captureException(e);
         }
@@ -51,7 +51,7 @@ public class CronController {
     @GetMapping("/test/1")
     public void testChartData() {
         try {
-            stockCronService.saveStockChartData();
+            stockCronService.saveStockData();
         } catch (Exception e) {
             Sentry.captureException(e);
         }

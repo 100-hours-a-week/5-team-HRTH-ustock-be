@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.hrth.ustock.service.StockServiceConst.REDIS_CURRENT_KEY;
 
@@ -139,7 +138,7 @@ public class PortfolioService {
 
         int quantity = holdingRequestDto.getQuantity();
         int price = holdingRequestDto.getPrice();
-        if (quantity > MAX_QUANTITY || price * quantity > MAX_PRICE) {
+        if (quantity > MAX_QUANTITY || price > MAX_PRICE) {
             throw new InputNotValidException();
         }
 
@@ -165,9 +164,7 @@ public class PortfolioService {
         int price = holdingRequestDto.getPrice();
         int quantity = holdingRequestDto.getQuantity();
 
-        if (quantity > MAX_QUANTITY || price * quantity > MAX_PRICE
-                || quantity + target.getQuantity() > MAX_QUANTITY
-                || price * quantity + target.getAverage() * target.getQuantity() > MAX_PRICE) {
+        if (quantity > MAX_QUANTITY || price > MAX_PRICE) {
             throw new InputNotValidException();
         }
 
@@ -182,7 +179,7 @@ public class PortfolioService {
 
         int quantity = holdingRequestDto.getQuantity();
         int price = holdingRequestDto.getPrice();
-        if (quantity > MAX_QUANTITY || price * quantity > MAX_PRICE) {
+        if (quantity > MAX_QUANTITY || price > MAX_PRICE) {
             throw new InputNotValidException();
         }
         target.updateHolding(quantity, price);

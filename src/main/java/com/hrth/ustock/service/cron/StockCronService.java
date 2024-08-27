@@ -46,7 +46,7 @@ public class StockCronService {
     // 주중 오전 9시에 시작해서 30분마다 실행하고 오후 15시 30분에 끝남
     // 종목별 현재가, 차트 데이터 redis에 갱신
     @Transactional
-    public void saveStockChartData() {
+    public void saveStockData() {
         String startDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(requestFormatter);
         String redisDate = minuteFormatter();
         List<Stock> allStocks = stockRepository.findAll();
@@ -108,7 +108,7 @@ public class StockCronService {
 //            String jsonString = redisJsonManager.jsonStringConvert(charts);
 //            redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
 
-            TimeDelay.delay(100);
+            TimeDelay.delay(200);
         }
     }
 
@@ -127,7 +127,6 @@ public class StockCronService {
 
         String jsonString = redisJsonManager.mapStringConvert(marketInfo);
         redisTemplate.opsForValue().set("marketInfo", jsonString);
-
     }
 
     private Map<String, String> requestMarketInfo(String marketCode) {
