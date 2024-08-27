@@ -33,8 +33,11 @@ public class NewsService {
         }
 
         Collections.shuffle(newsList);
-
-        return newsList.subList(0, 15).stream()
+        int lastIndex = 15;
+        if (newsList.size() < 15) {
+            lastIndex = newsList.size()-1;
+        }
+        return newsList.subList(0, lastIndex).stream()
                 .map(News::toResponseDto)
                 .toList();
     }
