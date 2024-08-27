@@ -119,7 +119,7 @@ public class StockCronService {
         log.info("시장 크론잡 시작");
         Map<String, String> kospi = requestMarketInfo(KOSPI_CODE);
         Map<String, String> kosdaq = requestMarketInfo(KOSDAQ_CODE);
-        String redisDate = minuteFormatter();
+        String redisDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(redisFormatter);
 
         if(kospi == null || kosdaq == null) {
             return;
