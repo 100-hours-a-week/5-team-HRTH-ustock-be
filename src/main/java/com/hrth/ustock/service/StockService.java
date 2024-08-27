@@ -400,6 +400,11 @@ public class StockService {
     // 16. 스껄계산기
     public SkrrrCalculatorResponseDto calculateSkrrr(String code, SkrrrCalculatorRequestDto requestDto) {
         String date = requestDto.getDate();
+
+        if (!isValidDate(date)) {
+            throw new IllegalArgumentException();
+        }
+
         DateTimeFormatter originFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         LocalDate originDate = LocalDate.parse(date, originFormatter);
         DateTimeFormatter newFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -485,6 +490,18 @@ public class StockService {
                 .iphone(String.valueOf(ret / iphone))
                 .slave(String.valueOf(ret / slave))
                 .build();
+    }
+
+    private boolean isValidDate(String date) {
+        String[] dateInput = date.split("/");
+        int year = Integer.parseInt(dateInput[0]);
+        int month = Integer.parseInt(dateInput[1]);
+        int day = Integer.parseInt(dateInput[2]);
+
+        int february = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28;
+        int[] limitDate = {0, 31, february, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+        return limitDate[month] >= day;
     }
 
     private Consumer<HttpHeaders> setRequestHeaders(String trId) {
