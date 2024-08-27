@@ -8,12 +8,15 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
+@Slf4j
 @RequiredArgsConstructor
 public class CustomLogoutFilter extends GenericFilterBean {
 
@@ -54,6 +57,10 @@ public class CustomLogoutFilter extends GenericFilterBean {
         }
 
         if (refresh == null || jwtUtil.isExpired(refresh) || !jwtUtil.getCategory(refresh).equals("refresh")) {
+            log.info("logout: refresh not valid, url: {}", request.getRequestURL());
+            PrintWriter writer = response.getWriter();
+            writer.print("logout: refresh not valid");
+
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
@@ -61,17 +68,29 @@ public class CustomLogoutFilter extends GenericFilterBean {
         //DB에 저장되어 있는지 확인
         Long userId = jwtUtil.getUserId(refresh);
         if (userId == null) {
+            log.info("logout: cannot get userId, url: {}", request.getRequestURL());
+            PrintWriter writer = response.getWriter();
+            writer.print("logout: cannot get userId");
+
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
         String currentRefresh = (String) redisTemplate.opsForValue().get("RT:" + userId);
         if (currentRefresh == null) {
+            log.info("logout: cannot find cache, url: {}", request.getRequestURL());
+            PrintWriter writer = response.getWriter();
+            writer.print("logout: cannot find cache");
+
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
         if (!currentRefresh.equals(refresh)) {
+            log.info("logout: refresh not match, url: {}", request.getRequestURL());
+            PrintWriter writer = response.getWriter();
+            writer.print("logout: refresh not match");
+
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
