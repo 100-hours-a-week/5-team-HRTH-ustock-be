@@ -21,7 +21,25 @@ import org.springframework.web.bind.annotation.*;
 public class PortfolioController {
     private final PortfolioService portfolioService;
 
-    // 7. 포트폴리오 생성
+    @GetMapping
+    public ResponseEntity<?> showPortfolioList(Authentication authentication) {
+
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+
+        try {
+            PortfolioListDto list = portfolioService.getPortfolioList(customUserDetails.getUserId());
+            return ResponseEntity.ok().body(list);
+        } catch (PortfolioNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDto portfolioRequestDto, Authentication authentication) {
 
@@ -43,27 +61,21 @@ public class PortfolioController {
         }
     }
 
-    // 8. 포트폴리오 리스트 조회
-    @GetMapping
-    public ResponseEntity<?> showPortfolioList(Authentication authentication) {
-
+    @GetMapping("/check")
+    public ResponseEntity<?> checkUserHasPortfolio(Authentication authentication) {
         if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
         try {
-            PortfolioListDto list = portfolioService.getPortfolioList(customUserDetails.getUserId());
-            return ResponseEntity.ok().body(list);
+            portfolioService.getPortfolioList(customUserDetails.getUserId());
         } catch (PortfolioNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
         }
+        return ResponseEntity.ok().body(true);
     }
 
-    // 9. 개별 포트폴리오 조회
     @GetMapping("/{pfId}")
     public ResponseEntity<?> showPortfolioById(@PathVariable("pfId") Long pfId) {
 
@@ -78,7 +90,6 @@ public class PortfolioController {
         }
     }
 
-    // 10. 개별 종목 추가 매수
     @PatchMapping("/{pfId}/holding/{code}")
     public ResponseEntity<?> buyAdditionalPortfolioStock(
             @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto) {
@@ -100,7 +111,6 @@ public class PortfolioController {
         }
     }
 
-    // 11. 개별 종목 수정
     @PutMapping("/{pfId}/holding/{code}")
     public ResponseEntity<?> editPortfolioStock(
             @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto) {
@@ -123,7 +133,6 @@ public class PortfolioController {
         return ResponseEntity.ok().build();
     }
 
-    // 12. 개별 종목 삭제
     @DeleteMapping("/{pfId}/holding/{code}")
     public ResponseEntity<?> deletePortfolioStock(@PathVariable("pfId") Long pfId, @PathVariable("code") String code) {
 
@@ -139,7 +148,6 @@ public class PortfolioController {
         return ResponseEntity.ok().build();
     }
 
-    // 13. 포트폴리오 삭제
     @DeleteMapping("/{pfId}")
     public ResponseEntity<?> deletePortfolio(@PathVariable("pfId") Long pfId) {
 
@@ -155,7 +163,6 @@ public class PortfolioController {
         return ResponseEntity.ok().build();
     }
 
-    // 18. 개별 종목 추가
     @PostMapping("/{pfId}/holding/{code}")
     public ResponseEntity<?> buyPortfolioStock(
             @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto) {
