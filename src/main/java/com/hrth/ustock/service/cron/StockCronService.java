@@ -47,6 +47,7 @@ public class StockCronService {
     // 종목별 현재가, 차트 데이터 redis에 갱신
     @Transactional
     public void saveStockData() {
+        log.info("현재가 크론잡 시작");
         String startDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(requestFormatter);
         String redisDate = minuteFormatter();
         List<Stock> allStocks = stockRepository.findAll();
@@ -110,10 +111,12 @@ public class StockCronService {
 
             TimeDelay.delay(200);
         }
+        log.info("현재가 크론잡 종료");
     }
 
     @Transactional
     public void saveMarketData() {
+        log.info("시장 크론잡 시작");
         Map<String, String> kospi = requestMarketInfo(KOSPI_CODE);
         Map<String, String> kosdaq = requestMarketInfo(KOSDAQ_CODE);
         String redisDate = minuteFormatter();
@@ -129,6 +132,7 @@ public class StockCronService {
 
         String jsonString = redisJsonManager.mapStringConvert(marketInfo);
         redisTemplate.opsForValue().set("market_info", jsonString);
+        log.info("시장 크론잡 종료");
     }
 
     private Map<String, String> requestMarketInfo(String marketCode) {
@@ -163,6 +167,7 @@ public class StockCronService {
 
     @Transactional
     public void saveEditedChartData() {
+        log.info("차트 크론잡 시작");
         String startDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(1).format(requestFormatter);
         String mysqlDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(1).format(mysqlFormatter);
 
@@ -208,6 +213,7 @@ public class StockCronService {
             );
             TimeDelay.delay(100);
         }
+        log.info("차트 크론잡 종료");
     }
 
     private String minuteFormatter() {
