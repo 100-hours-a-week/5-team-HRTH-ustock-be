@@ -397,7 +397,6 @@ public class StockService {
                 .toList();
 
         List<Stock> findStockList = stockRepository.findAllByCodeIn(codeList);
-
         for (Stock stock : findStockList) {
             for (StockResponseDto dto : stockList) {
                 if (dto.getCode().equals(stock.getCode())) {
