@@ -194,7 +194,18 @@ public class StockService {
             marketInfo = redisTemplate.opsForValue().get("marketInfo");
         }
 
-        return redisJsonManager.stringMapConvert(marketInfo);
+        Map<String, Object> redisResult = redisJsonManager.stringMapConvert(marketInfo);
+
+        if(redisResult == null) {
+            throw new RuntimeException();
+        }
+
+        Map<String, MarketResponseDto> map = new HashMap<>();
+        map.put("kospi", (MarketResponseDto) redisResult.get("kospi"));
+        map.put("kosdaq", (MarketResponseDto) redisResult.get("kosdaq"));
+
+        return map;
+
     }
 
     public Map<String, List<StockResponseDto>> getStockList(String order) {

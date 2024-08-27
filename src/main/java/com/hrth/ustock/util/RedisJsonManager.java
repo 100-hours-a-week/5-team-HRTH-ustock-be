@@ -54,7 +54,7 @@ public class RedisJsonManager {
         }
     }
 
-    public String mapStringConvert(Map<String, MarketResponseDto> data) {
+    public String mapStringConvert(Map<String, Object> data) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.writeValueAsString(data);
@@ -64,7 +64,7 @@ public class RedisJsonManager {
         }
     }
 
-    public Map<String, MarketResponseDto> stringMapConvert(String data) {
+    public Map<String, Object> stringMapConvert(String data) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.readValue(data, new TypeReference<>() {

@@ -116,17 +116,19 @@ public class StockCronService {
     public void saveMarketData() {
         Map<String, String> kospi = requestMarketInfo(KOSPI_CODE);
         Map<String, String> kosdaq = requestMarketInfo(KOSDAQ_CODE);
+        String redisDate = minuteFormatter();
 
         if(kospi == null || kosdaq == null) {
             return;
         }
 
-        Map<String, MarketResponseDto> marketInfo = new HashMap<>();
+        Map<String, Object> marketInfo = new HashMap<>();
         marketInfo.put("kospi", makeMarketDto(kospi));
         marketInfo.put("kosdaq", makeMarketDto(kosdaq));
+        marketInfo.put("date", redisDate);
 
         String jsonString = redisJsonManager.mapStringConvert(marketInfo);
-        redisTemplate.opsForValue().set("marketInfo", jsonString);
+        redisTemplate.opsForValue().set("market_info", jsonString);
     }
 
     private Map<String, String> requestMarketInfo(String marketCode) {
