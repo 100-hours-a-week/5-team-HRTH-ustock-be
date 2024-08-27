@@ -13,6 +13,7 @@ import com.hrth.ustock.exception.*;
 import com.hrth.ustock.repository.ChartRepository;
 import com.hrth.ustock.repository.NewsRepository;
 import com.hrth.ustock.repository.StockRepository;
+import com.hrth.ustock.service.cron.StockCronService;
 import com.hrth.ustock.util.DateConverter;
 import com.hrth.ustock.util.KisApiAuthManager;
 import com.hrth.ustock.util.RedisJsonManager;
@@ -56,6 +57,7 @@ public class StockService {
     private final RedisJsonManager redisJsonManager;
 
     private static final DateTimeFormatter redisFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd/HH/mm");
+    private final StockCronService stockCronService;
 
     // 6. 종목 검색
     @Transactional
@@ -184,40 +186,15 @@ public class StockService {
         return chartListResponse;
     }
 
-    public Map<String, Object> getMarketInfo() {
-        Map<String, String> kospi = requestMarketInfo(KOSPI_CODE);
-        Map<String, String> kosdaq = requestMarketInfo(KOSDAQ_CODE);
+    public Map<String, MarketResponseDto> getMarketInfo() {
+        String marketInfo = redisTemplate.opsForValue().get("marketInfo");
 
-        Map<String, Object> marketInfo = new HashMap<>();
-        marketInfo.put("kospi", makeMarketDto(kospi));
-        marketInfo.put("kosdaq", makeMarketDto(kosdaq));
+        if (marketInfo == null) {
+            stockCronService.saveMarketData();
+            marketInfo = redisTemplate.opsForValue().get("marketInfo");
+        }
 
-        return marketInfo;
-    }
-
-    private Map<String, String> requestMarketInfo(String marketCode) {
-        String queryParams = "?fid_cond_mrkt_div_code=U"
-                + "&fid_input_iscd=" + marketCode;
-
-        Map response = restClient.get()
-                .uri("/uapi/domestic-stock/v1/quotations/inquire-index-price" + queryParams)
-                .headers(setRequestHeaders("FHPUP02100000"))
-                .retrieve()
-                .body(Map.class);
-
-        return (Map<String, String>) response.get("output");
-    }
-
-    private MarketResponseDto makeMarketDto(Map<String, String> responseMap) {
-        double price = Double.parseDouble(responseMap.get(MARKET_CURRENT_PRICE));
-        double change = Double.parseDouble(responseMap.get(CHANGE_FROM_PREVIOUS_MARKET));
-        double changeRate = Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_MARKET));
-
-        return MarketResponseDto.builder()
-                .price(price)
-                .change(change)
-                .changeRate(changeRate)
-                .build();
+        return redisJsonManager.stringMapConvert(marketInfo);
     }
 
     public Map<String, List<StockResponseDto>> getStockList(String order) {
@@ -273,7 +250,7 @@ public class StockService {
                 "&fid_trgt_cls_code=0" +
                 "&fid_blng_cls_code=0" +
                 "&fid_trgt_cls_code=111111111" +
-                "&fid_trgt_exls_cls_code=1111111111" +
+                "&fid_trgt_exls_cls_code=0111001101" +
                 "&fid_input_price_1=" +
                 "&fid_input_price_2=" +
                 "&fid_vol_cnt=" +

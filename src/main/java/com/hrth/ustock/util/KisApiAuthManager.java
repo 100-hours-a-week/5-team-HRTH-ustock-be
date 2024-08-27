@@ -8,6 +8,10 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +26,7 @@ public class KisApiAuthManager {
     private final String appSecret;
     private final RestClient restClient;
     private final RedisTemplate<String, String> redisTemplate;
+    private static final DateTimeFormatter requestFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
     public KisApiAuthManager(@Value("${kis.appkey}") String appKey,
@@ -54,10 +59,13 @@ public class KisApiAuthManager {
                 .body(Map.class);
 
         String token = (String) response.get("access_token");
-        int tokenExpired = (Integer) response.get("expires_in");
+        String tokenExpired = (String) response.get("access_token_token_expired");
+
+        ZonedDateTime tokenExpireDate = LocalDateTime.parse(tokenExpired, requestFormatter).atZone(ZoneId.of("Asia/Seoul"));
+        long expireSecond = RedisTTLCalculator.calculateTTLForMidnightKST(tokenExpireDate);
 
         redisTemplate.opsForValue().set("ACCESS_TOKEN", token);
-        redisTemplate.expire("ACCESS_TOKEN", tokenExpired, TimeUnit.SECONDS);
+        redisTemplate.expire("ACCESS_TOKEN", expireSecond, TimeUnit.SECONDS);
 
         log.info("Token Created: {}", token);
         return token;
