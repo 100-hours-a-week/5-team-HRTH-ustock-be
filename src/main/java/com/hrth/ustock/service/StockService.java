@@ -397,7 +397,6 @@ public class StockService {
                 .toList();
 
         List<Stock> findStockList = stockRepository.findAllByCodeIn(codeList);
-
         for (Stock stock : findStockList) {
             for (StockResponseDto dto : stockList) {
                 if (dto.getCode().equals(stock.getCode())) {
@@ -407,21 +406,8 @@ public class StockService {
             }
         }
 
-        List<String> stockCodeList = stockList.stream()
-                .map(StockResponseDto::getCode)
-                .toList();
-
-        List<Stock> findStocks = stockRepository.findAllByCodeIn(stockCodeList);
-        for (Stock findStock : findStocks) {
-            for (StockResponseDto dto : stockList) {
-                if (dto.getCode().equals(findStock.getCode())) {
-                    dto.setLogo(findStock.getLogo());
-                }
-            }
-        }
-
         for (StockResponseDto stock : stockList) {
-            if (!stockCodeList.contains(stock.getCode())) {
+            if (!codeList.contains(stock.getCode())) {
                 stockRepository.save(
                         Stock.builder()
                                 .name(stock.getName())
