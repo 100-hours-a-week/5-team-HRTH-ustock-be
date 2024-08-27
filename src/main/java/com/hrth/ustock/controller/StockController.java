@@ -107,6 +107,11 @@ public class StockController {
 
     @GetMapping("/{code}/skrrr")
     public ResponseEntity<?> skrrrCalculator(@PathVariable String code, @ModelAttribute SkrrrCalculatorRequestDto requestDto) {
+
+        if (requestDto.getPrice() > 9_999_999_999_999L) {
+            return ResponseEntity.badRequest().body("입력값이 너무 큽니다");
+        }
+
         try {
             SkrrrCalculatorResponseDto skrrrCalculatorResponseDto = stockService.calculateSkrrr(code, requestDto);
             return ResponseEntity.ok(skrrrCalculatorResponseDto);
