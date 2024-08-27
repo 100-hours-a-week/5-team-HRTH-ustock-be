@@ -19,8 +19,6 @@ import org.springframework.web.client.RestClient;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -82,30 +80,31 @@ public class StockCronService {
             redisTemplate.opsForHash().put(code, REDIS_CURRENT_KEY, current);
             redisTemplate.opsForHash().put(code, REDIS_CHANGE_KEY, change);
             redisTemplate.opsForHash().put(code, REDIS_CHANGE_RATE_KEY, changeRate);
-
-            // chart data
-            // redis에 json String으로 저장함
-            String high = output1.get(STOCK_MARKET_HIGH);
-            String low = output1.get(STOCK_MARKET_LOW);
-            String open = output1.get(STOCK_MARKET_OPEN);
-            // 장 마감 전까진 종가가 없으니 현재가로 저장
-            String close = output1.get(STOCK_MARKET_CLOSE);
-
-            List<Map<String, String>> charts;
-            String result = (String) redisTemplate.opsForHash().get(code, REDIS_CHART_KEY);
-
-            charts = result == null ? new ArrayList<>() : redisJsonManager.stringJsonConvert(result);
-
-            Map<String, String> chart = new HashMap<>();
-            chart.put(REDIS_CHART_HIGH_KEY, high);
-            chart.put(REDIS_CHART_LOW_KEY, low);
-            chart.put(REDIS_CHART_OPEN_KEY, open);
-            chart.put(REDIS_CHART_CLOSE_KEY, close);
-            chart.put(REDIS_CHART_DATE_KEY, redisDate);
-            charts.add(chart);
-
-            String jsonString = redisJsonManager.jsonStringConvert(charts);
-            redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
+            redisTemplate.opsForHash().put(code, REDIS_DATE_KEY, redisDate);
+//
+//            // 분봉
+//            // redis에 json String으로 저장함
+//            String high = output1.get(STOCK_MARKET_HIGH);
+//            String low = output1.get(STOCK_MARKET_LOW);
+//            String open = output1.get(STOCK_MARKET_OPEN);
+//            // 장 마감 전까진 종가가 없으니 현재가로 저장
+//            String close = output1.get(STOCK_MARKET_CLOSE);
+//
+//            List<Map<String, String>> charts;
+//            String result = (String) redisTemplate.opsForHash().get(code, REDIS_CHART_KEY);
+//
+//            charts = result == null ? new ArrayList<>() : redisJsonManager.stringJsonConvert(result);
+//
+//            Map<String, String> chart = new HashMap<>();
+//            chart.put(REDIS_CHART_HIGH_KEY, high);
+//            chart.put(REDIS_CHART_LOW_KEY, low);
+//            chart.put(REDIS_CHART_OPEN_KEY, open);
+//            chart.put(REDIS_CHART_CLOSE_KEY, close);
+//            chart.put(REDIS_CHART_DATE_KEY, redisDate);
+//            charts.add(chart);
+//
+//            String jsonString = redisJsonManager.jsonStringConvert(charts);
+//            redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
 
             TimeDelay.delay(100);
         }
