@@ -1,6 +1,7 @@
 package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.chart.ChartResponseDto;
+import com.hrth.ustock.dto.stock.MarketResponseDto;
 import com.hrth.ustock.dto.stock.SkrrrCalculatorRequestDto;
 import com.hrth.ustock.dto.stock.SkrrrCalculatorResponseDto;
 import com.hrth.ustock.dto.stock.StockResponseDto;
@@ -24,7 +25,7 @@ public class StockController {
     // 4. 오늘의 증시 정보 조회
     @GetMapping("/market")
     public ResponseEntity<?> marketInformation() {
-        Map<String, Object> marketInfo;
+        Map<String, MarketResponseDto> marketInfo;
         try {
             marketInfo = stockService.getMarketInfo();
         } catch (Exception e) {
