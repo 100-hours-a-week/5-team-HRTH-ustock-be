@@ -31,16 +31,16 @@ public class Holding {
 
     private int quantity;
 
-    private int average;
+    private long average;
 
-    public void additionalBuyHolding(int quantity, int price) {
-        long total = (long) this.quantity * this.average;
-        total += (long) quantity * price;
+    public void additionalBuyHolding(int quantity, long price) {
+        long total = this.quantity * this.average;
+        total += quantity * price;
         this.quantity += quantity;
-        this.average = (int)(total / this.quantity);
+        this.average = total / this.quantity;
     }
 
-    public void updateHolding(int quantity, int price) {
+    public void updateHolding(int quantity, long price) {
         this.quantity = quantity;
         this.average = price;
     }
