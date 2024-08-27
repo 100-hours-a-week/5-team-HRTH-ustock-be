@@ -2,6 +2,8 @@ package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.oauth2.UserResponseDto;
+import io.sentry.Sentry;
+import io.sentry.spring.jakarta.EnableSentry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +24,15 @@ public class UserController {
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
-        return ResponseEntity.ok(UserResponseDto.builder()
-                .name(customUserDetails.getName())
-                .profile(customUserDetails.getProfile())
-                .build()
-        );
+        try{
+            return ResponseEntity.ok(UserResponseDto.builder()
+                    .name(customUserDetails.getName())
+                    .profile(customUserDetails.getProfile())
+                    .build()
+            );
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

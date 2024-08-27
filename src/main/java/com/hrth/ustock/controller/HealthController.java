@@ -1,5 +1,6 @@
 package com.hrth.ustock.controller;
 
+import io.sentry.spring.jakarta.EnableSentry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

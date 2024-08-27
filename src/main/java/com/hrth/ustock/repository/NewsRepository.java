@@ -12,5 +12,5 @@ public interface NewsRepository extends JpaRepository<News, Long> {
     List<News> findAllByStockCodeAndDateBetween(String code, String start, String end);
 
     // 보유종목 리스트 최근 15개
-    List<News> findTop15ByStockCodeInOrderByDateDesc(List<String> codes);
+    List<News> findTop15ByStockCodeOrderByDateDesc(String code);
 }

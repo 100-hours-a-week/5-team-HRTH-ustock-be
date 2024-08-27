@@ -7,6 +7,8 @@ import com.hrth.ustock.oauth2.CustomSuccessHandler;
 import com.hrth.ustock.oauth2.OAuth2FailureHandler;
 import com.hrth.ustock.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,10 +24,18 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    @Value("${spring.config.url}")
+    private String url;
+    @Value("${spring.config.domain}")
+    private String domain;
 
     private final JWTUtil jwtUtil;
     private final CustomSuccessHandler customSuccessHandler;
@@ -35,22 +45,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // cors
-        http
-                .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
-
-                    CorsConfiguration configuration = new CorsConfiguration();
-
-                    configuration.setAllowedOrigins(Collections.singletonList("https://ustock.site"));
-//                    configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-                    configuration.setAllowedMethods(Collections.singletonList("*"));
-                    configuration.setAllowCredentials(true);
-                    configuration.setAllowedHeaders(Collections.singletonList("*"));
-                    configuration.setMaxAge(3600L);
-                    configuration.setExposedHeaders(
-                            List.of("Set-Cookie"));
-                    return configuration;
-                }));
         http
                 // from 로그인 방식 disable
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -59,7 +53,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
 
                 // 로그인 무한루프 방지
-                .addFilterAfter(new JWTFilter(jwtUtil, redisTemplate), OAuth2LoginAuthenticationFilter.class)
+                .addFilterAfter(new JWTFilter(domain, jwtUtil, redisTemplate), OAuth2LoginAuthenticationFilter.class)
 
                 // OAuth2
                 .oauth2Login(oauth2 -> oauth2
@@ -77,10 +71,10 @@ public class SecurityConfig {
 //                )
 
                 // 로그아웃 필터
-                .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisTemplate), LogoutFilter.class)
+                .addFilterBefore(new CustomLogoutFilter(domain, url, jwtUtil, redisTemplate), LogoutFilter.class)
 
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/logout", "/v1/portfolio/**", "/v1/portfolio", "/v1/scheduler/test/**", "/v1/user").authenticated()
+                        .requestMatchers("/logout", "/v1/portfolio/**", "/v1/portfolio", "/v1/user").authenticated()
                         .anyRequest().permitAll())
                 // 경로별 인가 작업 - 개발중 테스트용 /**,
 //                .authorizeHttpRequests((auth) -> auth

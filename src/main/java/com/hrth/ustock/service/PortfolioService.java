@@ -24,12 +24,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-import static com.hrth.ustock.service.StockServiceConst.*;
+import static com.hrth.ustock.service.StockServiceConst.REDIS_CURRENT_KEY;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PortfolioService {
+    public static final int MAX_QUANTITY = 99_999;
+    public static final long MAX_PRICE = 9_999_999_999L;
+
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
     private final HoldingRepository holdingRepository;
@@ -66,21 +69,21 @@ public class PortfolioService {
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
         List<Holding> holdings = portfolio.getHoldings();
 
+        refreshPortfolio(portfolio);
         if (holdings == null || holdings.isEmpty()) {
             portfolioResponseDto.setName(portfolio.getName());
             return portfolioResponseDto;
         }
-        refreshPortfolio(portfolio);
 
         // 현재가로 ret 갱신, ror 계산 후 save
-        for(Holding h : holdings) {
-            Map<String, String> redisMap =  stockService.getCurrentChangeChangeRate(h.getStock().getCode());
-            if(redisMap == null) {
+        for (Holding h : holdings) {
+            Map<String, String> redisMap = stockService.getCurrentChangeChangeRate(h.getStock().getCode());
+            if (redisMap == null) {
                 log.info("no current for stock: {}", h.getStock().getCode());
                 continue;
             }
             int quantity = h.getQuantity();
-            int average = h.getAverage();
+            long average = h.getAverage();
             int current = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
             long ret = (long) quantity * current - (long) quantity * average;
 
@@ -107,7 +110,6 @@ public class PortfolioService {
 
     @Transactional
     public void addPortfolio(PortfolioRequestDto portfolioRequestDto, Long userId) {
-
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Portfolio portfolio = Portfolio.builder()
                 .name(portfolioRequestDto.getName())
@@ -116,6 +118,11 @@ public class PortfolioService {
                 .principal(0L)
                 .ret(0L)
                 .build();
+
+        Portfolio findPortfolio = portfolioRepository.findByNameAndUserUserId(portfolio.getName(), userId).orElse(null);
+        if (findPortfolio != null) {
+            throw new ExistPortfolioNameException();
+        }
 
         portfolioRepository.save(portfolio);
     }
@@ -129,13 +136,20 @@ public class PortfolioService {
             return;
         }
 
+        int quantity = holdingRequestDto.getQuantity();
+        long price = holdingRequestDto.getPrice();
+        if (quantity > MAX_QUANTITY || price > MAX_PRICE) {
+            throw new InputNotValidException();
+        }
+
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
         Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
         Holding holding = Holding.builder()
                 .portfolio(portfolio)
                 .stock(stock)
-                .average(holdingRequestDto.getPrice())
-                .quantity(holdingRequestDto.getQuantity())
+                .average(price)
+                .quantity(quantity)
+                .user(portfolio.getUser())
                 .build();
 
         holdingRepository.save(holding);
@@ -147,7 +161,14 @@ public class PortfolioService {
 
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
-        target.additionalBuyHolding(holdingRequestDto.getQuantity(), holdingRequestDto.getPrice());
+        long price = holdingRequestDto.getPrice();
+        int quantity = holdingRequestDto.getQuantity();
+
+        if (quantity > MAX_QUANTITY || price > MAX_PRICE) {
+            throw new InputNotValidException();
+        }
+
+        target.additionalBuyHolding(quantity, price);
     }
 
     // 11. 개별 종목 수정
@@ -156,7 +177,12 @@ public class PortfolioService {
 
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
-        target.updateHolding(holdingRequestDto.getQuantity(), holdingRequestDto.getPrice());
+        int quantity = holdingRequestDto.getQuantity();
+        long price = holdingRequestDto.getPrice();
+        if (quantity > MAX_QUANTITY || price > MAX_PRICE) {
+            throw new InputNotValidException();
+        }
+        target.updateHolding(quantity, price);
     }
 
     // 12. 개별 종목 삭제
@@ -164,7 +190,7 @@ public class PortfolioService {
     public void deleteHolding(Long pfId, String code) {
 
         Portfolio portfolio = portfolioRepository.findById(pfId).orElseThrow(PortfolioNotFoundException::new);
-      
+
         Holding target = holdingRepository.findHoldingByPortfolioIdAndStockCode(pfId, code).orElseThrow(HoldingNotFoundException::new);
 
         holdingRepository.delete(target);
@@ -191,12 +217,15 @@ public class PortfolioService {
         PortfolioUpdateDto portfolioUpdateDto = new PortfolioUpdateDto();
         List<Holding> list = portfolio.getHoldings();
 
-        if (list == null || list.isEmpty()) return;
+        if (list == null || list.isEmpty()) {
+            portfolio.updatePortfolio(portfolioUpdateDto);
+            return;
+        }
 
         // budget = 원금+수익, principal = 갯수+평단가, ret = 갯수+현재가
-        for(Holding h : list) {
+        for (Holding h : list) {
             Map<String, String> redisMap = stockService.getCurrentChangeChangeRate(h.getStock().getCode());
-            if(redisMap == null) {
+            if (redisMap == null) {
                 log.info("no current for stock: {}", h.getStock().getCode());
                 continue;
             }

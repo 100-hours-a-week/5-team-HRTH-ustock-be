@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class HoldingRequestDto {
     private int quantity;
-    private int price;
+    private long price;
 }

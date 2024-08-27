@@ -8,6 +8,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,11 +20,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
     public static final long ACCESS_EXPIRE = 600000L;
     public static final long REFRESH_EXPIRE = 86400000L;
     public static final int COOKIE_EXPIRE = 360000;
+
+    private final String domain;
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -60,8 +64,9 @@ public class JWTFilter extends OncePerRequestFilter {
             // 토큰의 카테고리가 access가 아닌 경우 UNAUTHORIZED return
             // 해결방법은 access token Application에서 수동 삭제
             if (!category.equals("access")) {
+                log.info("access category not match, url: {}", request.getRequestURL());
                 PrintWriter writer = response.getWriter();
-                writer.print("invalid access token");
+                writer.print("access category not match");
 
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
@@ -70,6 +75,10 @@ public class JWTFilter extends OncePerRequestFilter {
             // Access Token이 만료된 경우 Refresh Token으로 재발급
             if (refresh == null || jwtUtil.isExpired(refresh) || !jwtUtil.getCategory(refresh).equals("refresh")) {
                 // Refresh Token이 유효하지 않은 경우
+                log.info("refresh not valid, url: {}", request.getRequestURL());
+                PrintWriter writer = response.getWriter();
+                writer.print("refresh not valid");
+
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
@@ -84,6 +93,10 @@ public class JWTFilter extends OncePerRequestFilter {
             // Redis에서 해당 Refresh Token이 유효한지 확인
             String isLogout = (String) redisTemplate.opsForValue().get("RT:" + userId);
             if (ObjectUtils.isEmpty(isLogout)) {
+                log.info("redis token not match, url: {}", request.getRequestURL());
+                PrintWriter writer = response.getWriter();
+                writer.print("redis token not match");
+
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
@@ -126,7 +139,7 @@ public class JWTFilter extends OncePerRequestFilter {
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
-        cookie.setDomain("ustock.site");
+        cookie.setDomain(domain);
         return cookie;
     }
 }

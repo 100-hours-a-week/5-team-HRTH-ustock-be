@@ -1,15 +1,13 @@
 package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.chart.ChartResponseDto;
+import com.hrth.ustock.dto.stock.MarketResponseDto;
 import com.hrth.ustock.dto.stock.SkrrrCalculatorRequestDto;
 import com.hrth.ustock.dto.stock.SkrrrCalculatorResponseDto;
-import com.hrth.ustock.dto.stock.StockDto;
 import com.hrth.ustock.dto.stock.StockResponseDto;
-import com.hrth.ustock.exception.ChartNotFoundException;
-import com.hrth.ustock.exception.CurrentNotFoundException;
-import com.hrth.ustock.exception.StockNotFoundException;
-import com.hrth.ustock.exception.StockNotPublicException;
+import com.hrth.ustock.exception.*;
 import com.hrth.ustock.service.StockService;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,7 +25,7 @@ public class StockController {
     // 4. 오늘의 증시 정보 조회
     @GetMapping("/market")
     public ResponseEntity<?> marketInformation() {
-        Map<String, Object> marketInfo;
+        Map<String, MarketResponseDto> marketInfo;
         try {
             marketInfo = stockService.getMarketInfo();
         } catch (Exception e) {
@@ -46,6 +43,9 @@ public class StockController {
             stockMap = stockService.getStockList(order);
         } catch (StockNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("주식 목록을 찾을 수 없습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         if (stockMap == null)
@@ -59,10 +59,13 @@ public class StockController {
     public ResponseEntity<?> searchStock(@RequestParam String query) {
 
         try {
-            List<StockDto> stockList = stockService.findByStockName(query);
+            List<StockResponseDto> stockList = stockService.searchStock(query);
             return ResponseEntity.ok(stockList);
         } catch (StockNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -76,6 +79,9 @@ public class StockController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("차트 정보를 조회할 수 없습니다.");
         } catch (CurrentNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("종목 정보를 조회할 수 없습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return ResponseEntity.ok(stockResponseDto);
@@ -93,18 +99,33 @@ public class StockController {
             return ResponseEntity.ok(list);
         } catch (ChartNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("차트 정보를 조회할 수 없습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @GetMapping("/{code}/skrrr")
     public ResponseEntity<?> skrrrCalculator(@PathVariable String code, @ModelAttribute SkrrrCalculatorRequestDto requestDto) {
+
+        if (requestDto.getPrice() > 9_999_999_999_999L) {
+            return ResponseEntity.badRequest().body("입력값이 너무 큽니다");
+        }
+
         try {
             SkrrrCalculatorResponseDto skrrrCalculatorResponseDto = stockService.calculateSkrrr(code, requestDto);
             return ResponseEntity.ok(skrrrCalculatorResponseDto);
         } catch (StockNotPublicException e) {
             return ResponseEntity.badRequest().body("해당 주식이 상장되지 않은 날짜입니다.");
+        } catch (StockCanNotPurchaseException e) {
+            return ResponseEntity.badRequest().body("해당 금액으로는 구매할 수 없습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("잘못된 날짜 양식입니다.");
         } catch (CurrentNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("종목 정보를 조회할 수 없습니다.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

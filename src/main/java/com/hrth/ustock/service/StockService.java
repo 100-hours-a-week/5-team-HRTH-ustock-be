@@ -1,20 +1,23 @@
 package com.hrth.ustock.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hrth.ustock.dto.chart.ChartDto;
 import com.hrth.ustock.dto.chart.ChartResponseDto;
-import com.hrth.ustock.dto.stock.*;
+import com.hrth.ustock.dto.stock.MarketResponseDto;
+import com.hrth.ustock.dto.stock.SkrrrCalculatorRequestDto;
+import com.hrth.ustock.dto.stock.SkrrrCalculatorResponseDto;
+import com.hrth.ustock.dto.stock.StockResponseDto;
 import com.hrth.ustock.entity.portfolio.Chart;
 import com.hrth.ustock.entity.portfolio.News;
 import com.hrth.ustock.entity.portfolio.Stock;
-import com.hrth.ustock.exception.ChartNotFoundException;
-import com.hrth.ustock.exception.CurrentNotFoundException;
-import com.hrth.ustock.exception.StockNotFoundException;
-import com.hrth.ustock.exception.StockNotPublicException;
+import com.hrth.ustock.exception.*;
 import com.hrth.ustock.repository.ChartRepository;
 import com.hrth.ustock.repository.NewsRepository;
 import com.hrth.ustock.repository.StockRepository;
+import com.hrth.ustock.service.cron.StockCronService;
 import com.hrth.ustock.util.DateConverter;
 import com.hrth.ustock.util.KisApiAuthManager;
+import com.hrth.ustock.util.RedisJsonManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,11 +29,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.hrth.ustock.service.StockServiceConst.*;
@@ -45,39 +51,49 @@ public class StockService {
     private final ChartRepository chartRepository;
     private final NewsRepository newsRepository;
     private final DateConverter dateConverter;
-    private final RedisTemplate<String, String> redisTemplate;
 
     private final RestClient restClient;
+    private final ObjectMapper objectMapper;
     private final KisApiAuthManager authManager;
+    private final RedisJsonManager redisJsonManager;
+    private final RedisTemplate<String, String> redisTemplate;
+
+    private static final DateTimeFormatter redisFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd/HH/mm");
+    private final StockCronService stockCronService;
 
     // 6. 종목 검색
     @Transactional
-    public List<StockDto> findByStockName(String name) {
-
-        List<Stock> list = stockRepository.findByNameStartingWith(name);
-        list.addAll(stockRepository.findByNameContainingButNotStartingWith(name));
+    public List<StockResponseDto> searchStock(String query) {
+        List<Stock> list;
+        if (query.matches("^\\d{1,6}$|^Q\\d{1,6}$")) {
+            list = stockRepository.findByCodeStartingWith(query);
+            list.addAll(stockRepository.findByCodeContainingButNotStartingWith(query));
+        } else {
+            list = stockRepository.findByNameStartingWith(query);
+            list.addAll(stockRepository.findByNameContainingButNotStartingWith(query));
+        }
 
         if (list.isEmpty()) {
             throw new StockNotFoundException();
         }
 
-        List<StockDto> stockDtoList = new ArrayList<>();
+        List<StockResponseDto> stockDtoList = new ArrayList<>();
         for (Stock stock : list) {
             Map<String, String> redisMap = getCurrentChangeChangeRate(stock.getCode());
 
             if (redisMap == null) {
-                log.info("no current for stock: {}", stock.getCode());
                 continue;
             }
 
             String currentSaved = redisMap.get(REDIS_CURRENT_KEY);
             String rateSaved = redisMap.get(REDIS_CHANGE_RATE_KEY);
 
-            StockDto stockDTO = stock.toDto();
-            stockDTO.setPrice(Integer.parseInt(currentSaved));
-            stockDTO.setChangeRate(Double.parseDouble(rateSaved));
-            stockDtoList.add(stockDTO);
+            StockResponseDto stockDto = stock.toDto();
+            stockDto.setPrice(Integer.parseInt(currentSaved));
+            stockDto.setChangeRate(Double.parseDouble(rateSaved));
+            stockDtoList.add(stockDto);
         }
+
         return stockDtoList;
     }
 
@@ -88,7 +104,6 @@ public class StockService {
 
         Map<String, String> redisMap = getCurrentChangeChangeRate(stock.getCode());
         if (redisMap == null) {
-            log.info("no current for stock: {}", stock.getCode());
             throw new CurrentNotFoundException();
         }
 
@@ -173,65 +188,51 @@ public class StockService {
         return chartListResponse;
     }
 
-    public Map<String, Object> getMarketInfo() {
-        Map<String, String> kospi = requestMarketInfo(KOSPI_CODE);
-        Map<String, String> kosdaq = requestMarketInfo(KOSDAQ_CODE);
+    public Map<String, MarketResponseDto> getMarketInfo() {
+        String marketInfo = redisTemplate.opsForValue().get("market_info");
+        log.info(marketInfo);
+        if (marketInfo == null) {
+            stockCronService.saveMarketData();
+            marketInfo = redisTemplate.opsForValue().get("market_info");
+        }
 
-        Map<String, Object> marketInfo = new HashMap<>();
-        marketInfo.put("kospi", makeMarketDto(kospi));
-        marketInfo.put("kosdaq", makeMarketDto(kosdaq));
+        Map<String, Object> redisResult = redisJsonManager.stringMapConvert(marketInfo);
+        log.info("redisResult: {}", redisResult);
+        if (redisResult == null) {
+            throw new RuntimeException();
+        }
 
-        return marketInfo;
-    }
+        Map<String, MarketResponseDto> map = new HashMap<>();
+        map.put("kospi", objectMapper.convertValue(redisResult.get("kospi"), MarketResponseDto.class));
+        map.put("kosdaq", objectMapper.convertValue(redisResult.get("kosdaq"), MarketResponseDto.class));
 
-    private Map<String, String> requestMarketInfo(String marketCode) {
-        String queryParams = "?fid_cond_mrkt_div_code=U"
-                + "&fid_input_iscd=" + marketCode;
+        return map;
 
-        Map response = restClient.get()
-                .uri("/uapi/domestic-stock/v1/quotations/inquire-index-price" + queryParams)
-                .headers(setRequestHeaders("FHPUP02100000"))
-                .retrieve()
-                .body(Map.class);
-
-        return (Map<String, String>) response.get("output");
-    }
-
-    private MarketResponseDto makeMarketDto(Map<String, String> responseMap) {
-        double price = Double.parseDouble(responseMap.get(MARKET_CURRENT_PRICE));
-        double change = Double.parseDouble(responseMap.get(CHANGE_FROM_PREVIOUS_MARKET));
-        double changeRate = Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_MARKET));
-
-        return MarketResponseDto.builder()
-                .price(price)
-                .change(change)
-                .changeRate(changeRate)
-                .build();
     }
 
     public Map<String, List<StockResponseDto>> getStockList(String order) {
-        List<Map<String, String>> responseList = switch (order) {
-            case "top", "trade" -> requestOrderByTrade();
+        List<StockResponseDto> responseList = switch (order) {
+            case "top", "trade" -> requestOrderByTrade(order);
             case "capital" -> requestOrderByCapital();
             case "change" -> requestOrderByChange();
             default -> throw new IllegalArgumentException();
         };
 
-        List<StockResponseDto> stockList = new ArrayList<>();
-
-        int range = "top".equals(order) ? TOP_RANK_RANGE : responseList.size();
-        for (int i = 0; i < range; i++) {
-            stockList.add(makeStockResponseDto(responseList.get(i), order));
+        if (responseList == null || responseList.isEmpty()) {
+            throw new RuntimeException();
         }
 
         Map<String, List<StockResponseDto>> stockMap = new HashMap<>();
-        stockMap.put("stock", stockList);
+        stockMap.put("stock", responseList);
 
         return stockMap;
     }
 
     // 현재가, 전일대비, 전일 대비 부호, 전일 대비율 조회
     protected Map<String, String> getCurrentChangeChangeRate(String code) {
+        String redisDate = minuteFormatter();
+
+
         String current = (String) redisTemplate.opsForHash().get(code, REDIS_CURRENT_KEY);
         String change = (String) redisTemplate.opsForHash().get(code, REDIS_CHANGE_KEY);
         String changeRate = (String) redisTemplate.opsForHash().get(code, REDIS_CHANGE_RATE_KEY);
@@ -247,7 +248,14 @@ public class StockService {
         }
     }
 
-    private List<Map<String, String>> requestOrderByTrade() {
+    private List<StockResponseDto> requestOrderByTrade(String order) {
+        String redis_key = order.equals(REDIS_ORDER_TOP) ? REDIS_ORDER_TOP : REDIS_ORDER_TRADE;
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + redis_key + "_" + minuteFormatter());
+
+        if (redisResult != null) {
+            return redisJsonManager.stringDtoConvert(redisResult);
+        }
+
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_cond_scr_div_code=20171" +
                 "&fid_div_cls_code=1" +
@@ -255,7 +263,7 @@ public class StockService {
                 "&fid_trgt_cls_code=0" +
                 "&fid_blng_cls_code=0" +
                 "&fid_trgt_cls_code=111111111" +
-                "&fid_trgt_exls_cls_code=1111111111" +
+                "&fid_trgt_exls_cls_code=0111001101" +
                 "&fid_input_price_1=" +
                 "&fid_input_price_2=" +
                 "&fid_vol_cnt=" +
@@ -267,10 +275,16 @@ public class StockService {
                 .retrieve()
                 .body(Map.class);
 
-        return (List<Map<String, String>>) response.get("output");
+        return saveToRedis(response, redis_key);
     }
 
-    private List<Map<String, String>> requestOrderByCapital() {
+    private List<StockResponseDto> requestOrderByCapital() {
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + "capital_" + minuteFormatter());
+
+        if (redisResult != null) {
+            return redisJsonManager.stringDtoConvert(redisResult);
+        }
+
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_cond_scr_div_code=20174" +
                 "&fid_div_cls_code=1" +
@@ -287,10 +301,16 @@ public class StockService {
                 .retrieve()
                 .body(Map.class);
 
-        return (List<Map<String, String>>) response.get("output");
+        return saveToRedis(response, "capital");
     }
 
-    private List<Map<String, String>> requestOrderByChange() {
+    private List<StockResponseDto> requestOrderByChange() {
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + "change_" + minuteFormatter());
+
+        if (redisResult != null) {
+            return redisJsonManager.stringDtoConvert(redisResult);
+        }
+
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_cond_scr_div_code=20170" +
                 "&fid_input_iscd=0000" +
@@ -312,49 +332,92 @@ public class StockService {
                 .retrieve()
                 .body(Map.class);
 
-        return (List<Map<String, String>>) response.get("output");
+        return saveToRedis(response, "change");
     }
 
-    private Map<String, String> requestPrice(String code) {
-        String queryParams = "?fid_cond_mrkt_div_code=J" +
-                "&fid_input_iscd=" + code;
+    private List<StockResponseDto> saveToRedis(Map response, String redis_key) {
+        if (response == null || response.get("output") == null || response.get("output").equals("")) {
+            return null;
+        }
 
-        Map response = restClient.get()
-                .uri("/uapi/domestic-stock/v1/quotations/inquire-price" + queryParams)
-                .headers(setRequestHeaders("FHKST01010100"))
-                .retrieve()
-                .body(Map.class);
+        List<Map<String, String>> output = (List<Map<String, String>>) response.get("output");
 
-        return (Map<String, String>) response.get("output");
+        List<StockResponseDto> stockList = makeStockResponseDto(output, redis_key);
+
+        String dtoString = redisJsonManager.dtoStringConvert(stockList);
+        redisTemplate.opsForValue().set("ranking_" + redis_key + "_" + minuteFormatter(), dtoString);
+        redisTemplate.expire("ranking_" + redis_key + "_" + minuteFormatter(), 40 * 60, TimeUnit.SECONDS);
+
+        return stockList;
     }
 
-    private StockResponseDto makeStockResponseDto(Map<String, String> responseMap, String order) {
-        String stockCode = "change".equals(order) ? CHANGE_STOCK_CODE : STOCK_CODE;
+    private String minuteFormatter() {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
 
-        Stock stock = stockRepository.findByCode(responseMap.get(stockCode)).orElse(null);
-        if (stock == null) {
-            stock = stockRepository.save(
-                    Stock.builder()
-                            .name(responseMap.get(STOCK_NAME))
-                            .code(responseMap.get(stockCode))
-                            .build()
+        // 현재 분을 00분 또는 30분으로 맞춤
+        int minute = now.getMinute();
+        if (minute >= 30) {
+            now = now.withMinute(30);
+        } else {
+            now = now.withMinute(0);
+        }
+        return now.format(redisFormatter);
+    }
+
+    private List<StockResponseDto> makeStockResponseDto(List<Map<String, String>> responseList, String order) {
+        int range = "top".equals(order) ? TOP_RANK_RANGE : responseList.size();
+        String stockCodeKey = "change".equals(order) ? CHANGE_STOCK_CODE : STOCK_CODE;
+
+        List<StockResponseDto> stockList = new ArrayList<>();
+        for (int i = 0; i < range; i++) {
+            Map<String, String> responseMap = responseList.get(i);
+
+            stockList.add(StockResponseDto.builder()
+                    .name(responseMap.get(STOCK_NAME))
+                    .code(responseMap.get(stockCodeKey))
+                    .price(Integer.parseInt(responseMap.get(STOCK_CURRENT_PRICE)))
+                    .change(Integer.parseInt(responseMap.get(CHANGE_FROM_PREVIOUS_STOCK)))
+                    .changeRate(Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_STOCK)))
+                    .build()
             );
         }
 
-        return StockResponseDto.builder()
-                .name(responseMap.get(STOCK_NAME))
-                .code(responseMap.get(stockCode))
-                .logo(stock.getLogo())
-                .price(Integer.parseInt(responseMap.get(STOCK_CURRENT_PRICE)))
-                .change(Integer.parseInt(responseMap.get(CHANGE_FROM_PREVIOUS_STOCK)))
-                .changeRate(Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_STOCK)))
-                .build();
+        List<String> codeList = stockList.stream()
+                .map(StockResponseDto::getCode)
+                .toList();
+
+        List<Stock> findStockList = stockRepository.findAllByCodeIn(codeList);
+        for (Stock stock : findStockList) {
+            for (StockResponseDto dto : stockList) {
+                if (dto.getCode().equals(stock.getCode())) {
+                    dto.setLogo(stock.getLogo());
+                    break;
+                }
+            }
+        }
+
+        for (StockResponseDto stock : stockList) {
+            if (!codeList.contains(stock.getCode())) {
+                stockRepository.save(
+                        Stock.builder()
+                                .name(stock.getName())
+                                .code(stock.getCode())
+                                .build()
+                );
+            }
+        }
+
+        return stockList;
     }
 
     // 16. 스껄계산기
     public SkrrrCalculatorResponseDto calculateSkrrr(String code, SkrrrCalculatorRequestDto requestDto) {
-
         String date = requestDto.getDate();
+
+        if (!isValidDate(date)) {
+            throw new IllegalArgumentException();
+        }
+
         DateTimeFormatter originFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         LocalDate originDate = LocalDate.parse(date, originFormatter);
         DateTimeFormatter newFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -411,6 +474,10 @@ public class StockService {
             throw new StockNotPublicException();
         }
 
+        if (requestDto.getPrice() < Integer.parseInt(previous)) {
+            throw new StockCanNotPurchaseException();
+        }
+
         // 현재가 기반 계산
         Map<String, String> redisMap = getCurrentChangeChangeRate(code);
         if (redisMap == null) {
@@ -436,6 +503,18 @@ public class StockService {
                 .iphone(String.valueOf(ret / iphone))
                 .slave(String.valueOf(ret / slave))
                 .build();
+    }
+
+    private boolean isValidDate(String date) {
+        String[] dateInput = date.split("/");
+        int year = Integer.parseInt(dateInput[0]);
+        int month = Integer.parseInt(dateInput[1]);
+        int day = Integer.parseInt(dateInput[2]);
+
+        int february = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28;
+        int[] limitDate = {0, 31, february, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+        return limitDate[month] >= day;
     }
 
     private Consumer<HttpHeaders> setRequestHeaders(String trId) {

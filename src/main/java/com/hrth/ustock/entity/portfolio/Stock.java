@@ -1,17 +1,15 @@
 package com.hrth.ustock.entity.portfolio;
 
-import com.hrth.ustock.dto.stock.StockDto;
+import com.hrth.ustock.dto.stock.StockResponseDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -26,8 +24,8 @@ public class Stock {
 
     private String logo;
 
-    public StockDto toDto() {
-        return StockDto.builder()
+    public StockResponseDto toDto() {
+        return StockResponseDto.builder()
                 .code(this.code)
                 .name(this.name)
                 .logo(this.logo)

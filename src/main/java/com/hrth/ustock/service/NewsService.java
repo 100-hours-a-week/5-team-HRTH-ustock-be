@@ -2,14 +2,14 @@ package com.hrth.ustock.service;
 
 import com.hrth.ustock.dto.news.NewsResponseDto;
 import com.hrth.ustock.entity.portfolio.Holding;
+import com.hrth.ustock.entity.portfolio.News;
 import com.hrth.ustock.exception.HoldingNotFoundException;
 import com.hrth.ustock.repository.HoldingRepository;
 import com.hrth.ustock.repository.NewsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -21,21 +21,22 @@ public class NewsService {
     public List<NewsResponseDto> findHoldingNews(Long userId) {
         List<Holding> holdings = holdingRepository.findAllByUserUserId(userId);
 
-        if(holdings == null || holdings.isEmpty()) {
+        if (holdings == null || holdings.isEmpty()) {
             throw new HoldingNotFoundException();
         }
 
-        List<String> codes = new ArrayList<>();
-        List<NewsResponseDto> newsList = new ArrayList<>();
+        List<News> newsList = new LinkedList<>();
 
         for (Holding holding : holdings) {
-            codes.add(holding.getStock().getCode());
+            String stockCode = holding.getStock().getCode();
+            newsList.addAll(newsRepository.findTop15ByStockCodeOrderByDateDesc(stockCode));
         }
 
-        newsRepository.findTop15ByStockCodeInOrderByDateDesc(codes).forEach(news -> {
-            newsList.add(news.toResponseDto());
-        });
+        Collections.shuffle(newsList);
+        int lastIndex = (newsList.size()<15) ? newsList.size()-1 : 15;
 
-        return newsList;
+        return newsList.subList(0, lastIndex).stream()
+                .map(News::toResponseDto)
+                .toList();
     }
 }

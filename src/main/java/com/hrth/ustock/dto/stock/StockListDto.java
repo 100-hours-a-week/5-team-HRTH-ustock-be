@@ -12,6 +12,6 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StockListDTO {
-    private List<StockDto> stocks = new ArrayList<>();
+public class StockListDto {
+    private List<StockResponseDto> stocks = new ArrayList<>();
 }

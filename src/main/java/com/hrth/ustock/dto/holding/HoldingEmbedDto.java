@@ -14,6 +14,6 @@ public class HoldingEmbedDto {
     private String name;
     private String logo;
     private int quantity;
-    private int average;
+    private long average;
     private double ror;
 }
