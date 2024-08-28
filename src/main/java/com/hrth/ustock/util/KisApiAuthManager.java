@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -15,11 +16,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @Slf4j
 @Component
 public class KisApiAuthManager {
 
+    public static final int MAX_TRY = 5;
     @Getter
     private final String appKey;
     @Getter
@@ -42,10 +45,44 @@ public class KisApiAuthManager {
                 .build();
     }
 
-    public String generateToken() {
+    public Map getApiData(String uri, String queryParams, String header) {
+        for(int i = 0; i< MAX_TRY; i++){
+            Map response = restClient.get()
+                    .uri(uri + queryParams)
+                    .headers(setRequestHeaders(header))
+                    .retrieve()
+                    .body(Map.class);
+
+            if(response != null && response.get("msg1").equals("기간이 만료된 token 입니다.")) {
+                generateToken();
+            }
+            else if(response.get("msg1").equals("초당 거래건수를 초과하였습니다.")) {
+                TimeDelay.delay(1000);
+            } else {
+                return response;
+            }
+        }
+        return null;
+    }
+
+    private Consumer<HttpHeaders> setRequestHeaders(String trId) {
+        return httpHeaders -> {
+            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            httpHeaders.setBearerAuth(getToken());
+            httpHeaders.set("appkey", getAppKey());
+            httpHeaders.set("appsecret", getAppSecret());
+            httpHeaders.set("tr_id", trId);
+            httpHeaders.set("custtype", "P");
+        };
+    }
+
+    public String getToken() {
         String findToken = redisTemplate.opsForValue().get("ACCESS_TOKEN");
         if (findToken != null) return findToken;
+        else return generateToken();
+    }
 
+    public String generateToken() {
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("grant_type", "client_credentials");
         requestBody.put("appkey", appKey);

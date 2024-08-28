@@ -11,11 +11,8 @@ import com.hrth.ustock.util.TimeDelay;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -23,7 +20,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static com.hrth.ustock.service.StockServiceConst.*;
 
@@ -35,7 +31,6 @@ public class StockCronService {
     private final StockRepository stockRepository;
     private final ChartRepository chartRepository;
     private final RedisTemplate<String, String> redisTemplate;
-    private final RestClient restClient;
     private final KisApiAuthManager authManager;
 
     private static final DateTimeFormatter requestFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -60,15 +55,15 @@ public class StockCronService {
                     "&fid_input_date_2=" + startDate +
                     "&fid_period_div_code=D" +
                     "&fid_org_adj_prc=0";
+            String apiUri = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
 
-            Map response = restClient.get()
-                    .uri("/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice" + queryParams)
-                    .headers(setRequestHeaders("FHKST03010100"))
-                    .retrieve()
-                    .body(Map.class);
+            Map response = authManager.getApiData(apiUri, queryParams, "FHKST03010100");
+
+            if(response == null) {
+                continue;
+            }
 
             Map<String, String> output1 = (Map<String, String>) response.get("output1");
-            List<Map<String, String>> output2 = (List<Map<String, String>>) response.get("output2");
 
             if (output1 == null || output1.isEmpty()) {
                 log.info("saveStockChartData: api request failed, code: {}", code);
@@ -85,6 +80,7 @@ public class StockCronService {
             redisTemplate.opsForHash().put(code, REDIS_CHANGE_RATE_KEY, changeRate);
             redisTemplate.opsForHash().put(code, REDIS_DATE_KEY, redisDate);
 //
+//            List<Map<String, String>> output2 = (List<Map<String, String>>) response.get("output2");
 //            // 분봉
 //            // redis에 json String으로 저장함
 //            String high = output1.get(STOCK_MARKET_HIGH);
@@ -119,9 +115,10 @@ public class StockCronService {
         log.info("시장 크론잡 시작");
         Map<String, String> kospi = requestMarketInfo(KOSPI_CODE);
         Map<String, String> kosdaq = requestMarketInfo(KOSDAQ_CODE);
+
         String redisDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(redisFormatter);
 
-        if(kospi == null || kosdaq == null) {
+        if (kospi == null || kosdaq == null) {
             return;
         }
 
@@ -138,14 +135,15 @@ public class StockCronService {
     private Map<String, String> requestMarketInfo(String marketCode) {
         String queryParams = "?fid_cond_mrkt_div_code=U"
                 + "&fid_input_iscd=" + marketCode;
+        String apiUri = "/uapi/domestic-stock/v1/quotations/inquire-index-price";
 
-        Map response = restClient.get()
-                .uri("/uapi/domestic-stock/v1/quotations/inquire-index-price" + queryParams)
-                .headers(setRequestHeaders("FHPUP02100000"))
-                .retrieve()
-                .body(Map.class);
+        Map response = authManager.getApiData(apiUri, queryParams, "FHPUP02100000");
 
-        if(response.get("output") == null || response.get("output").equals("")) {
+        if(response == null) {
+            return null;
+        }
+
+        if (response.get("output") == null || response.get("output").equals("")) {
             log.info("requestMarketInfo: api request failed, code: {}", marketCode);
             throw new RuntimeException();
         }
@@ -182,12 +180,13 @@ public class StockCronService {
                     "&fid_input_date_2=" + startDate +
                     "&fid_period_div_code=D" +
                     "&fid_org_adj_prc=0";
+            String apiUri = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
 
-            Map response = restClient.get()
-                    .uri("/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice" + queryParams)
-                    .headers(setRequestHeaders("FHKST03010100"))
-                    .retrieve()
-                    .body(Map.class);
+            Map response = authManager.getApiData(apiUri, queryParams, "FHKST03010100");
+
+            if(response == null) {
+                continue;
+            }
 
             List<Map<String, String>> output2 = (List<Map<String, String>>) response.get("output2");
 
@@ -227,16 +226,5 @@ public class StockCronService {
             now = now.withMinute(0);
         }
         return now.format(redisFormatter);
-    }
-
-    private Consumer<HttpHeaders> setRequestHeaders(String trId) {
-        return httpHeaders -> {
-            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-            httpHeaders.setBearerAuth(authManager.generateToken());
-            httpHeaders.set("appkey", authManager.getAppKey());
-            httpHeaders.set("appsecret", authManager.getAppSecret());
-            httpHeaders.set("tr_id", trId);
-            httpHeaders.set("custtype", "P");
-        };
     }
 }
