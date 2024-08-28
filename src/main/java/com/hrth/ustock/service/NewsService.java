@@ -37,6 +37,7 @@ public class NewsService {
 
         return newsList.subList(0, lastIndex).stream()
                 .map(News::toResponseDto)
+                .sorted(Comparator.comparing(NewsResponseDto::getDate).reversed())
                 .toList();
     }
 }
