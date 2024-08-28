@@ -485,9 +485,9 @@ public class StockService {
         }
         int currentPrice = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
         int previousPrice = Integer.parseInt(previous);
-        int quantity = (int) (requestDto.getPrice() / currentPrice);
+        long quantity = requestDto.getPrice() / currentPrice;
 
-        long ret = (long) (currentPrice - previousPrice) * quantity;
+        long ret = (currentPrice - previousPrice) * quantity;
 
         int candy = 500;
         int soul = 9_000;
