@@ -46,18 +46,19 @@ public class KisApiAuthManager {
     }
 
     public Map getApiData(String uri, String queryParams, String header) {
-        for(int i = 0; i< MAX_TRY; i++){
+        for (int i = 0; i < MAX_TRY; i++) {
             Map response = restClient.get()
                     .uri(uri + queryParams)
                     .headers(setRequestHeaders(header))
                     .retrieve()
                     .body(Map.class);
 
-            if(response != null && response.get("msg1").equals("기간이 만료된 token 입니다.")) {
+            if (response != null && response.get("msg1").equals("기간이 만료된 token 입니다.")) {
                 generateToken();
-            }
-            else if(response.get("msg1").equals("초당 거래건수를 초과하였습니다.")) {
+            } else if (response.get("msg1").equals("초당 거래건수를 초과하였습니다.")) {
                 TimeDelay.delay(1000);
+            } else if (response.get("error_description").equals("접근토큰 발급 잠시 후 다시 시도하세요(1분당 1회)")) {
+                TimeDelay.delay(60 * 1000);
             } else {
                 return response;
             }
