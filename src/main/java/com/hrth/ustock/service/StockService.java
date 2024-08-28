@@ -22,11 +22,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Pair;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -37,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import static com.hrth.ustock.service.StockServiceConst.*;
 
@@ -52,7 +48,6 @@ public class StockService {
     private final NewsRepository newsRepository;
     private final DateConverter dateConverter;
 
-    private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final KisApiAuthManager authManager;
     private final RedisJsonManager redisJsonManager;
@@ -232,7 +227,6 @@ public class StockService {
     protected Map<String, String> getCurrentChangeChangeRate(String code) {
         String redisDate = minuteFormatter();
 
-
         String current = (String) redisTemplate.opsForHash().get(code, REDIS_CURRENT_KEY);
         String change = (String) redisTemplate.opsForHash().get(code, REDIS_CHANGE_KEY);
         String changeRate = (String) redisTemplate.opsForHash().get(code, REDIS_CHANGE_RATE_KEY);
@@ -269,11 +263,8 @@ public class StockService {
                 "&fid_vol_cnt=" +
                 "&fid_input_date_1=";
 
-        Map response = restClient.get()
-                .uri("/uapi/domestic-stock/v1/quotations/volume-rank" + queryParams)
-                .headers(setRequestHeaders("FHPST01710000"))
-                .retrieve()
-                .body(Map.class);
+        String apiUri = "/uapi/domestic-stock/v1/quotations/volume-rank";
+        Map response = authManager.getApiData(apiUri, queryParams, "FHPST01710000");
 
         return saveToRedis(response, redis_key);
     }
@@ -295,11 +286,8 @@ public class StockService {
                 "&fid_input_price_2=" +
                 "&fid_vol_cnt=";
 
-        Map response = restClient.get()
-                .uri("/uapi/domestic-stock/v1/ranking/market-cap" + queryParams)
-                .headers(setRequestHeaders("FHPST01740000"))
-                .retrieve()
-                .body(Map.class);
+        String apiUri = "/uapi/domestic-stock/v1/ranking/market-cap";
+        Map response = authManager.getApiData(apiUri, queryParams, "FHPST01740000");
 
         return saveToRedis(response, "capital");
     }
@@ -326,11 +314,8 @@ public class StockService {
                 "&fid_rsfl_rate2=" +
                 "&fid_vol_cnt=";
 
-        Map response = restClient.get()
-                .uri("/uapi/domestic-stock/v1/ranking/fluctuation" + queryParams)
-                .headers(setRequestHeaders("FHPST01700000"))
-                .retrieve()
-                .body(Map.class);
+        String apiUri = "/uapi/domestic-stock/v1/ranking/fluctuation";
+        Map response = authManager.getApiData(apiUri, queryParams, "FHPST01700000");
 
         return saveToRedis(response, "change");
     }
@@ -429,11 +414,8 @@ public class StockService {
         String publicParams = "?PRDT_TYPE_CD=300" +
                 "&PDNO=" + code;
 
-        Map publicResponse = restClient.get()
-                .uri("/uapi/domestic-stock/v1/quotations/search-stock-info" + publicParams)
-                .headers(setRequestHeaders("CTPF1002R"))
-                .retrieve()
-                .body(Map.class);
+        String publicUri = "/uapi/domestic-stock/v1/quotations/search-stock-info";
+        Map publicResponse = authManager.getApiData(publicUri, publicParams, "CTPF1002R");
 
         Map<String, String> publicOutput = (Map<String, String>) publicResponse.get("output");
 
@@ -452,11 +434,8 @@ public class StockService {
                 "&fid_period_div_code=D" +
                 "&fid_org_adj_prc=0";
 
-        Map response = restClient.get()
-                .uri("/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice" + queryParams)
-                .headers(setRequestHeaders("FHKST03010100"))
-                .retrieve()
-                .body(Map.class);
+        String apiUri = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
+        Map response = authManager.getApiData(apiUri, queryParams, "FHKST03010100");
 
         List<Map<String, String>> output = (List<Map<String, String>>) response.get("output2");
 
@@ -515,16 +494,5 @@ public class StockService {
         int[] limitDate = {0, 31, february, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
         return limitDate[month] >= day;
-    }
-
-    private Consumer<HttpHeaders> setRequestHeaders(String trId) {
-        return httpHeaders -> {
-            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-            httpHeaders.setBearerAuth(authManager.generateToken());
-            httpHeaders.set("appkey", authManager.getAppKey());
-            httpHeaders.set("appsecret", authManager.getAppSecret());
-            httpHeaders.set("tr_id", trId);
-            httpHeaders.set("custtype", "P");
-        };
     }
 }
