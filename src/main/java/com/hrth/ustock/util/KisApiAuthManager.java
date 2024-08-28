@@ -57,7 +57,7 @@ public class KisApiAuthManager {
                 generateToken();
             } else if (response.get("msg1").equals("초당 거래건수를 초과하였습니다.")) {
                 TimeDelay.delay(1000);
-            } else if (response.get("error_description").equals("접근토큰 발급 잠시 후 다시 시도하세요(1분당 1회)")) {
+            } else if (response.get("error_description") != null && response.get("error_description").equals("접근토큰 발급 잠시 후 다시 시도하세요(1분당 1회)")) {
                 TimeDelay.delay(60 * 1000);
             } else {
                 return response;
