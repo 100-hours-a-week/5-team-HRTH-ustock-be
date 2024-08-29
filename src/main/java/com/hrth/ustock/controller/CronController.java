@@ -3,13 +3,15 @@ package com.hrth.ustock.controller;
 import com.hrth.ustock.service.cron.StockCronService;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Profile("prod")
+@Slf4j
+//@Profile("prod")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/scheduler")
