@@ -79,8 +79,14 @@ public class KisApiAuthManager {
 
     public String getToken() {
         String findToken = redisTemplate.opsForValue().get("ACCESS_TOKEN");
-        if (findToken != null) return findToken;
-        else return generateToken();
+        if (findToken != null) {
+            log.info("Get ACCESS_TOKEN in Redis: {}", findToken);
+            return findToken;
+        } else {
+            String token = generateToken();
+            log.info("Get ACCESS_TOKEN in Method: {}", token);
+            return token;
+        }
     }
 
     public String generateToken() {
@@ -101,11 +107,10 @@ public class KisApiAuthManager {
 
         ZonedDateTime tokenExpireDate = LocalDateTime.parse(tokenExpired, requestFormatter).atZone(ZoneId.of("Asia/Seoul"));
         long expireSecond = RedisTTLCalculator.calculateTTLForMidnightKST(tokenExpireDate);
-
+        log.info("Storing ACCESS_TOKEN in Redis: {}", token);
         redisTemplate.opsForValue().set("ACCESS_TOKEN", token);
+        log.info("Stored ACCESS_TOKEN in Redis: {}, TTL: {}h", token, expireSecond / 3600);
         redisTemplate.expire("ACCESS_TOKEN", expireSecond, TimeUnit.SECONDS);
-
-        log.info("Token Created: {}", token);
         return token;
     }
 }
