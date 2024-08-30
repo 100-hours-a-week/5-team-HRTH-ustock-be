@@ -10,13 +10,9 @@ import com.hrth.ustock.entity.User;
 import com.hrth.ustock.entity.portfolio.Holding;
 import com.hrth.ustock.entity.portfolio.Portfolio;
 import com.hrth.ustock.entity.portfolio.Stock;
-import com.hrth.ustock.exception.*;
 import com.hrth.ustock.exception.domain.portfolio.PortfolioException;
-import com.hrth.ustock.exception.domain.portfolio.PortfolioExceptionType;
 import com.hrth.ustock.exception.domain.stock.StockException;
-import com.hrth.ustock.exception.domain.stock.StockExceptionType;
 import com.hrth.ustock.exception.domain.user.UserException;
-import com.hrth.ustock.exception.domain.user.UserExceptionType;
 import com.hrth.ustock.repository.HoldingRepository;
 import com.hrth.ustock.repository.PortfolioRepository;
 import com.hrth.ustock.repository.StockRepository;
@@ -31,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.hrth.ustock.exception.domain.portfolio.PortfolioExceptionType.*;
-import static com.hrth.ustock.exception.domain.stock.StockExceptionType.*;
-import static com.hrth.ustock.exception.domain.user.UserExceptionType.*;
+import static com.hrth.ustock.exception.domain.stock.StockExceptionType.STOCK_NOT_FOUND;
+import static com.hrth.ustock.exception.domain.user.UserExceptionType.USER_NOT_FOUND;
 import static com.hrth.ustock.service.StockServiceConst.REDIS_CURRENT_KEY;
 
 @Slf4j

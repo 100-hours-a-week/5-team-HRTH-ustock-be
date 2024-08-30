@@ -5,10 +5,7 @@ import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.portfolio.PortfolioListDto;
 import com.hrth.ustock.dto.portfolio.PortfolioRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
-import com.hrth.ustock.exception.*;
 import com.hrth.ustock.service.PortfolioService;
-import io.sentry.Sentry;
-import io.sentry.spring.jakarta.EnableSentry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,17 +39,9 @@ public class PortfolioController {
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
-        try {
-            portfolioService.addPortfolio(portfolioRequestDto, customUserDetails.getUserId());
-            return ResponseEntity.ok().build();
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (ExistPortfolioNameException e) {
-            return ResponseEntity.badRequest().body("이미 존재하는 포트폴리오 이름입니다.");
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        portfolioService.addPortfolio(portfolioRequestDto, customUserDetails.getUserId());
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/check")
@@ -62,26 +51,16 @@ public class PortfolioController {
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
-        try {
-            portfolioService.getPortfolioList(customUserDetails.getUserId());
-        } catch (PortfolioNotFoundException e) {
-            return ResponseEntity.ok().body(false);
-        }
-        return ResponseEntity.ok().body(true);
+        portfolioService.getPortfolioList(customUserDetails.getUserId());
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{pfId}")
     public ResponseEntity<?> showPortfolioById(@PathVariable("pfId") Long pfId) {
 
-        try {
-            PortfolioResponseDto portfolio = portfolioService.getPortfolio(pfId);
-            return ResponseEntity.ok().body(portfolio);
-        } catch (PortfolioNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        PortfolioResponseDto portfolio = portfolioService.getPortfolio(pfId);
+        return ResponseEntity.ok().body(portfolio);
     }
 
     @PatchMapping("/{pfId}/holding/{code}")
@@ -92,17 +71,9 @@ public class PortfolioController {
             return ResponseEntity.badRequest().build();
         }
 
-        try {
-            portfolioService.additionalBuyStock(pfId, code, holdingRequestDto);
-            return ResponseEntity.ok().build();
-        } catch (PortfolioNotFoundException | StockNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (InputNotValidException e) {
-            return ResponseEntity.badRequest().body("입력값이 범위를 초과하였습니다.");
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        portfolioService.additionalBuyStock(pfId, code, holdingRequestDto);
+
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{pfId}/holding/{code}")
@@ -113,16 +84,7 @@ public class PortfolioController {
             return ResponseEntity.badRequest().build();
         }
 
-        try {
-            portfolioService.editHolding(pfId, code, holdingRequestDto);
-        } catch (HoldingNotFoundException | PortfolioNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (InputNotValidException e) {
-            return ResponseEntity.badRequest().body("입력값이 범위를 초과하였습니다.");
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        portfolioService.editHolding(pfId, code, holdingRequestDto);
 
         return ResponseEntity.ok().build();
     }
@@ -130,14 +92,7 @@ public class PortfolioController {
     @DeleteMapping("/{pfId}/holding/{code}")
     public ResponseEntity<?> deletePortfolioStock(@PathVariable("pfId") Long pfId, @PathVariable("code") String code) {
 
-        try {
-            portfolioService.deleteHolding(pfId, code);
-        } catch (HoldingNotFoundException | PortfolioNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        portfolioService.deleteHolding(pfId, code);
 
         return ResponseEntity.ok().build();
     }
@@ -145,14 +100,7 @@ public class PortfolioController {
     @DeleteMapping("/{pfId}")
     public ResponseEntity<?> deletePortfolio(@PathVariable("pfId") Long pfId) {
 
-        try {
-            portfolioService.deletePortfolio(pfId);
-        } catch (PortfolioNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        portfolioService.deletePortfolio(pfId);
 
         return ResponseEntity.ok().build();
     }
@@ -161,20 +109,7 @@ public class PortfolioController {
     public ResponseEntity<?> buyPortfolioStock(
             @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto) {
 
-        try {
-            portfolioService.buyStock(pfId, code, holdingRequestDto);
-        } catch (PortfolioNotFoundException | StockNotFoundException e) {
-            String message = e instanceof PortfolioNotFoundException ?
-                    "포트폴리오 정보를 찾을 수 없습니다." :
-                    "주식 정보를 찾을 수 없습니다.";
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
-        } catch (InputNotValidException e) {
-            return ResponseEntity.badRequest().body("입력값이 범위를 초과하였습니다.");
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        portfolioService.buyStock(pfId, code, holdingRequestDto);
 
         return ResponseEntity.ok().build();
     }
