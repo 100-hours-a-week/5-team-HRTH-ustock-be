@@ -5,13 +5,9 @@ import com.hrth.ustock.dto.stock.MarketResponseDto;
 import com.hrth.ustock.dto.stock.SkrrrCalculatorRequestDto;
 import com.hrth.ustock.dto.stock.SkrrrCalculatorResponseDto;
 import com.hrth.ustock.dto.stock.StockResponseDto;
-import com.hrth.ustock.exception.*;
 import com.hrth.ustock.service.StockService;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
