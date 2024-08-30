@@ -2,13 +2,10 @@ package com.hrth.ustock.controller;
 
 import com.hrth.ustock.dto.news.NewsResponseDto;
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
-import com.hrth.ustock.exception.HoldingNotFoundException;
 import com.hrth.ustock.service.NewsService;
 import io.sentry.Sentry;
-import io.sentry.spring.jakarta.EnableSentry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -32,14 +29,8 @@ public class NewsController {
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
-        try {
-            List<NewsResponseDto> list = newsService.findHoldingNews(customUserDetails.getUserId());
-            return ResponseEntity.ok(list);
-        } catch (HoldingNotFoundException e) {
-            return ResponseEntity.ok(new ArrayList<>());
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
-        }
+        List<NewsResponseDto> list = newsService.findHoldingNews(customUserDetails.getUserId());
+
+        return ResponseEntity.ok(list);
     }
 }

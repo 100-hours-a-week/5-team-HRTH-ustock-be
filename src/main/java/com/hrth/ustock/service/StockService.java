@@ -10,7 +10,8 @@ import com.hrth.ustock.dto.stock.StockResponseDto;
 import com.hrth.ustock.entity.portfolio.Chart;
 import com.hrth.ustock.entity.portfolio.News;
 import com.hrth.ustock.entity.portfolio.Stock;
-import com.hrth.ustock.exception.*;
+import com.hrth.ustock.exception.domain.chart.ChartException;
+import com.hrth.ustock.exception.domain.stock.StockException;
 import com.hrth.ustock.repository.ChartRepository;
 import com.hrth.ustock.repository.NewsRepository;
 import com.hrth.ustock.repository.StockRepository;
@@ -35,6 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.hrth.ustock.exception.domain.chart.ChartExceptionType.CHART_NOT_FOUND;
+import static com.hrth.ustock.exception.domain.chart.ChartExceptionType.PERIOD_NOT_ALLOWED;
+import static com.hrth.ustock.exception.domain.stock.StockExceptionType.*;
 import static com.hrth.ustock.service.StockServiceConst.*;
 
 @Slf4j
@@ -43,24 +47,26 @@ import static com.hrth.ustock.service.StockServiceConst.*;
 public class StockService {
     private static final int TOP_RANK_RANGE = 5;
 
+    private final NewsRepository newsRepository;
     private final StockRepository stockRepository;
     private final ChartRepository chartRepository;
-    private final NewsRepository newsRepository;
-    private final DateConverter dateConverter;
-
-    private final ObjectMapper objectMapper;
-    private final KisApiAuthManager authManager;
-    private final RedisJsonManager redisJsonManager;
+    private final StockCronService stockCronService;
     private final RedisTemplate<String, String> redisTemplate;
 
+    private final ObjectMapper objectMapper;
+    private final DateConverter dateConverter;
+    private final KisApiAuthManager authManager;
+    private final RedisJsonManager redisJsonManager;
+
     private static final DateTimeFormatter redisFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd/HH/mm");
-    private final StockCronService stockCronService;
 
     // 6. 종목 검색
     @Transactional
     public List<StockResponseDto> searchStock(String query) {
+        String stockCodeRegex = "^\\d{1,6}$|^Q\\d{1,6}$";
+
         List<Stock> list;
-        if (query.matches("^\\d{1,6}$|^Q\\d{1,6}$")) {
+        if (query.matches(stockCodeRegex)) {
             list = stockRepository.findByCodeStartingWith(query);
             list.addAll(stockRepository.findByCodeContainingButNotStartingWith(query));
         } else {
@@ -68,17 +74,14 @@ public class StockService {
             list.addAll(stockRepository.findByNameContainingButNotStartingWith(query));
         }
 
-        if (list.isEmpty()) {
-            throw new StockNotFoundException();
-        }
+        if (list.isEmpty())
+            throw new StockException(STOCK_NOT_FOUND);
 
         List<StockResponseDto> stockDtoList = new ArrayList<>();
         for (Stock stock : list) {
             Map<String, String> redisMap = getCurrentChangeChangeRate(stock.getCode());
 
-            if (redisMap == null) {
-                continue;
-            }
+            if (redisMap == null) continue;
 
             String currentSaved = redisMap.get(REDIS_CURRENT_KEY);
             String rateSaved = redisMap.get(REDIS_CHANGE_RATE_KEY);
@@ -95,12 +98,12 @@ public class StockService {
     // 14. 주식 상세정보 조회
     @Transactional
     public StockResponseDto getStockInfo(String code) {
-        Stock stock = stockRepository.findByCode(code).orElseThrow(StockNotFoundException::new);
+        Stock stock = stockRepository.findByCode(code).orElseThrow(() -> new StockException(STOCK_NOT_FOUND));
 
         Map<String, String> redisMap = getCurrentChangeChangeRate(stock.getCode());
-        if (redisMap == null) {
-            throw new CurrentNotFoundException();
-        }
+
+        if (redisMap == null)
+            throw new StockException(CURRENT_NOT_FOUND);
 
         String currentSaved = redisMap.get(REDIS_CURRENT_KEY);
         String changeSaved = redisMap.get(REDIS_CHANGE_KEY);
@@ -119,6 +122,9 @@ public class StockService {
     // 15. 종목 차트 조회
     public List<ChartResponseDto> getStockChartAndNews(String code, int period) {
         // 1: 일봉, 2: 주봉, 3: 월봉
+        if (period < 1 || 3 < period)
+            throw new ChartException(PERIOD_NOT_ALLOWED);
+
         String start = dateConverter.getStartDateOneYearAgo();
         String end = dateConverter.getCurrentDate();
         return switch (period) {
@@ -135,9 +141,8 @@ public class StockService {
         List<Chart> chartList = chartRepository.findAllByStockCodeAndDateBetween(code, start, end);
         List<News> newsList = newsRepository.findAllByStockCodeAndDateBetween(code, start, end);
 
-        if (chartList == null || chartList.isEmpty()) {
-            throw new ChartNotFoundException();
-        }
+        if (chartList == null || chartList.isEmpty())
+            throw new ChartException(CHART_NOT_FOUND);
 
         for (Pair<String, String> data : dateList) {
             String startDate = data.getFirst();
@@ -146,45 +151,51 @@ public class StockService {
             ChartResponseDto chartResponseDto = new ChartResponseDto();
             chartResponseDto.setCandle(ChartDto.builder().build());
             chartResponseDto.setNews(new ArrayList<>());
-            chartResponseDto.getCandle().setHigh(0);
-            chartResponseDto.getCandle().setLow(10000000);
+
+            ChartDto candle = chartResponseDto.getCandle();
+            candle.setHigh(Integer.MIN_VALUE);
+            candle.setLow(Integer.MAX_VALUE);
             chartResponseDto.setDate(startDate);
 
             chartList.stream()
                     .filter(chart ->
-                            chart.getDate().compareTo(startDate) >= 0 && chart.getDate().compareTo(endDate) <= 0)
+                    {
+                        String date = chart.getDate();
+                        return date.compareTo(startDate) >= 0 && date.compareTo(endDate) <= 0;
+                    })
                     .forEach(chart -> {
                         if (chart.getDate().equals(startDate)) {
-                            chartResponseDto.getCandle().setOpen(chart.getOpen());
+                            candle.setOpen(chart.getOpen());
                         }
-                        // 종가 0으로 반환하지 않도록 수정
-                        chartResponseDto.getCandle().setClose(chart.getClose());
-                        if (chart.getHigh() > chartResponseDto.getCandle().getHigh()) {
-                            chartResponseDto.getCandle().setHigh(chart.getHigh());
-                        }
-                        if (chart.getLow() < chartResponseDto.getCandle().getLow()) {
-                            chartResponseDto.getCandle().setLow(chart.getLow());
-                        }
+                        candle.setClose(chart.getClose());
+                        candle.setHigh(Math.max(chart.getHigh(), candle.getHigh()));
+                        candle.setLow(Math.min(chart.getLow(), candle.getLow()));
                     });
 
-            if (chartResponseDto.getCandle().getHigh() == 0) {
-                continue;
-            } else if (chartResponseDto.getCandle().getOpen() == 0) {
-                // 시가 0으로 반환하지 않도록 수정
-                chartResponseDto.getCandle().setOpen(chartList.get(0).getOpen());
+            if (candle.getHigh() == Integer.MIN_VALUE) continue;
+
+            // 시가 0으로 반환하지 않도록 수정
+            if (candle.getOpen() == 0) {
+                candle.setOpen(chartList.get(0).getOpen());
             }
 
             newsList.stream()
                     .filter(news ->
-                            news.getDate().compareTo(startDate) >= 0 && news.getDate().compareTo(endDate) <= 0)
+                    {
+                        String date = news.getDate();
+                        return date.compareTo(startDate) >= 0 && date.compareTo(endDate) <= 0;
+                    })
                     .forEach(news -> chartResponseDto.getNews().add(news.toEmbedDto()));
+
             chartListResponse.add(chartResponseDto);
         }
+
         return chartListResponse;
     }
 
     public Map<String, MarketResponseDto> getMarketInfo() {
         String marketInfo = redisTemplate.opsForValue().get("market_info");
+
         log.info(marketInfo);
         if (marketInfo == null) {
             stockCronService.saveMarketData();
@@ -193,9 +204,6 @@ public class StockService {
 
         Map<String, Object> redisResult = redisJsonManager.stringMapConvert(marketInfo);
         log.info("redisResult: {}", redisResult);
-        if (redisResult == null) {
-            throw new RuntimeException();
-        }
 
         Map<String, MarketResponseDto> map = new HashMap<>();
         map.put("kospi", objectMapper.convertValue(redisResult.get("kospi"), MarketResponseDto.class));
@@ -213,10 +221,6 @@ public class StockService {
             default -> throw new IllegalArgumentException();
         };
 
-        if (responseList == null || responseList.isEmpty()) {
-            throw new RuntimeException();
-        }
-
         Map<String, List<StockResponseDto>> stockMap = new HashMap<>();
         stockMap.put("stock", responseList);
 
@@ -225,30 +229,26 @@ public class StockService {
 
     // 현재가, 전일대비, 전일 대비 부호, 전일 대비율 조회
     protected Map<String, String> getCurrentChangeChangeRate(String code) {
-        String redisDate = minuteFormatter();
-
         String current = (String) redisTemplate.opsForHash().get(code, REDIS_CURRENT_KEY);
         String change = (String) redisTemplate.opsForHash().get(code, REDIS_CHANGE_KEY);
         String changeRate = (String) redisTemplate.opsForHash().get(code, REDIS_CHANGE_RATE_KEY);
 
-        if (current != null && change != null && changeRate != null) {
-            return Map.of(
-                    "current", current,
-                    "change", change,
-                    "changeRate", changeRate
-            );
-        } else {
-            return null;
-        }
+        if (current == null || change == null || changeRate == null)
+            throw new StockException(CURRENT_NOT_FOUND);
+
+        return Map.of(
+                "current", current,
+                "change", change,
+                "changeRate", changeRate
+        );
     }
 
     private List<StockResponseDto> requestOrderByTrade(String order) {
         String redis_key = order.equals(REDIS_ORDER_TOP) ? REDIS_ORDER_TOP : REDIS_ORDER_TRADE;
         String redisResult = redisTemplate.opsForValue().get("ranking_" + redis_key + "_" + minuteFormatter());
 
-        if (redisResult != null) {
+        if (redisResult != null)
             return redisJsonManager.stringDtoConvert(redisResult);
-        }
 
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_cond_scr_div_code=20171" +
@@ -272,9 +272,8 @@ public class StockService {
     private List<StockResponseDto> requestOrderByCapital() {
         String redisResult = redisTemplate.opsForValue().get("ranking_" + "capital_" + minuteFormatter());
 
-        if (redisResult != null) {
+        if (redisResult != null)
             return redisJsonManager.stringDtoConvert(redisResult);
-        }
 
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_cond_scr_div_code=20174" +
@@ -295,9 +294,8 @@ public class StockService {
     private List<StockResponseDto> requestOrderByChange() {
         String redisResult = redisTemplate.opsForValue().get("ranking_" + "change_" + minuteFormatter());
 
-        if (redisResult != null) {
+        if (redisResult != null)
             return redisJsonManager.stringDtoConvert(redisResult);
-        }
 
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_cond_scr_div_code=20170" +
@@ -321,9 +319,8 @@ public class StockService {
     }
 
     private List<StockResponseDto> saveToRedis(Map response, String redis_key) {
-        if (response == null || response.get("output") == null || response.get("output").equals("")) {
-            return null;
-        }
+        if (response == null || response.get("output") == null || response.get("output").equals(""))
+            throw new StockException(STOCK_REQUEST_FAILED);
 
         List<Map<String, String>> output = (List<Map<String, String>>) response.get("output");
 
@@ -331,7 +328,9 @@ public class StockService {
 
         String dtoString = redisJsonManager.dtoStringConvert(stockList);
         redisTemplate.opsForValue().set("ranking_" + redis_key + "_" + minuteFormatter(), dtoString);
-        redisTemplate.expire("ranking_" + redis_key + "_" + minuteFormatter(), 40 * 60, TimeUnit.SECONDS);
+
+        int fortyMinute = 40 * 60;
+        redisTemplate.expire("ranking_" + redis_key + "_" + minuteFormatter(), fortyMinute, TimeUnit.SECONDS);
 
         return stockList;
     }
@@ -341,11 +340,8 @@ public class StockService {
 
         // 현재 분을 00분 또는 30분으로 맞춤
         int minute = now.getMinute();
-        if (minute >= 30) {
-            now = now.withMinute(30);
-        } else {
-            now = now.withMinute(0);
-        }
+        now = minute >= 30 ? now.withMinute(30) : now.withMinute(0);
+
         return now.format(redisFormatter);
     }
 
@@ -395,13 +391,15 @@ public class StockService {
         return stockList;
     }
 
-    // 16. 스껄계산기
     public SkrrrCalculatorResponseDto calculateSkrrr(String code, SkrrrCalculatorRequestDto requestDto) {
         String date = requestDto.getDate();
 
-        if (!isValidDate(date)) {
-            throw new IllegalArgumentException();
-        }
+        if (!isValidDate(date))
+            throw new StockException(CALCULATOR_DATE_INVALID);
+
+        long calculatorMaxPrice = 9_999_999_999_999L;
+        if (requestDto.getPrice() > calculatorMaxPrice)
+            throw new StockException(CALCULATOR_PRICE_INVALID);
 
         DateTimeFormatter originFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         LocalDate originDate = LocalDate.parse(date, originFormatter);
@@ -410,9 +408,7 @@ public class StockService {
         String startDate = originDate.minusDays(5).format(newFormatter);
         String endDate = originDate.format(newFormatter);
 
-        // 주식 상장일자 체크
-        String publicParams = "?PRDT_TYPE_CD=300" +
-                "&PDNO=" + code;
+        String publicParams = "?PRDT_TYPE_CD=30090-80&PDNO=" + code;
 
         String publicUri = "/uapi/domestic-stock/v1/quotations/search-stock-info";
         Map publicResponse = authManager.getApiData(publicUri, publicParams, "CTPF1002R");
@@ -422,9 +418,8 @@ public class StockService {
         String publicDate = publicOutput.get("scts_mket_lstg_dt");
         String privateDate = publicOutput.get("scts_mket_lstg_abol_dt");
 
-        if (publicDate.compareTo(startDate) > 0 || !"".equals(privateDate)) {
-            throw new StockNotPublicException();
-        }
+        if (publicDate.compareTo(startDate) > 0 || !"".equals(privateDate))
+            throw new StockException(STOCK_NOT_PUBLIC);
 
         // 과거 주식시세 요청
         String queryParams = "?fid_cond_mrkt_div_code=J" +
@@ -449,19 +444,17 @@ public class StockService {
             }
         }
 
-        if (previous == null) {
-            throw new StockNotPublicException();
-        }
+        if (previous == null)
+            throw new StockException(STOCK_NOT_PUBLIC);
 
-        if (requestDto.getPrice() < Integer.parseInt(previous)) {
-            throw new StockCanNotPurchaseException();
-        }
+        if (requestDto.getPrice() < Integer.parseInt(previous))
+            throw new StockException(STOCK_CANNOT_PURCHASE);
 
         // 현재가 기반 계산
         Map<String, String> redisMap = getCurrentChangeChangeRate(code);
-        if (redisMap == null) {
-            throw new CurrentNotFoundException();
-        }
+        if (redisMap == null)
+            throw new StockException(CURRENT_NOT_FOUND);
+
         int currentPrice = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
         int previousPrice = Integer.parseInt(previous);
         long quantity = requestDto.getPrice() / currentPrice;
@@ -490,7 +483,9 @@ public class StockService {
         int month = Integer.parseInt(dateInput[1]);
         int day = Integer.parseInt(dateInput[2]);
 
-        int february = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28;
+        boolean isLeapYear = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+        int february = isLeapYear ? 29 : 28;
+
         int[] limitDate = {0, 31, february, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
         return limitDate[month] >= day;

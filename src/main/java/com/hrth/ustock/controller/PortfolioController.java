@@ -29,15 +29,9 @@ public class PortfolioController {
         }
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
-        try {
-            PortfolioListDto list = portfolioService.getPortfolioList(customUserDetails.getUserId());
-            return ResponseEntity.ok().body(list);
-        } catch (PortfolioNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        PortfolioListDto list = portfolioService.getPortfolioList(customUserDetails.getUserId());
+
+        return ResponseEntity.ok().body(list);
     }
 
     @PostMapping
