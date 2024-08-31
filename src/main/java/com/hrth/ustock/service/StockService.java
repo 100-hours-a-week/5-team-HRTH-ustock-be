@@ -3,10 +3,7 @@ package com.hrth.ustock.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hrth.ustock.dto.chart.ChartDto;
 import com.hrth.ustock.dto.chart.ChartResponseDto;
-import com.hrth.ustock.dto.stock.MarketResponseDto;
-import com.hrth.ustock.dto.stock.SkrrrCalculatorRequestDto;
-import com.hrth.ustock.dto.stock.SkrrrCalculatorResponseDto;
-import com.hrth.ustock.dto.stock.StockResponseDto;
+import com.hrth.ustock.dto.stock.*;
 import com.hrth.ustock.entity.portfolio.Chart;
 import com.hrth.ustock.entity.portfolio.News;
 import com.hrth.ustock.entity.portfolio.Stock;
@@ -193,7 +190,7 @@ public class StockService {
         return chartListResponse;
     }
 
-    public Map<String, MarketResponseDto> getMarketInfo() {
+    public AllMarkterResponseDto getMarketInfo() {
         String marketInfo = redisTemplate.opsForValue().get("market_info");
 
         log.info(marketInfo);
@@ -205,26 +202,23 @@ public class StockService {
         Map<String, Object> redisResult = redisJsonManager.stringMapConvert(marketInfo);
         log.info("redisResult: {}", redisResult);
 
-        Map<String, MarketResponseDto> map = new HashMap<>();
-        map.put("kospi", objectMapper.convertValue(redisResult.get("kospi"), MarketResponseDto.class));
-        map.put("kosdaq", objectMapper.convertValue(redisResult.get("kosdaq"), MarketResponseDto.class));
+        MarketResponseDto kospi = objectMapper.convertValue(redisResult.get("kospi"), MarketResponseDto.class);
+        MarketResponseDto kosdaq = objectMapper.convertValue(redisResult.get("kosdaq"), MarketResponseDto.class);
 
-        return map;
+        return AllMarkterResponseDto.builder()
+                .kospi(kospi)
+                .kosdaq(kosdaq)
+                .build();
 
     }
 
-    public Map<String, List<StockResponseDto>> getStockList(String order) {
-        List<StockResponseDto> responseList = switch (order) {
+    public List<StockResponseDto> getStockList(String order) {
+        return switch (order) {
             case "top", "trade" -> requestOrderByTrade(order);
             case "capital" -> requestOrderByCapital();
             case "change" -> requestOrderByChange();
             default -> throw new IllegalArgumentException();
         };
-
-        Map<String, List<StockResponseDto>> stockMap = new HashMap<>();
-        stockMap.put("stock", responseList);
-
-        return stockMap;
     }
 
     // 현재가, 전일대비, 전일 대비 부호, 전일 대비율 조회
