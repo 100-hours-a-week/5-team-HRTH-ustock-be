@@ -6,7 +6,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
@@ -30,8 +29,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private String domain;
 
     public static final long ACCESS_EXPIRE = 600000L;
-    public static final long REFRESH_EXPIRE = 86400000L;
-    public static final int COOKIE_EXPIRE = 360000;
+    public static final long REFRESH_EXPIRE = 2592000000L;
+    public static final int COOKIE_EXPIRE = 2592000;
 
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;

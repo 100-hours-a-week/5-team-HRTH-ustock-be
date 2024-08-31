@@ -3,16 +3,13 @@ package com.hrth.ustock.controller;
 import com.hrth.ustock.dto.news.NewsResponseDto;
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.service.NewsService;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -23,12 +20,7 @@ public class NewsController {
 
     // 3. 나만의 뉴스
     @GetMapping("/user")
-    public ResponseEntity<?> myHoldingsNews(Authentication authentication) {
-        if (authentication == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ArrayList<>());
-        }
-        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
-
+    public ResponseEntity<?> myHoldingsNews(@AuthenticationPrincipal CustomOAuth2User customUserDetails) {
         List<NewsResponseDto> list = newsService.findHoldingNews(customUserDetails.getUserId());
 
         return ResponseEntity.ok(list);

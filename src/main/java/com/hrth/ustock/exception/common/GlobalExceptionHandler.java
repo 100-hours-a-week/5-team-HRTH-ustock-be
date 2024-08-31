@@ -21,7 +21,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ExceptionResponse> handleCustomException(CustomException ex) {
-        log.warn(ex.getMessage(), ex);
 
         CustomExceptionType exceptionType = ex.getExceptionType();
         return ResponseEntity

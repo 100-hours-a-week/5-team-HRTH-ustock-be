@@ -52,7 +52,7 @@ public class PortfolioService {
         List<Portfolio> list = portfolioRepository.findAllByUserUserId(userId);
 
         if (list == null || list.isEmpty())
-            throw new PortfolioException(PORTFOLIO_NOT_FOUND);
+            throw new PortfolioException(NO_PORTFOLIO);
 
         list.forEach(p -> {
             refreshPortfolio(p);
@@ -177,7 +177,7 @@ public class PortfolioService {
         long price = holdingRequestDto.getPrice();
         int quantity = holdingRequestDto.getQuantity();
 
-        if (quantity > MAX_QUANTITY || price > MAX_PRICE)
+        if (0 > quantity || quantity > MAX_QUANTITY || 0 > price || price > MAX_PRICE)
             throw new PortfolioException(HOLDING_INPUT_INVALID);
 
         target.additionalBuyHolding(quantity, price);
@@ -192,7 +192,7 @@ public class PortfolioService {
 
         int quantity = holdingRequestDto.getQuantity();
         long price = holdingRequestDto.getPrice();
-        if (quantity > MAX_QUANTITY || price > MAX_PRICE)
+        if (0 > quantity || quantity > MAX_QUANTITY || 0 > price || price > MAX_PRICE)
             throw new PortfolioException(HOLDING_INPUT_INVALID);
 
         target.updateHolding(quantity, price);
