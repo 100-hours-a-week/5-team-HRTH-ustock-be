@@ -20,7 +20,6 @@ import java.io.IOException;
 public class CustomLogoutFilter extends GenericFilterBean {
 
     private final String domain;
-    private final String url;
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -36,7 +35,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
 
         String requestUri = request.getRequestURI();
-        if (!requestUri.matches("^\\/logout$")) {
+        if (!requestUri.matches("^/logout$")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -54,8 +53,8 @@ public class CustomLogoutFilter extends GenericFilterBean {
                 refresh = cookie.getValue();
             }
         }
-        Cookie accessLogout = null;
-        Cookie refreshLogout = null;
+        Cookie accessLogout;
+        Cookie refreshLogout;
         if (refresh == null || jwtUtil.isExpired(refresh) || jwtUtil.getUserId(refresh) == null) {
             accessLogout = setLogoutCookie("access");
             refreshLogout = setLogoutCookie("refresh");

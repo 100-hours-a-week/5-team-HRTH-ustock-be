@@ -51,7 +51,7 @@ public class KisApiAuthManager {
 
     public Map getApiData(String uri, String queryParams, String header) {
         for (int i = 0; i < MAX_TRY; i++) {
-            Map response = null;
+            Map response;
             try {
                 response = restClient.get()
                         .uri(uri + queryParams)
@@ -62,7 +62,9 @@ public class KisApiAuthManager {
                 throw new KisApiException(API_REQUEST_FAILED);
             }
 
-            if (response != null && response.get("msg1").equals("기간이 만료된 token 입니다.")) {
+            if(response == null) {
+                throw new KisApiException(API_REQUEST_FAILED);
+            } else if (response != null && response.get("msg1").equals("기간이 만료된 token 입니다.")) {
                 generateToken();
             } else if (response.get("msg1").equals("초당 거래건수를 초과하였습니다.")) {
                 TimeDelay.delay(1000);

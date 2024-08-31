@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/v1/user")
 public class UserController {
 
-    // 17. 사용자 정보 조회
     @GetMapping
     public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal CustomOAuth2User customUserDetails) {
         try {

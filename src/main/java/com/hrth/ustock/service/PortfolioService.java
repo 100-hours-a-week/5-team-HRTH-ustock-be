@@ -19,7 +19,6 @@ import com.hrth.ustock.repository.StockRepository;
 import com.hrth.ustock.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +41,6 @@ public class PortfolioService {
     private final UserRepository userRepository;
     private final HoldingRepository holdingRepository;
     private final StockRepository stockRepository;
-    private final RedisTemplate<String, String> redisTemplate;
     private final StockService stockService;
 
     @Transactional(readOnly = true)

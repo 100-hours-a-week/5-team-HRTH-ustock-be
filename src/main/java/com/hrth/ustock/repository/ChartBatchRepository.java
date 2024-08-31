@@ -16,9 +16,9 @@ public class ChartBatchRepository {
 
     @Transactional
     public void batchInsert(List<Chart> chartList) {
-        String sql = "insert into chart" +
+        String sql = "INSERT INTO chart" +
                 "(high, low, open, close, chart_date, stock_code)" +
-                "values (?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, chartList, chartList.size(), (ps, chart) -> {
             ps.setInt(1, chart.getHigh());

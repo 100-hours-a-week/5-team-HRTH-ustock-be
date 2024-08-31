@@ -18,7 +18,6 @@ import java.util.List;
 public class NewsController {
     private final NewsService newsService;
 
-    // 3. 나만의 뉴스
     @GetMapping("/user")
     public ResponseEntity<?> myHoldingsNews(@AuthenticationPrincipal CustomOAuth2User customUserDetails) {
         List<NewsResponseDto> list = newsService.findHoldingNews(customUserDetails.getUserId());

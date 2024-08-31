@@ -1,5 +1,6 @@
 package com.hrth.ustock.exception.common;
 
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionResponse> handleException(Exception ex) {
+        Sentry.captureException(ex);
         log.warn(ex.getMessage(), ex);
 
         return ResponseEntity
@@ -41,6 +43,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMissingServletRequestParameter(
             MissingServletRequestParameterException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
+        Sentry.captureException(ex);
         log.warn(ex.getMessage(), ex);
 
         return ResponseEntity
@@ -52,6 +55,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleNoResourceFoundException(
             NoResourceFoundException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
+        Sentry.captureException(ex);
         log.warn(ex.getMessage(), ex);
 
         return ResponseEntity

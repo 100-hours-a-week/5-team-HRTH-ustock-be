@@ -71,7 +71,7 @@ public class SecurityConfig {
 //                )
 
                 // 로그아웃 필터
-                .addFilterBefore(new CustomLogoutFilter(domain, url, jwtUtil, redisTemplate), LogoutFilter.class)
+                .addFilterBefore(new CustomLogoutFilter(domain, jwtUtil, redisTemplate), LogoutFilter.class)
 
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/logout", "/v1/portfolio/**", "/v1/portfolio", "/v1/user").authenticated()
