@@ -19,7 +19,6 @@ import com.hrth.ustock.repository.StockRepository;
 import com.hrth.ustock.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +41,6 @@ public class PortfolioService {
     private final UserRepository userRepository;
     private final HoldingRepository holdingRepository;
     private final StockRepository stockRepository;
-    private final RedisTemplate<String, String> redisTemplate;
     private final StockService stockService;
 
     @Transactional(readOnly = true)
@@ -52,7 +50,7 @@ public class PortfolioService {
         List<Portfolio> list = portfolioRepository.findAllByUserUserId(userId);
 
         if (list == null || list.isEmpty())
-            throw new PortfolioException(PORTFOLIO_NOT_FOUND);
+            throw new PortfolioException(NO_PORTFOLIO);
 
         list.forEach(p -> {
             refreshPortfolio(p);
@@ -177,7 +175,7 @@ public class PortfolioService {
         long price = holdingRequestDto.getPrice();
         int quantity = holdingRequestDto.getQuantity();
 
-        if (quantity > MAX_QUANTITY || price > MAX_PRICE)
+        if (0 > quantity || quantity > MAX_QUANTITY || 0 > price || price > MAX_PRICE)
             throw new PortfolioException(HOLDING_INPUT_INVALID);
 
         target.additionalBuyHolding(quantity, price);
@@ -192,7 +190,7 @@ public class PortfolioService {
 
         int quantity = holdingRequestDto.getQuantity();
         long price = holdingRequestDto.getPrice();
-        if (quantity > MAX_QUANTITY || price > MAX_PRICE)
+        if (0 > quantity || quantity > MAX_QUANTITY || 0 > price || price > MAX_PRICE)
             throw new PortfolioException(HOLDING_INPUT_INVALID);
 
         target.updateHolding(quantity, price);

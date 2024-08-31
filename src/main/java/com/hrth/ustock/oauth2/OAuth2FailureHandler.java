@@ -21,7 +21,6 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
 
-        log.info(request.getRequestURI());
         String ERROR_PARAM_PREFIX = "error";
         String redirectUrl = UriComponentsBuilder
                 .fromUriString(url)

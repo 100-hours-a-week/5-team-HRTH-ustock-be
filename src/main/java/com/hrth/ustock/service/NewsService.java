@@ -14,7 +14,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.hrth.ustock.exception.domain.portfolio.PortfolioExceptionType.HOLDING_NOT_FOUND;
+import static com.hrth.ustock.exception.domain.portfolio.PortfolioExceptionType.NO_HOLDING;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +28,7 @@ public class NewsService {
         List<Holding> holdings = holdingRepository.findAllByUserUserId(userId);
 
         if (holdings == null || holdings.isEmpty())
-            throw new PortfolioException(HOLDING_NOT_FOUND);
+            throw new PortfolioException(NO_HOLDING);
 
         List<News> newsList = new LinkedList<>();
 

@@ -7,9 +7,8 @@ import com.hrth.ustock.dto.portfolio.PortfolioRequestDto;
 import com.hrth.ustock.dto.portfolio.PortfolioResponseDto;
 import com.hrth.ustock.service.PortfolioService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,25 +18,16 @@ public class PortfolioController {
     private final PortfolioService portfolioService;
 
     @GetMapping
-    public ResponseEntity<?> showPortfolioList(Authentication authentication) {
-
-        if (authentication == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
-
+    public ResponseEntity<?> showPortfolioList(@AuthenticationPrincipal CustomOAuth2User customUserDetails) {
         PortfolioListDto list = portfolioService.getPortfolioList(customUserDetails.getUserId());
 
         return ResponseEntity.ok().body(list);
     }
 
     @PostMapping
-    public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDto portfolioRequestDto, Authentication authentication) {
-
-        if (authentication == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+    public ResponseEntity<?> createPortfolio(
+            @RequestBody PortfolioRequestDto portfolioRequestDto,
+            @AuthenticationPrincipal CustomOAuth2User customUserDetails) {
 
         portfolioService.addPortfolio(portfolioRequestDto, customUserDetails.getUserId());
 
@@ -45,12 +35,7 @@ public class PortfolioController {
     }
 
     @GetMapping("/check")
-    public ResponseEntity<?> checkUserHasPortfolio(Authentication authentication) {
-        if (authentication == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
-
+    public ResponseEntity<?> checkUserHasPortfolio(@AuthenticationPrincipal CustomOAuth2User customUserDetails) {
         portfolioService.getPortfolioList(customUserDetails.getUserId());
 
         return ResponseEntity.ok().build();
@@ -58,18 +43,14 @@ public class PortfolioController {
 
     @GetMapping("/{pfId}")
     public ResponseEntity<?> showPortfolioById(@PathVariable("pfId") Long pfId) {
-
         PortfolioResponseDto portfolio = portfolioService.getPortfolio(pfId);
+
         return ResponseEntity.ok().body(portfolio);
     }
 
     @PatchMapping("/{pfId}/holding/{code}")
     public ResponseEntity<?> buyAdditionalPortfolioStock(
             @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto) {
-
-        if (holdingRequestDto.getQuantity() <= 0 || holdingRequestDto.getPrice() <= 0) {
-            return ResponseEntity.badRequest().build();
-        }
 
         portfolioService.additionalBuyStock(pfId, code, holdingRequestDto);
 
@@ -80,10 +61,6 @@ public class PortfolioController {
     public ResponseEntity<?> editPortfolioStock(
             @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto) {
 
-        if (holdingRequestDto.getQuantity() < 0 || holdingRequestDto.getPrice() < 0) {
-            return ResponseEntity.badRequest().build();
-        }
-
         portfolioService.editHolding(pfId, code, holdingRequestDto);
 
         return ResponseEntity.ok().build();
@@ -93,7 +70,6 @@ public class PortfolioController {
     public ResponseEntity<?> deletePortfolioStock(@PathVariable("pfId") Long pfId, @PathVariable("code") String code) {
 
         portfolioService.deleteHolding(pfId, code);
-
         return ResponseEntity.ok().build();
     }
 
@@ -101,7 +77,6 @@ public class PortfolioController {
     public ResponseEntity<?> deletePortfolio(@PathVariable("pfId") Long pfId) {
 
         portfolioService.deletePortfolio(pfId);
-
         return ResponseEntity.ok().build();
     }
 
@@ -110,7 +85,6 @@ public class PortfolioController {
             @PathVariable("pfId") Long pfId, @PathVariable("code") String code, @RequestBody HoldingRequestDto holdingRequestDto) {
 
         portfolioService.buyStock(pfId, code, holdingRequestDto);
-
         return ResponseEntity.ok().build();
     }
 }
