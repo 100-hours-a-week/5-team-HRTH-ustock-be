@@ -385,18 +385,22 @@ public class StockService {
     }
 
     public SkrrrCalculatorResponseDto calculateSkrrr(String code, SkrrrCalculatorRequestDto requestDto) {
-        String date = requestDto.getDate();
 
-        if (!isValidDate(date))
+        DateTimeFormatter originFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        DateTimeFormatter newFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        String date = requestDto.getDate();
+        LocalDate dateInput = dateConverter.getLocalDate(date);
+        LocalDate current = LocalDate.parse(dateConverter.getCurrentDate(), originFormatter);
+
+        if (!isValidDate(date) || dateInput.isAfter(current))
             throw new StockException(CALCULATOR_DATE_INVALID);
 
         long calculatorMaxPrice = 9_999_999_999_999L;
         if (requestDto.getPrice() > calculatorMaxPrice)
             throw new StockException(CALCULATOR_PRICE_INVALID);
 
-        DateTimeFormatter originFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         LocalDate originDate = LocalDate.parse(date, originFormatter);
-        DateTimeFormatter newFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
         String startDate = originDate.minusDays(5).format(newFormatter);
         String endDate = originDate.format(newFormatter);

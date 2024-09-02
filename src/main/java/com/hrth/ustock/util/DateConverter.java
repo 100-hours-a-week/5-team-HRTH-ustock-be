@@ -58,7 +58,7 @@ public class DateConverter {
         return LocalDate.now(ZoneId.of("Asia/Seoul")).minusYears(1).format(formatter);
     }
 
-    private LocalDate getLocalDate(String date) {
+    public LocalDate getLocalDate(String date) {
         return LocalDate.parse(date, formatter);
     }
 
