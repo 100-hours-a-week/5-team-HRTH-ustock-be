@@ -1,6 +1,6 @@
 package com.hrth.ustock.repository;
 
-import com.hrth.ustock.entity.User;
+import com.hrth.ustock.entity.main.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

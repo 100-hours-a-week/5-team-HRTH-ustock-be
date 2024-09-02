@@ -4,7 +4,7 @@ import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.oauth2.GoogleResponse;
 import com.hrth.ustock.dto.oauth2.OAuth2Response;
 import com.hrth.ustock.dto.oauth2.UserOauthDto;
-import com.hrth.ustock.entity.User;
+import com.hrth.ustock.entity.main.User;
 import com.hrth.ustock.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
