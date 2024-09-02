@@ -1,10 +1,10 @@
 package com.hrth.ustock.controller.main;
 
 import com.hrth.ustock.dto.main.holding.HoldingRequestDto;
-import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.main.portfolio.PortfolioListDto;
 import com.hrth.ustock.dto.main.portfolio.PortfolioRequestDto;
 import com.hrth.ustock.dto.main.portfolio.PortfolioResponseDto;
+import com.hrth.ustock.service.auth.CustomUserService;
 import com.hrth.ustock.service.main.PortfolioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,7 +20,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/portfolio")
 @Tag(name = "Portfolio", description = "포트폴리오 관련 API")
 public class PortfolioController {
+
     private final PortfolioService portfolioService;
+    private final CustomUserService customUserService;
 
     @GetMapping
     @Operation(summary = "보유 포트폴리오 리스트 조회", description = "사용자가 보유중인 포트폴리오 리스트 반환")
@@ -31,27 +32,27 @@ public class PortfolioController {
                     schema = @Schema(implementation = PortfolioListDto.class)
             )
     )
-    public ResponseEntity<?> showPortfolioList(@AuthenticationPrincipal CustomOAuth2User customUserDetails) {
-        PortfolioListDto list = portfolioService.getPortfolioList(customUserDetails.getUserId());
+    public ResponseEntity<?> showPortfolioList() {
+
+        PortfolioListDto list = portfolioService.getPortfolioList(customUserService.getCurrentUserDetails().getUserId());
 
         return ResponseEntity.ok().body(list);
     }
 
     @PostMapping
     @Operation(summary = "포트폴리오 생성", description = "사용자의 새 포트폴리오 생성")
-    public ResponseEntity<?> createPortfolio(
-            @RequestBody PortfolioRequestDto portfolioRequestDto,
-            @AuthenticationPrincipal CustomOAuth2User customUserDetails) {
+    public ResponseEntity<?> createPortfolio(@RequestBody PortfolioRequestDto portfolioRequestDto) {
 
-        portfolioService.addPortfolio(portfolioRequestDto, customUserDetails.getUserId());
+        portfolioService.addPortfolio(portfolioRequestDto, customUserService.getCurrentUserDetails().getUserId());
 
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/check")
     @Operation(summary = "포트폴리오 보유 여부 확인", description = "사용자의 포트폴리오 보유 여부 반환")
-    public ResponseEntity<?> checkUserHasPortfolio(@AuthenticationPrincipal CustomOAuth2User customUserDetails) {
-        portfolioService.getPortfolioList(customUserDetails.getUserId());
+    public ResponseEntity<?> checkUserHasPortfolio() {
+
+        portfolioService.getPortfolioList(customUserService.getCurrentUserDetails().getUserId());
 
         return ResponseEntity.ok().build();
     }

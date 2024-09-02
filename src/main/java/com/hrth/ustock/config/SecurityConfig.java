@@ -5,7 +5,7 @@ import com.hrth.ustock.jwt.JWTFilter;
 import com.hrth.ustock.jwt.JWTUtil;
 import com.hrth.ustock.oauth2.CustomSuccessHandler;
 import com.hrth.ustock.oauth2.OAuth2FailureHandler;
-import com.hrth.ustock.service.CustomOAuth2UserService;
+import com.hrth.ustock.service.auth.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,12 +19,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.web.cors.CorsConfiguration;
-
-import java.util.Collections;
-import java.util.List;
-
-import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 @Slf4j
 @Configuration
