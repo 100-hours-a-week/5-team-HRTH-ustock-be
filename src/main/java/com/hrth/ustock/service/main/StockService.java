@@ -401,7 +401,7 @@ public class StockService {
         String startDate = originDate.minusDays(5).format(newFormatter);
         String endDate = originDate.format(newFormatter);
 
-        String publicParams = "?PRDT_TYPE_CD=30090-80&PDNO=" + code;
+        String publicParams = "?PRDT_TYPE_CD=300&PDNO=" + code;
 
         String publicUri = "/uapi/domestic-stock/v1/quotations/search-stock-info";
         Map publicResponse = authManager.getApiData(publicUri, publicParams, "CTPF1002R");
