@@ -1,4 +1,4 @@
-package com.hrth.ustock.service;
+package com.hrth.ustock.service.auth;
 
 import com.hrth.ustock.dto.oauth2.CustomOAuth2User;
 import com.hrth.ustock.dto.oauth2.GoogleResponse;
