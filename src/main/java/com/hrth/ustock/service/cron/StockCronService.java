@@ -1,11 +1,11 @@
 package com.hrth.ustock.service.cron;
 
-import com.hrth.ustock.dto.stock.MarketResponseDto;
-import com.hrth.ustock.entity.portfolio.Chart;
-import com.hrth.ustock.entity.portfolio.Stock;
-import com.hrth.ustock.exception.kisApi.KisApiException;
-import com.hrth.ustock.repository.ChartBatchRepository;
-import com.hrth.ustock.repository.StockRepository;
+import com.hrth.ustock.dto.main.stock.MarketResponseDto;
+import com.hrth.ustock.entity.main.Chart;
+import com.hrth.ustock.entity.main.Stock;
+import com.hrth.ustock.exception.kisapi.KisApiException;
+import com.hrth.ustock.repository.main.ChartBatchRepository;
+import com.hrth.ustock.repository.main.StockRepository;
 import com.hrth.ustock.util.KisApiAuthManager;
 import com.hrth.ustock.util.RedisJsonManager;
 import com.hrth.ustock.util.TimeDelay;
@@ -23,8 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.hrth.ustock.exception.kisApi.KisApiExceptionType.API_REQUEST_FAILED;
-import static com.hrth.ustock.service.StockServiceConst.*;
+import static com.hrth.ustock.exception.kisapi.KisApiExceptionType.API_REQUEST_FAILED;
+import static com.hrth.ustock.service.main.StockServiceConst.*;
 
 @Slf4j
 @Service

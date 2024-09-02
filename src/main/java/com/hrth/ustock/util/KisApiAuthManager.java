@@ -1,6 +1,6 @@
 package com.hrth.ustock.util;
 
-import com.hrth.ustock.exception.kisApi.KisApiException;
+import com.hrth.ustock.exception.kisapi.KisApiException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.hrth.ustock.exception.kisApi.KisApiExceptionType.API_REQUEST_FAILED;
+import static com.hrth.ustock.exception.kisapi.KisApiExceptionType.API_REQUEST_FAILED;
 
 @Slf4j
 @Component

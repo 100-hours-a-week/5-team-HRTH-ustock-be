@@ -3,7 +3,7 @@ package com.hrth.ustock.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hrth.ustock.dto.stock.StockResponseDto;
+import com.hrth.ustock.dto.main.stock.StockResponseDto;
 import com.hrth.ustock.exception.redis.RedisException;
 import lombok.extern.slf4j.Slf4j;
 
