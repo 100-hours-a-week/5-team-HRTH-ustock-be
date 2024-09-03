@@ -127,6 +127,9 @@ public class StockService {
             case 1 -> {
                 List<ChartResponseDto> list = getChartByRangeList(code, dateConverter.getDailyRanges(start, end), start, end);
                 String str = (String) redisTemplate.opsForHash().get(code, "chart");
+                if(str == null) {
+                    yield list;
+                }
                 Map<String, Object> json = redisJsonManager.stringMapConvert(str);
                 String date = json.get("date").toString();
                 int open = Integer.parseInt(json.get("open").toString());
