@@ -23,6 +23,11 @@ public class GameInfo {
 
     private long budget;
 
+    @Column(name = "last_budget")
+    private long lastBudget;
+
+    private String nickname;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

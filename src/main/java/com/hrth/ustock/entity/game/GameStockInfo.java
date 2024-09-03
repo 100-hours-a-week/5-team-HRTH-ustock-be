@@ -32,4 +32,7 @@ public class GameStockInfo {
 
     @OneToMany(mappedBy = "gameStockInfo")
     private List<GameHint> gameHints;
+
+    @OneToMany(mappedBy = "gameStockInfo")
+    private List<GameNews> gameNews;
 }
