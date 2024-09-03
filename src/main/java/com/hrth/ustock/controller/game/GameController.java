@@ -1,7 +1,6 @@
 package com.hrth.ustock.controller.game;
 
 import com.hrth.ustock.dto.game.*;
-import com.hrth.ustock.entity.game.HintLevel;
 import com.hrth.ustock.service.auth.CustomUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,7 +47,7 @@ public class GameController {
     @GetMapping("/interim")
     @Operation(summary = "회차별 결과 조회",
             description = "중간 결과를 순위대로 반환, 플레이어일 경우 보유 종목도 반환하지만 AI는 반환하지 않음 (사용자: USER, AI: COM)")
-    public ResponseEntity<GameInterimResponseDto> showHolding(@RequestParam Long gameId) {
+    public ResponseEntity<GameInterimResponseDto> showInterimResult(@RequestParam Long gameId) {
 
         return ResponseEntity.ok(new GameInterimResponseDto());
     }
@@ -72,13 +71,22 @@ public class GameController {
 
     @GetMapping("/result/holding")
     @Operation(summary = "게임 내 종목 리스트 조회",
-            description = "게임에 사용된 종목의 리스트를 반환, 뉴스는 /v1/news/{code}, 차트는 /v1/stocks/{code}/chart를 이용해주세요. " +
+            description = "게임에 사용된 종목의 리스트를 반환, 차트는 /v1/stocks/{code}/chart를 이용해주세요. " +
                     "stockName은 원래의 종목명을 의미하며, inGame은 게임에서 사용된 종목명을 의미합니다.")
     public ResponseEntity<List<GameResultHoldingResponseDto>> showResultHolding(@RequestParam long gameId) {
 
         List<GameResultHoldingResponseDto> holdingList = new ArrayList<>();
 
         return ResponseEntity.ok(holdingList);
+    }
+
+    @GetMapping("/news")
+    @Operation(summary = "게임 종목별 뉴스 조회", description = "종목 아이디를 바탕으로 뉴스 리스트를 반환")
+    public ResponseEntity<List<GameNewsResponseDto>> showHoldingNews(@RequestParam long stockId) {
+
+        List<GameNewsResponseDto> newsList = new ArrayList<>();
+
+        return ResponseEntity.ok(newsList);
     }
 
     @GetMapping("/ranking")
