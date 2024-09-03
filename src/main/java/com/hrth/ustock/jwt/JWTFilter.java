@@ -45,11 +45,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
         String access = null;
         String refresh = null;
+        Cookie refreshCookie = null;
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("access")) {
                 access = cookie.getValue();
             }
             if (cookie.getName().equals("refresh")) {
+                refreshCookie = cookie;
                 refresh = cookie.getValue();
             }
         }
@@ -67,7 +69,7 @@ public class JWTFilter extends OncePerRequestFilter {
         Long userId = jwtUtil.getUserId(refresh);
         String redisResult = (String) redisTemplate.opsForValue().get("RT:" + userId);
         if (ObjectUtils.isEmpty(redisResult) || !redisResult.equals(refresh)) {
-            throw new UserException(REFRESH_NOT_VALID);
+            throw new ServletException("JWT Refresh 토큰 갱신 필요", new UserException(REFRESH_NOT_VALID));
         }
 
         String provider = jwtUtil.getProvider(refresh);
