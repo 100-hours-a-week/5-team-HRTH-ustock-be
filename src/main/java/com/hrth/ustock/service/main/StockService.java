@@ -124,7 +124,29 @@ public class StockService {
         String start = dateConverter.getStartDateOneYearAgo();
         String end = dateConverter.getCurrentDate();
         return switch (period) {
-            case 1 -> getChartByRangeList(code, dateConverter.getDailyRanges(start, end), start, end);
+            case 1 -> {
+                List<ChartResponseDto> list = getChartByRangeList(code, dateConverter.getDailyRanges(start, end), start, end);
+                String str = (String) redisTemplate.opsForHash().get(code, "chart");
+                Map<String, Object> json = redisJsonManager.stringMapConvert(str);
+                String date = json.get("date").toString();
+                int open = Integer.parseInt(json.get("open").toString());
+                int close = Integer.parseInt(json.get("close").toString());
+                int high = Integer.parseInt(json.get("high").toString());
+                int low = Integer.parseInt(json.get("low").toString());
+                ChartDto chartData = ChartDto.builder()
+                        .high(high)
+                        .low(low)
+                        .open(open)
+                        .close(close)
+                        .build();
+                ChartResponseDto dto = ChartResponseDto.builder()
+                        .candle(chartData)
+                        .date(date)
+                        .news(new ArrayList<>())
+                        .build();
+                list.add(dto);
+                yield list;
+            }
             case 2 -> getChartByRangeList(code, dateConverter.getWeeklyRanges(start, end), start, end);
             case 3 -> getChartByRangeList(code, dateConverter.getMonthlyRanges(start, end), start, end);
             default -> null;
@@ -192,7 +214,6 @@ public class StockService {
     public AllMarkterResponseDto getMarketInfo() {
         String marketInfo = redisTemplate.opsForValue().get("market_info");
 
-        log.info(marketInfo);
         if (marketInfo == null) {
             stockCronService.saveMarketData();
             marketInfo = redisTemplate.opsForValue().get("market_info");

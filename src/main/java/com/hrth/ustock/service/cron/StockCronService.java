@@ -3,6 +3,7 @@ package com.hrth.ustock.service.cron;
 import com.hrth.ustock.dto.main.stock.MarketResponseDto;
 import com.hrth.ustock.entity.main.Chart;
 import com.hrth.ustock.entity.main.Stock;
+import com.hrth.ustock.exception.domain.stock.StockException;
 import com.hrth.ustock.exception.kisapi.KisApiException;
 import com.hrth.ustock.repository.main.ChartBatchRepository;
 import com.hrth.ustock.repository.main.StockRepository;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.hrth.ustock.exception.domain.stock.StockExceptionType.MARKET_NOT_FOUND;
 import static com.hrth.ustock.exception.kisapi.KisApiExceptionType.API_REQUEST_FAILED;
 import static com.hrth.ustock.service.main.StockServiceConst.*;
 
@@ -47,6 +49,7 @@ public class StockCronService {
         log.info("현재가 크론잡 시작");
         String startDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(requestFormatter);
         String redisDate = minuteFormatter();
+        String chartDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(mysqlFormatter);
         List<Stock> allStocks = stockRepository.findAll();
 
         for (Stock stock : allStocks) {
@@ -81,31 +84,25 @@ public class StockCronService {
             redisTemplate.opsForHash().put(code, REDIS_CHANGE_KEY, change);
             redisTemplate.opsForHash().put(code, REDIS_CHANGE_RATE_KEY, changeRate);
             redisTemplate.opsForHash().put(code, REDIS_DATE_KEY, redisDate);
-//
-//            List<Map<String, String>> output2 = (List<Map<String, String>>) response.get("output2");
-//            // 분봉
-//            // redis에 json String으로 저장함
-//            String high = output1.get(STOCK_MARKET_HIGH);
-//            String low = output1.get(STOCK_MARKET_LOW);
-//            String open = output1.get(STOCK_MARKET_OPEN);
-//            // 장 마감 전까진 종가가 없으니 현재가로 저장
-//            String close = output1.get(STOCK_MARKET_CLOSE);
-//
-//            List<Map<String, String>> charts;
-//            String result = (String) redisTemplate.opsForHash().get(code, REDIS_CHART_KEY);
-//
-//            charts = result == null ? new ArrayList<>() : redisJsonManager.stringJsonConvert(result);
-//
-//            Map<String, String> chart = new HashMap<>();
-//            chart.put(REDIS_CHART_HIGH_KEY, high);
-//            chart.put(REDIS_CHART_LOW_KEY, low);
-//            chart.put(REDIS_CHART_OPEN_KEY, open);
-//            chart.put(REDIS_CHART_CLOSE_KEY, close);
-//            chart.put(REDIS_CHART_DATE_KEY, redisDate);
-//            charts.add(chart);
-//
-//            String jsonString = redisJsonManager.jsonStringConvert(charts);
-//            redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
+
+            List<Map<String, String>> output2 = (List<Map<String, String>>) response.get("output2");
+            // 분봉
+            // redis에 json String으로 저장함
+            String high = output1.get(STOCK_MARKET_HIGH);
+            String low = output1.get(STOCK_MARKET_LOW);
+            String open = output1.get(STOCK_MARKET_OPEN);
+            // 장 마감 전까진 종가가 없으니 현재가로 저장
+            String close = output1.get(STOCK_MARKET_CLOSE);
+
+            Map<String, Object> chart = new HashMap<>();
+            chart.put(REDIS_CHART_HIGH_KEY, high);
+            chart.put(REDIS_CHART_LOW_KEY, low);
+            chart.put(REDIS_CHART_OPEN_KEY, open);
+            chart.put(REDIS_CHART_CLOSE_KEY, close);
+            chart.put(REDIS_DATE_KEY, chartDate);
+
+            String jsonString = redisJsonManager.mapStringConvert(chart);
+            redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
 
             TimeDelay.delay(200);
         }
@@ -119,7 +116,7 @@ public class StockCronService {
         String redisDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(redisFormatter);
 
         if (kospi == null || kosdaq == null) {
-            return;
+            throw new StockException(MARKET_NOT_FOUND);
         }
 
         Map<String, Object> marketInfo = new HashMap<>();
@@ -139,7 +136,7 @@ public class StockCronService {
         Map response = authManager.getApiData(apiUri, queryParams, "FHPUP02100000");
 
         if (response == null) {
-            return null;
+            throw new KisApiException(API_REQUEST_FAILED);
         }
 
         if (response.get("output") == null || response.get("output").equals("")) {

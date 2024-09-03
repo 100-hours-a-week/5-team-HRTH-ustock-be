@@ -62,7 +62,7 @@ public class KisApiAuthManager {
                 throw new KisApiException(API_REQUEST_FAILED);
             }
 
-            if(response == null) {
+            if (response == null) {
                 throw new KisApiException(API_REQUEST_FAILED);
             } else if (response != null && response.get("msg1").equals("기간이 만료된 token 입니다.")) {
                 generateToken();
@@ -89,12 +89,10 @@ public class KisApiAuthManager {
     public String getToken() {
         String findToken = redisTemplate.opsForValue().get("ACCESS_TOKEN");
         if (findToken != null) {
-            log.info("Get ACCESS_TOKEN in Redis: {}", findToken);
             return findToken;
         }
 
         String token = generateToken();
-        log.info("Get ACCESS_TOKEN in Method: {}", token);
         return token;
     }
 
