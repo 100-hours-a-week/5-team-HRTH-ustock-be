@@ -49,12 +49,6 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<GameInfo> gameInfos;
 
-    public void updateUser(String nickname, String profileImage, String role) {
-        this.nickname = nickname;
-        this.profileImage = profileImage;
-        this.role = role;
-    }
-
     public UserOauthDto toOAuthDto() {
         return UserOauthDto.builder()
                 .userId(this.userId)
@@ -69,13 +63,5 @@ public class User {
     public void updateUserOAuth(UserOauthDto userOauthDto) {
         this.providerImage = userOauthDto.getProfile();
         this.providerName = userOauthDto.getProviderName();
-    }
-
-    public void updateNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public void addPortfolio(Portfolio portfolio) {
-        this.portfolios.add(portfolio);
     }
 }
