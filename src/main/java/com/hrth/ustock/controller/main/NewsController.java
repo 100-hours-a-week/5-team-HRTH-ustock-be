@@ -8,9 +8,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -30,5 +32,14 @@ public class NewsController {
         List<NewsResponseDto> list = newsService.findHoldingNews(customUserService.getCurrentUserDetails().getUserId());
 
         return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/{code}")
+    @Operation(summary = "종목별 뉴스 조회", description = "종목 코드를 바탕으로 해당하는 종목의 뉴스 리스트를 반환")
+    public ResponseEntity<List<NewsResponseDto>> showHoldingNews(@PathVariable String code) {
+
+        List<NewsResponseDto> newsList = new ArrayList<>();
+
+        return ResponseEntity.ok(newsList);
     }
 }
