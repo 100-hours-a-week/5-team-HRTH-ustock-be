@@ -8,7 +8,6 @@ import static org.springframework.http.HttpStatus.*;
 public enum RedisExceptionType implements CustomExceptionType {
     SERIALIZE_FAILED("Object->JSON 직렬화에 실패했습니다", INTERNAL_SERVER_ERROR),
     DESERIALIZE_FAILED("JSON->Object 역직렬화에 실패했습니다", INTERNAL_SERVER_ERROR),
-    VALUE_NOT_FOUND("Redis 조회에 실패했습니다", NOT_FOUND),
     ;
 
     private final String message;

@@ -44,7 +44,7 @@ public class StockCronService {
     private final RedisJsonManager redisJsonManager;
 
     // 주중 오전 9시에 시작해서 30분마다 실행하고 오후 15시 30분에 끝남
-    // 종목별 현재가, 차트 데이터 redis에 갱신
+    // 종목별 현재가, 당일 차트 데이터 redis에 갱신
     public void saveStockData() {
         log.info("현재가 크론잡 시작");
         String startDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(requestFormatter);
