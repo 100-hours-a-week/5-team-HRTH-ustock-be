@@ -61,8 +61,6 @@ public class JWTFilter extends OncePerRequestFilter {
         if (!(access == null || access.isEmpty()) && !jwtUtil.isExpired(access)) {
             String category = jwtUtil.getCategory(access);
 
-            // 토큰의 카테고리가 access가 아닌 경우 UNAUTHORIZED return
-            // 해결방법은 access token Application에서 수동 삭제
             if (!category.equals("access")) {
                 log.info("access category not match, url: {}", request.getRequestURL());
                 PrintWriter writer = response.getWriter();
@@ -74,7 +72,6 @@ public class JWTFilter extends OncePerRequestFilter {
         } else {
             // Access Token이 만료된 경우 Refresh Token으로 재발급
             if (refresh == null || jwtUtil.isExpired(refresh) || !jwtUtil.getCategory(refresh).equals("refresh")) {
-                // Refresh Token이 유효하지 않은 경우
                 log.info("refresh not valid, url: {}", request.getRequestURL());
                 PrintWriter writer = response.getWriter();
                 writer.print("refresh not valid");
@@ -104,7 +101,6 @@ public class JWTFilter extends OncePerRequestFilter {
             String newAccessToken = jwtUtil.createJwt("access", userId, provider, providerId, providerName, providerImage, role, ACCESS_EXPIRE);
             String newRefreshToken = jwtUtil.createJwt("refresh", userId, provider, providerId, providerName, providerImage, role, REFRESH_EXPIRE);
 
-            // Redis에 새 Refresh Token 저장
             redisTemplate.opsForValue().set("RT:" + userId, newRefreshToken, REFRESH_EXPIRE, TimeUnit.MILLISECONDS);
 
             response.addCookie(createCookie("access", newAccessToken));

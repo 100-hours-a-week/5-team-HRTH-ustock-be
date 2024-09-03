@@ -14,14 +14,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 @Slf4j
 @RequiredArgsConstructor
 public class CustomLogoutFilter extends GenericFilterBean {
 
     private final String domain;
-    private final String url;
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -37,7 +35,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
 
         String requestUri = request.getRequestURI();
-        if (!requestUri.matches("^\\/logout$")) {
+        if (!requestUri.matches("^/logout$")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -55,66 +53,39 @@ public class CustomLogoutFilter extends GenericFilterBean {
                 refresh = cookie.getValue();
             }
         }
+        Cookie accessLogout;
+        Cookie refreshLogout;
+        if (refresh == null || jwtUtil.isExpired(refresh) || jwtUtil.getUserId(refresh) == null) {
+            accessLogout = setLogoutCookie("access");
+            refreshLogout = setLogoutCookie("refresh");
 
-        if (refresh == null || jwtUtil.isExpired(refresh) || !jwtUtil.getCategory(refresh).equals("refresh")) {
-            log.info("logout: refresh not valid, url: {}", request.getRequestURL());
-            PrintWriter writer = response.getWriter();
-            writer.print("logout: refresh not valid");
-
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.addCookie(accessLogout);
+            response.addCookie(refreshLogout);
+            response.setStatus(HttpStatus.OK.value());
             return;
         }
 
-        //DB에 저장되어 있는지 확인
         Long userId = jwtUtil.getUserId(refresh);
-        if (userId == null) {
-            log.info("logout: cannot get userId, url: {}", request.getRequestURL());
-            PrintWriter writer = response.getWriter();
-            writer.print("logout: cannot get userId");
-
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
-
         String currentRefresh = (String) redisTemplate.opsForValue().get("RT:" + userId);
-        if (currentRefresh == null) {
-            log.info("logout: cannot find cache, url: {}", request.getRequestURL());
-            PrintWriter writer = response.getWriter();
-            writer.print("logout: cannot find cache");
-
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            return;
+        if (currentRefresh != null && currentRefresh.equals(refresh)) {
+            redisTemplate.delete(currentRefresh);
         }
 
-        if (!currentRefresh.equals(refresh)) {
-            log.info("logout: refresh not match, url: {}", request.getRequestURL());
-            PrintWriter writer = response.getWriter();
-            writer.print("logout: refresh not match");
-
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
-
-        //로그아웃 진행
-        redisTemplate.delete(currentRefresh);
-
-        //Access, Refresh 토큰 Cookie 값 0 세팅 후 클라이언트 측 쿠키 갱신
-        Cookie accessLogout = new Cookie("access", null);
-        accessLogout.setMaxAge(0);
-        accessLogout.setPath("/");
-        accessLogout.setHttpOnly(true);
-        accessLogout.setSecure(true);
-        accessLogout.setDomain(domain);
-
-        Cookie refreshLogout = new Cookie("refresh", null);
-        refreshLogout.setMaxAge(0);
-        refreshLogout.setPath("/");
-        refreshLogout.setHttpOnly(true);
-        refreshLogout.setSecure(true);
-        refreshLogout.setDomain(domain);
+        accessLogout = setLogoutCookie("access");
+        refreshLogout = setLogoutCookie("refresh");
 
         response.addCookie(accessLogout);
         response.addCookie(refreshLogout);
         response.setStatus(HttpStatus.OK.value());
+    }
+
+    private Cookie setLogoutCookie(String str) {
+        Cookie cookie = new Cookie(str, null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setDomain(domain);
+        return cookie;
     }
 }

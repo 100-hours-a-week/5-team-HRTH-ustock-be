@@ -1,5 +1,6 @@
 package com.hrth.ustock.util;
 
+import com.hrth.ustock.exception.kisapi.KisApiException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,6 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDateTime;
@@ -17,6 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
+import static com.hrth.ustock.exception.kisapi.KisApiExceptionType.API_REQUEST_FAILED;
 
 @Slf4j
 @Component
@@ -47,18 +51,23 @@ public class KisApiAuthManager {
 
     public Map getApiData(String uri, String queryParams, String header) {
         for (int i = 0; i < MAX_TRY; i++) {
-            Map response = restClient.get()
-                    .uri(uri + queryParams)
-                    .headers(setRequestHeaders(header))
-                    .retrieve()
-                    .body(Map.class);
+            Map response;
+            try {
+                response = restClient.get()
+                        .uri(uri + queryParams)
+                        .headers(setRequestHeaders(header))
+                        .retrieve()
+                        .body(Map.class);
+            } catch (HttpClientErrorException e) {
+                throw new KisApiException(API_REQUEST_FAILED);
+            }
 
-            if (response != null && response.get("msg1").equals("기간이 만료된 token 입니다.")) {
+            if (response == null) {
+                throw new KisApiException(API_REQUEST_FAILED);
+            } else if (response != null && response.get("msg1").equals("기간이 만료된 token 입니다.")) {
                 generateToken();
             } else if (response.get("msg1").equals("초당 거래건수를 초과하였습니다.")) {
                 TimeDelay.delay(1000);
-            } else if (response.get("error_description") != null && response.get("error_description").equals("접근토큰 발급 잠시 후 다시 시도하세요(1분당 1회)")) {
-                TimeDelay.delay(60 * 1000);
             } else {
                 return response;
             }
@@ -79,8 +88,12 @@ public class KisApiAuthManager {
 
     public String getToken() {
         String findToken = redisTemplate.opsForValue().get("ACCESS_TOKEN");
-        if (findToken != null) return findToken;
-        else return generateToken();
+        if (findToken != null) {
+            return findToken;
+        }
+
+        String token = generateToken();
+        return token;
     }
 
     public String generateToken() {
@@ -101,11 +114,9 @@ public class KisApiAuthManager {
 
         ZonedDateTime tokenExpireDate = LocalDateTime.parse(tokenExpired, requestFormatter).atZone(ZoneId.of("Asia/Seoul"));
         long expireSecond = RedisTTLCalculator.calculateTTLForMidnightKST(tokenExpireDate);
-
         redisTemplate.opsForValue().set("ACCESS_TOKEN", token);
+        log.info("Stored ACCESS_TOKEN in Redis: {}, TTL: {}h", token, expireSecond / 3600);
         redisTemplate.expire("ACCESS_TOKEN", expireSecond, TimeUnit.SECONDS);
-
-        log.info("Token Created: {}", token);
         return token;
     }
 }

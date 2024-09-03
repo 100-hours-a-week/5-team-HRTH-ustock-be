@@ -1,10 +1,12 @@
 package com.hrth.ustock.service.cron;
 
-import com.hrth.ustock.dto.stock.MarketResponseDto;
-import com.hrth.ustock.entity.portfolio.Chart;
-import com.hrth.ustock.entity.portfolio.Stock;
-import com.hrth.ustock.repository.ChartRepository;
-import com.hrth.ustock.repository.StockRepository;
+import com.hrth.ustock.dto.main.stock.MarketResponseDto;
+import com.hrth.ustock.entity.main.Chart;
+import com.hrth.ustock.entity.main.Stock;
+import com.hrth.ustock.exception.domain.stock.StockException;
+import com.hrth.ustock.exception.kisapi.KisApiException;
+import com.hrth.ustock.repository.main.ChartBatchRepository;
+import com.hrth.ustock.repository.main.StockRepository;
 import com.hrth.ustock.util.KisApiAuthManager;
 import com.hrth.ustock.util.RedisJsonManager;
 import com.hrth.ustock.util.TimeDelay;
@@ -17,11 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.hrth.ustock.service.StockServiceConst.*;
+import static com.hrth.ustock.exception.domain.stock.StockExceptionType.MARKET_NOT_FOUND;
+import static com.hrth.ustock.exception.kisapi.KisApiExceptionType.API_REQUEST_FAILED;
+import static com.hrth.ustock.service.main.StockServiceConst.*;
 
 @Slf4j
 @Service
@@ -29,7 +34,7 @@ import static com.hrth.ustock.service.StockServiceConst.*;
 public class StockCronService {
 
     private final StockRepository stockRepository;
-    private final ChartRepository chartRepository;
+    private final ChartBatchRepository chartBatchRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final KisApiAuthManager authManager;
 
@@ -39,12 +44,12 @@ public class StockCronService {
     private final RedisJsonManager redisJsonManager;
 
     // 주중 오전 9시에 시작해서 30분마다 실행하고 오후 15시 30분에 끝남
-    // 종목별 현재가, 차트 데이터 redis에 갱신
-    @Transactional
+    // 종목별 현재가, 당일 차트 데이터 redis에 갱신
     public void saveStockData() {
         log.info("현재가 크론잡 시작");
         String startDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(requestFormatter);
         String redisDate = minuteFormatter();
+        String chartDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(mysqlFormatter);
         List<Stock> allStocks = stockRepository.findAll();
 
         for (Stock stock : allStocks) {
@@ -59,7 +64,7 @@ public class StockCronService {
 
             Map response = authManager.getApiData(apiUri, queryParams, "FHKST03010100");
 
-            if(response == null) {
+            if (response == null) {
                 continue;
             }
 
@@ -79,47 +84,39 @@ public class StockCronService {
             redisTemplate.opsForHash().put(code, REDIS_CHANGE_KEY, change);
             redisTemplate.opsForHash().put(code, REDIS_CHANGE_RATE_KEY, changeRate);
             redisTemplate.opsForHash().put(code, REDIS_DATE_KEY, redisDate);
-//
-//            List<Map<String, String>> output2 = (List<Map<String, String>>) response.get("output2");
-//            // 분봉
-//            // redis에 json String으로 저장함
-//            String high = output1.get(STOCK_MARKET_HIGH);
-//            String low = output1.get(STOCK_MARKET_LOW);
-//            String open = output1.get(STOCK_MARKET_OPEN);
-//            // 장 마감 전까진 종가가 없으니 현재가로 저장
-//            String close = output1.get(STOCK_MARKET_CLOSE);
-//
-//            List<Map<String, String>> charts;
-//            String result = (String) redisTemplate.opsForHash().get(code, REDIS_CHART_KEY);
-//
-//            charts = result == null ? new ArrayList<>() : redisJsonManager.stringJsonConvert(result);
-//
-//            Map<String, String> chart = new HashMap<>();
-//            chart.put(REDIS_CHART_HIGH_KEY, high);
-//            chart.put(REDIS_CHART_LOW_KEY, low);
-//            chart.put(REDIS_CHART_OPEN_KEY, open);
-//            chart.put(REDIS_CHART_CLOSE_KEY, close);
-//            chart.put(REDIS_CHART_DATE_KEY, redisDate);
-//            charts.add(chart);
-//
-//            String jsonString = redisJsonManager.jsonStringConvert(charts);
-//            redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
+
+            List<Map<String, String>> output2 = (List<Map<String, String>>) response.get("output2");
+            // 분봉
+            // redis에 json String으로 저장함
+            String high = output1.get(STOCK_MARKET_HIGH);
+            String low = output1.get(STOCK_MARKET_LOW);
+            String open = output1.get(STOCK_MARKET_OPEN);
+            // 장 마감 전까진 종가가 없으니 현재가로 저장
+            String close = output1.get(STOCK_MARKET_CLOSE);
+
+            Map<String, Object> chart = new HashMap<>();
+            chart.put(REDIS_CHART_HIGH_KEY, high);
+            chart.put(REDIS_CHART_LOW_KEY, low);
+            chart.put(REDIS_CHART_OPEN_KEY, open);
+            chart.put(REDIS_CHART_CLOSE_KEY, close);
+            chart.put(REDIS_DATE_KEY, chartDate);
+
+            String jsonString = redisJsonManager.mapStringConvert(chart);
+            redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
 
             TimeDelay.delay(200);
         }
         log.info("현재가 크론잡 종료");
     }
 
-    @Transactional
     public void saveMarketData() {
-        log.info("시장 크론잡 시작");
         Map<String, String> kospi = requestMarketInfo(KOSPI_CODE);
         Map<String, String> kosdaq = requestMarketInfo(KOSDAQ_CODE);
 
         String redisDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(redisFormatter);
 
         if (kospi == null || kosdaq == null) {
-            return;
+            throw new StockException(MARKET_NOT_FOUND);
         }
 
         Map<String, Object> marketInfo = new HashMap<>();
@@ -129,7 +126,6 @@ public class StockCronService {
 
         String jsonString = redisJsonManager.mapStringConvert(marketInfo);
         redisTemplate.opsForValue().set("market_info", jsonString);
-        log.info("시장 크론잡 종료");
     }
 
     private Map<String, String> requestMarketInfo(String marketCode) {
@@ -139,13 +135,13 @@ public class StockCronService {
 
         Map response = authManager.getApiData(apiUri, queryParams, "FHPUP02100000");
 
-        if(response == null) {
-            return null;
+        if (response == null) {
+            throw new KisApiException(API_REQUEST_FAILED);
         }
 
         if (response.get("output") == null || response.get("output").equals("")) {
             log.info("requestMarketInfo: api request failed, code: {}", marketCode);
-            throw new RuntimeException();
+            throw new KisApiException(API_REQUEST_FAILED);
         }
 
         return (Map<String, String>) response.get("output");
@@ -170,6 +166,7 @@ public class StockCronService {
         String mysqlDate = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(1).format(mysqlFormatter);
 
         List<Stock> allStocks = stockRepository.findAll();
+        List<Chart> chartList = new ArrayList<>();
         for (Stock stock : allStocks) {
             String code = stock.getCode();
             // 장이 열리면 전날 redis_chart 삭제
@@ -184,14 +181,11 @@ public class StockCronService {
 
             Map response = authManager.getApiData(apiUri, queryParams, "FHKST03010100");
 
-            if(response == null) {
-                continue;
-            }
+            if (response == null) continue;
 
             List<Map<String, String>> output2 = (List<Map<String, String>>) response.get("output2");
 
             if (output2 == null || output2.isEmpty() || output2.get(0).isEmpty()) {
-                log.info("saveClosedChartData: api request failed");
                 continue;
             }
 
@@ -201,17 +195,20 @@ public class StockCronService {
             String open = output2.get(0).get(STOCK_OPEN);
             String close = output2.get(0).get(STOCK_CLOSE);
 
-            chartRepository.save(Chart.builder()
+            Chart chart = Chart.builder()
                     .stock(stock)
                     .high(Integer.parseInt(high))
                     .low(Integer.parseInt(low))
                     .open(Integer.parseInt(open))
                     .close(Integer.parseInt(close))
                     .date(mysqlDate)
-                    .build()
-            );
+                    .build();
+
+            chartList.add(chart);
+
             TimeDelay.delay(100);
         }
+        chartBatchRepository.batchInsert(chartList);
         log.info("차트 크론잡 종료");
     }
 
