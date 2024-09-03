@@ -21,30 +21,18 @@ public class CronController {
     // 현재가, 등락, 등락율, 날짜를 redis에 저장
     @Scheduled(cron = "0 */15 8-16 * * MON-SAT")
     public void setChartData() {
-        try {
-            stockCronService.saveStockData();
-        } catch (Exception e) {
-            Sentry.captureException(e);
-        }
+        stockCronService.saveStockData();
     }
 
     // 5분마다 코스피, 코스닥 데이터 받아옴
     @Scheduled(cron = "0 */5 * * * *")
     public void setMarketData() {
-        try {
-            stockCronService.saveMarketData();
-        } catch (Exception e) {
-            Sentry.captureException(e);
-        }
+        stockCronService.saveMarketData();
     }
 
     // 화-토 오전 9시 10분에 전일(수정주가) 차트 데이터 mysql에 저장
     @Scheduled(cron = "0 10 09 ? * TUE-SAT")
     public void setEditedChartData() {
-        try {
-            stockCronService.saveEditedChartData();
-        } catch (Exception e) {
-            Sentry.captureException(e);
-        }
+        stockCronService.saveEditedChartData();
     }
 }
