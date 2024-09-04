@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @Tag(name = "Stock", description = "종목 관련 API")
-public interface StockAdapter {
+public interface StockApi {
 
     @Operation(
             summary = "종목 순위 리스트",
