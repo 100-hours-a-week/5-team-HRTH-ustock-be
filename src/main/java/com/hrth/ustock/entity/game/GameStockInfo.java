@@ -30,5 +30,5 @@ public class GameStockInfo {
     private GameStockIndustry industry;
 
     @OneToMany(mappedBy = "gameStockInfo")
-    List<GameStockYearly> gameStockYearlies;
+    private List<GameStockYearly> gameStockYearlies;
 }
