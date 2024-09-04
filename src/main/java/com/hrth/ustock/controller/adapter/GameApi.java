@@ -2,6 +2,7 @@ package com.hrth.ustock.controller.adapter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hrth.ustock.dto.game.*;
+import com.hrth.ustock.dto.game.ranking.GameRankingDto;
 import com.hrth.ustock.exception.common.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
