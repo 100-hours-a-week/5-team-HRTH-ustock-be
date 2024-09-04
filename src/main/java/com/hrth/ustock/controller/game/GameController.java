@@ -3,6 +3,7 @@ package com.hrth.ustock.controller.game;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hrth.ustock.controller.adapter.GameApi;
 import com.hrth.ustock.dto.game.*;
+import com.hrth.ustock.dto.game.ranking.GameRankingDto;
 import com.hrth.ustock.service.auth.CustomUserService;
 import com.hrth.ustock.service.game.GamePlayService;
 import lombok.RequiredArgsConstructor;

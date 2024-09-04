@@ -1,5 +1,6 @@
 package com.hrth.ustock.entity.game;
 
+import com.hrth.ustock.dto.game.ranking.GameRankingDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,4 +28,13 @@ public class GameResult {
     @ManyToOne
     @JoinColumn(name = "game_id")
     private GameInfo gameInfo;
+
+    public GameRankingDto toDto() {
+        final long START_BUDGET = 500000L;
+        return GameRankingDto.builder()
+                .nickname(gameInfo.getNickname())
+                .budget(budget)
+                .ror(budget==0L ? -100.0 : (double)(budget-START_BUDGET)/START_BUDGET)
+                .build();
+    }
 }
