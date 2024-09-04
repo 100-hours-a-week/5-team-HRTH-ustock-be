@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(name = "Portfolio", description = "포트폴리오 관련 API")
-public interface PortfolioAdapter {
+public interface PortfolioApi {
 
     @Operation(
             summary = "보유 포트폴리오 리스트 조회",

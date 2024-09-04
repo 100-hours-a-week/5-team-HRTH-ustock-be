@@ -1,6 +1,6 @@
 package com.hrth.ustock.controller.main;
 
-import com.hrth.ustock.controller.adapter.StockAdapter;
+import com.hrth.ustock.controller.adapter.StockApi;
 import com.hrth.ustock.dto.main.chart.ChartResponseDto;
 import com.hrth.ustock.dto.main.stock.AllMarkterResponseDto;
 import com.hrth.ustock.dto.main.stock.SkrrrCalculatorRequestDto;
@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/stocks")
-public class StockController implements StockAdapter {
+public class StockController implements StockApi {
     private final StockService stockService;
 
     @GetMapping

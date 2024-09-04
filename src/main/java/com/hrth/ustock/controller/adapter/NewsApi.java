@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
 @Tag(name = "News", description = "뉴스 관련 API")
-public interface NewsAdapter {
+public interface NewsApi {
 
     @Operation(
             summary = "나만의 뉴스 조회",

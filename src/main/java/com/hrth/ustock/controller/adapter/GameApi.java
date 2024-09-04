@@ -1,5 +1,6 @@
 package com.hrth.ustock.controller.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hrth.ustock.dto.game.*;
 import com.hrth.ustock.exception.common.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @Tag(name = "Skrrr Game", description = "Skrrr 게임 관련 API")
-public interface GameAdapter {
+public interface GameApi {
     @Operation(
             summary = "게임 정보 초기화",
             description = "게임을 시작할 때 반드시 호출"
@@ -42,7 +43,7 @@ public interface GameAdapter {
                     description = "서버에 오류가 발생하였습니다.",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    ResponseEntity<GameInitResponseDto> startGame(@RequestParam String nickname);
+    ResponseEntity<GameInitResponseDto> startGame(@RequestParam String nickname) throws JsonProcessingException;
 
     @Operation(
             summary = "종목 리스트 조회",

@@ -1,6 +1,6 @@
 package com.hrth.ustock.controller.main;
 
-import com.hrth.ustock.controller.adapter.NewsAdapter;
+import com.hrth.ustock.controller.adapter.NewsApi;
 import com.hrth.ustock.dto.main.news.NewsResponseDto;
 import com.hrth.ustock.service.auth.CustomUserService;
 import com.hrth.ustock.service.main.NewsService;
@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/news")
-public class NewsController implements NewsAdapter {
+public class NewsController implements NewsApi {
 
     private final NewsService newsService;
     private final CustomUserService customUserService;
