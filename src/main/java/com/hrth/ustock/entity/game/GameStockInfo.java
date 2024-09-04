@@ -26,13 +26,9 @@ public class GameStockInfo {
     @Column(name = "stock_name")
     private String stockName;
 
-    private int price;
-
-    private String year;
-
-    @OneToMany(mappedBy = "gameStockInfo")
-    private List<GameHint> gameHints;
+    @Enumerated(EnumType.STRING)
+    private GameStockIndustry industry;
 
     @OneToMany(mappedBy = "gameStockInfo")
-    private List<GameNews> gameNews;
+    private List<GameStockYearly> gameStockYearlies;
 }
