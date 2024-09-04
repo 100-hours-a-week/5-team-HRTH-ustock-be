@@ -12,9 +12,10 @@ public enum StockExceptionType implements CustomExceptionType {
     STOCK_NOT_PUBLIC("해당 종목이 상장되지 않은 날짜입니다.", BAD_REQUEST),
     CURRENT_NOT_FOUND("현재가 정보를 조회하는데 실패하였습니다.", NOT_FOUND),
     STOCK_REQUEST_FAILED("외부 API 요청에 실패하였습니다.", NOT_FOUND),
-    CALCULATOR_DATE_INVALID("잘못된 날짜 양식입니다.", BAD_REQUEST),
+    DATE_INVALID("잘못된 날짜 양식입니다.", BAD_REQUEST),
     CALCULATOR_PRICE_INVALID("입력값이 허용 범위를 초과하였습니다.", BAD_REQUEST),
     MARKET_NOT_FOUND("시장 정보를 조회하는데 실패하였습니다.", NOT_FOUND),
+    ORDER_NOT_VALID("순위 요청이 올바르지 않습니다.", BAD_REQUEST),
     ;
 
     private final String message;

@@ -240,7 +240,7 @@ public class StockService {
             case "top", "trade" -> requestOrderByTrade(order);
             case "capital" -> requestOrderByCapital();
             case "change" -> requestOrderByChange();
-            default -> throw new IllegalArgumentException();
+            default -> throw new StockException(ORDER_NOT_VALID);
         };
     }
 
@@ -418,7 +418,7 @@ public class StockService {
         LocalDate current = LocalDate.parse(dateConverter.getCurrentDate(), originFormatter);
 
         if (!isValidDate(date) || dateInput.isAfter(current))
-            throw new StockException(CALCULATOR_DATE_INVALID);
+            throw new StockException(DATE_INVALID);
 
         long calculatorMaxPrice = 9_999_999_999_999L;
         if (requestDto.getPrice() > calculatorMaxPrice)
