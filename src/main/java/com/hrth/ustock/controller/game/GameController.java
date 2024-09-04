@@ -1,8 +1,10 @@
 package com.hrth.ustock.controller.game;
 
-import com.hrth.ustock.controller.adapter.GameAdapter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.hrth.ustock.controller.adapter.GameApi;
 import com.hrth.ustock.dto.game.*;
 import com.hrth.ustock.service.auth.CustomUserService;
+import com.hrth.ustock.service.game.GamePlayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +15,16 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/game")
-public class GameController implements GameAdapter {
+public class GameController implements GameApi {
 
+    private final GamePlayService gamePlayService;
     private final CustomUserService customUserService;
 
     @GetMapping("/start")
-    public ResponseEntity<GameInitResponseDto> startGame(@RequestParam String nickname) {
+    public ResponseEntity<GameInitResponseDto> startGame(@RequestParam String nickname) throws JsonProcessingException {
         Long userId = customUserService.getCurrentUserDetails().getUserId();
+
+        gamePlayService.startGame(userId, nickname);
 
         return ResponseEntity.ok(new GameInitResponseDto());
     }

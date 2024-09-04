@@ -1,6 +1,6 @@
 package com.hrth.ustock.controller;
 
-import com.hrth.ustock.controller.adapter.UserAdapter;
+import com.hrth.ustock.controller.adapter.UserApi;
 import com.hrth.ustock.dto.oauth2.UserResponseDto;
 import com.hrth.ustock.service.auth.CustomUserService;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/v1/user")
 @RequiredArgsConstructor
-public class UserController implements UserAdapter {
+public class UserController implements UserApi {
 
     private final CustomUserService customUserService;
 

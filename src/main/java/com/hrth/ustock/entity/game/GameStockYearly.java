@@ -1,6 +1,5 @@
 package com.hrth.ustock.entity.game;
 
-import com.hrth.ustock.entity.main.Stock;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

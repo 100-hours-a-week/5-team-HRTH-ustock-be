@@ -1,6 +1,6 @@
 package com.hrth.ustock.controller.main;
 
-import com.hrth.ustock.controller.adapter.PortfolioAdapter;
+import com.hrth.ustock.controller.adapter.PortfolioApi;
 import com.hrth.ustock.dto.main.holding.HoldingRequestDto;
 import com.hrth.ustock.dto.main.portfolio.PortfolioListDto;
 import com.hrth.ustock.dto.main.portfolio.PortfolioRequestDto;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/portfolio")
-public class PortfolioController implements PortfolioAdapter {
+public class PortfolioController implements PortfolioApi {
 
     private final PortfolioService portfolioService;
     private final CustomUserService customUserService;

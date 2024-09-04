@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
 @Tag(name = "User", description = "유저 관련 API")
-public interface UserAdapter {
+public interface UserApi {
     @Operation(
             summary = "사용자 정보 조회",
             description = "구글 계정 사용자 이름, 프로필 사진 반환"
