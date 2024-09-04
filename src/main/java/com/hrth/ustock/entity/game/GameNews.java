@@ -27,6 +27,6 @@ public class GameNews {
     private String publisher;
 
     @ManyToOne
-    @JoinColumn(name = "stock_id")
-    private GameStockInfo gameStockInfo;
+    @JoinColumn(name = "yearly_id")
+    private GameStockYearly gameStockYearly;
 }

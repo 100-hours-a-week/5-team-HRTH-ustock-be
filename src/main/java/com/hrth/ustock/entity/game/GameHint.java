@@ -24,6 +24,6 @@ public class GameHint {
     private HintLevel level;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stock_id")
-    private GameStockInfo gameStockInfo;
+    @JoinColumn(name = "yearly_id")
+    private GameStockYearly gameStockYearly;
 }
