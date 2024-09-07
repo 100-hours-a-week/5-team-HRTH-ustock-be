@@ -13,9 +13,9 @@ import java.util.List;
 public class GameRankingService {
     private final GameResultRepository gameResultRepository;
     public List<GameRankingDto> getRankingList() {
-        List<GameRankingDto> rankingList;
-        rankingList = gameResultRepository.findTop10ByOrderByBudgetDescIdAsc().stream().map(GameResult::toDto).toList();
-        return rankingList;
+        return gameResultRepository.findTop10ByOrderByBudgetDescIdAsc().stream()
+                .map(GameResult::toDto)
+                .toList();
     }
 
 }
