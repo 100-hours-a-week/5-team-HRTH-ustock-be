@@ -1,5 +1,6 @@
 package com.hrth.ustock.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hrth.ustock.util.DateConverter;
 import com.hrth.ustock.util.RedisJsonManager;
 import com.hrth.ustock.util.RedisTTLCalculator;
@@ -29,6 +30,6 @@ public class AppConfig {
 
     @Bean
     public RedisJsonManager redisJsonManager() {
-        return new RedisJsonManager();
+        return new RedisJsonManager(new ObjectMapper());
     }
 }

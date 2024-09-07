@@ -127,7 +127,7 @@ public class StockService {
             case 1 -> {
                 List<ChartResponseDto> list = getChartByRangeList(code, dateConverter.getDailyRanges(start, end), start, end);
                 String str = (String) redisTemplate.opsForHash().get(code, "chart");
-                if(str == null) {
+                if (str == null) {
                     yield list;
                 }
                 Map<String, Object> json = redisJsonManager.stringMapConvert(str);
@@ -265,7 +265,7 @@ public class StockService {
         String redisResult = redisTemplate.opsForValue().get("ranking_" + redis_key + "_" + minuteFormatter());
 
         if (redisResult != null)
-            return redisJsonManager.stringDtoConvert(redisResult);
+            return redisJsonManager.deserializeList(redisResult, StockResponseDto[].class);
 
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_cond_scr_div_code=20171" +
@@ -290,7 +290,7 @@ public class StockService {
         String redisResult = redisTemplate.opsForValue().get("ranking_" + "capital_" + minuteFormatter());
 
         if (redisResult != null)
-            return redisJsonManager.stringDtoConvert(redisResult);
+            return redisJsonManager.deserializeList(redisResult, StockResponseDto[].class);
 
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_cond_scr_div_code=20174" +
@@ -312,7 +312,7 @@ public class StockService {
         String redisResult = redisTemplate.opsForValue().get("ranking_" + "change_" + minuteFormatter());
 
         if (redisResult != null)
-            return redisJsonManager.stringDtoConvert(redisResult);
+            return redisJsonManager.deserializeList(redisResult, StockResponseDto[].class);
 
         String queryParams = "?fid_cond_mrkt_div_code=J" +
                 "&fid_cond_scr_div_code=20170" +
@@ -343,7 +343,7 @@ public class StockService {
 
         List<StockResponseDto> stockList = makeStockResponseDto(output, redis_key);
 
-        String dtoString = redisJsonManager.dtoStringConvert(stockList);
+        String dtoString = redisJsonManager.serializeList(stockList);
         redisTemplate.opsForValue().set("ranking_" + redis_key + "_" + minuteFormatter(), dtoString);
 
         int fortyMinute = 40 * 60;
