@@ -45,9 +45,6 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Holding> holdings;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<GameInfo> gameInfos;
-
     public UserOauthDto toOAuthDto() {
         return UserOauthDto.builder()
                 .userId(this.userId)
