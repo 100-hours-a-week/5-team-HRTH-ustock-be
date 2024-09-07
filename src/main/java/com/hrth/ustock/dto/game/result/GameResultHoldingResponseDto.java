@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.game;
+package com.hrth.ustock.dto.game.result;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

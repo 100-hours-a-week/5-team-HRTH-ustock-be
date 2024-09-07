@@ -1,8 +1,15 @@
-package com.hrth.ustock.controller.adapter;
+package com.hrth.ustock.controller.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.hrth.ustock.dto.game.*;
-import com.hrth.ustock.dto.game.ranking.GameRankingDto;
+import com.hrth.ustock.dto.game.GameInitResponseDto;
+import com.hrth.ustock.dto.game.hint.GameHintRequestDto;
+import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
+import com.hrth.ustock.dto.game.news.GameNewsResponseDto;
+import com.hrth.ustock.dto.game.rank.GameRankingDto;
+import com.hrth.ustock.dto.game.result.GameInterimResponseDto;
+import com.hrth.ustock.dto.game.result.GameResultHoldingResponseDto;
+import com.hrth.ustock.dto.game.result.GameResultResponseDto;
+import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
+import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
 import com.hrth.ustock.exception.common.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -44,7 +51,7 @@ public interface GameApi {
                     description = "서버에 오류가 발생하였습니다.",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    ResponseEntity<GameInitResponseDto> startGame(@RequestParam String nickname) throws JsonProcessingException;
+    ResponseEntity<GameInitResponseDto> startGame(@RequestParam String nickname);
 
     @Operation(
             summary = "종목 리스트 조회",
@@ -75,7 +82,7 @@ public interface GameApi {
                     description = "서버에 오류가 발생하였습니다.",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    ResponseEntity<List<GameStockInfoResponseDto>> showStockList(@RequestParam int year);
+    ResponseEntity<List<GameStockInfoResponseDto>> showStockList(@RequestParam int year, @RequestParam long gameId);
 
     @Operation(
             summary = "종목 거래 요청",

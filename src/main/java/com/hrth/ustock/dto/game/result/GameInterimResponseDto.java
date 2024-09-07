@@ -1,5 +1,6 @@
-package com.hrth.ustock.dto.game;
+package com.hrth.ustock.dto.game.result;
 
+import com.hrth.ustock.dto.game.stock.GameHoldingDto;
 import com.hrth.ustock.entity.game.PlayerType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

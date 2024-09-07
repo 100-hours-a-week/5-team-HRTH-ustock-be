@@ -1,6 +1,6 @@
 package com.hrth.ustock.controller.main;
 
-import com.hrth.ustock.controller.adapter.NewsApi;
+import com.hrth.ustock.controller.api.NewsApi;
 import com.hrth.ustock.dto.main.news.NewsResponseDto;
 import com.hrth.ustock.service.auth.CustomUserService;
 import com.hrth.ustock.service.main.NewsService;

@@ -1,6 +1,6 @@
 package com.hrth.ustock.service.game;
 
-import com.hrth.ustock.dto.game.ranking.GameRankingDto;
+import com.hrth.ustock.dto.game.rank.GameRankingDto;
 import com.hrth.ustock.entity.game.GameResult;
 import com.hrth.ustock.repository.game.GameResultRepository;
 import lombok.RequiredArgsConstructor;

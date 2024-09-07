@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.game;
+package com.hrth.ustock.dto.game.news;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

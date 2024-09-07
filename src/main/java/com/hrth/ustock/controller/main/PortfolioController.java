@@ -1,6 +1,6 @@
 package com.hrth.ustock.controller.main;
 
-import com.hrth.ustock.controller.adapter.PortfolioApi;
+import com.hrth.ustock.controller.api.PortfolioApi;
 import com.hrth.ustock.dto.main.holding.HoldingRequestDto;
 import com.hrth.ustock.dto.main.portfolio.PortfolioListDto;
 import com.hrth.ustock.dto.main.portfolio.PortfolioRequestDto;

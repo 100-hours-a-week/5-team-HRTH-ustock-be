@@ -1,4 +1,4 @@
-package com.hrth.ustock.controller.adapter;
+package com.hrth.ustock.controller.api;
 
 import com.hrth.ustock.dto.main.chart.ChartResponseDto;
 import com.hrth.ustock.dto.main.stock.AllMarkterResponseDto;
