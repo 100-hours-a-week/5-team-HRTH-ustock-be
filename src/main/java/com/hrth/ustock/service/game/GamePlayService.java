@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.dto.game.stock.GameStocksRedisDto;
-import com.hrth.ustock.entity.game.GameInfo;
 import com.hrth.ustock.entity.game.GameStockIndustry;
 import com.hrth.ustock.entity.game.GameStockInfo;
 import com.hrth.ustock.entity.main.User;
@@ -35,7 +34,6 @@ public class GamePlayService {
 
     private final UserRepository userRepository;
     private final GameHintRepository gameHintRepository;
-    private final GameInfoRepository gameInfoRepository;
     private final GameNewsRepository gameNewsRepository;
     private final GameStockInfoRepository gameStockInfoRepository;
     private final GameStockYearlyRepository gameStockYearlyRepository;
@@ -47,10 +45,6 @@ public class GamePlayService {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-        GameInfo gameInfo = gameInfoRepository.save(GameInfo.builder()
-                .user(user)
-                .nickname(nickname)
-                .build());
 
         List<GameStockInfo> stockInfoList = gameStockInfoRepository.findAll();
 //        Collections.shuffle(stockInfoList);
@@ -67,7 +61,6 @@ public class GamePlayService {
         }
 
         String stockIdList = serializeStocks(selectedList);
-        redisTemplate.opsForValue().set("game_stocks_" + gameInfo.getId(), stockIdList);
     }
 
     private String serializeStocks(List<GameStocksRedisDto> selectedList) {

@@ -1,7 +1,6 @@
 package com.hrth.ustock.entity.main;
 
 import com.hrth.ustock.dto.oauth2.UserOauthDto;
-import com.hrth.ustock.entity.game.GameInfo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
