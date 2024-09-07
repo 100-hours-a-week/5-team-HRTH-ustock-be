@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.game;
+package com.hrth.ustock.dto.game.hint;
 
 import com.hrth.ustock.entity.game.HintLevel;
 import lombok.AllArgsConstructor;

@@ -1,9 +1,17 @@
 package com.hrth.ustock.controller.game;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.hrth.ustock.controller.adapter.GameApi;
-import com.hrth.ustock.dto.game.*;
-import com.hrth.ustock.dto.game.ranking.GameRankingDto;
+import com.hrth.ustock.controller.api.GameApi;
+import com.hrth.ustock.dto.game.GameInitResponseDto;
+import com.hrth.ustock.dto.game.hint.GameHintRequestDto;
+import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
+import com.hrth.ustock.dto.game.news.GameNewsResponseDto;
+import com.hrth.ustock.dto.game.rank.GameRankingDto;
+import com.hrth.ustock.dto.game.result.GameInterimResponseDto;
+import com.hrth.ustock.dto.game.result.GameResultHoldingResponseDto;
+import com.hrth.ustock.dto.game.result.GameResultResponseDto;
+import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
+import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
+import com.hrth.ustock.exception.domain.game.GameException;
 import com.hrth.ustock.service.auth.CustomUserService;
 import com.hrth.ustock.service.game.GamePlayService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.hrth.ustock.exception.domain.game.GameExceptionType.INVALID_YEAR_INPUT;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,7 +32,7 @@ public class GameController implements GameApi {
     private final CustomUserService customUserService;
 
     @GetMapping("/start")
-    public ResponseEntity<GameInitResponseDto> startGame(@RequestParam String nickname) throws JsonProcessingException {
+    public ResponseEntity<GameInitResponseDto> startGame(@RequestParam String nickname) {
         Long userId = customUserService.getCurrentUserDetails().getUserId();
 
         gamePlayService.startGame(userId, nickname);
@@ -31,9 +41,11 @@ public class GameController implements GameApi {
     }
 
     @GetMapping("/stock")
-    public ResponseEntity<List<GameStockInfoResponseDto>> showStockList(@RequestParam int year) {
+    public ResponseEntity<List<GameStockInfoResponseDto>> showStockList(@RequestParam int year, @RequestParam long gameId) {
+        if (2014 <= year && year <= 2023)
+            throw new GameException(INVALID_YEAR_INPUT);
 
-        List<GameStockInfoResponseDto> stockList = new ArrayList<>();
+        List<GameStockInfoResponseDto> stockList = gamePlayService.showStockList(year, gameId);
 
         return ResponseEntity.ok(stockList);
     }

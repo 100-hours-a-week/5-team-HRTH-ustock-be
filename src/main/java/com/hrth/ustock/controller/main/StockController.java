@@ -1,6 +1,6 @@
 package com.hrth.ustock.controller.main;
 
-import com.hrth.ustock.controller.adapter.StockApi;
+import com.hrth.ustock.controller.api.StockApi;
 import com.hrth.ustock.dto.main.chart.ChartResponseDto;
 import com.hrth.ustock.dto.main.stock.AllMarkterResponseDto;
 import com.hrth.ustock.dto.main.stock.SkrrrCalculatorRequestDto;

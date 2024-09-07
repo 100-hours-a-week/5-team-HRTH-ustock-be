@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.game;
+package com.hrth.ustock.dto.game.stock;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,9 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GameStockInfoResponseDto {
-    private long id;
+    private long stockId;
     private String name;
-    private int price;
+    private int current;
+    private Integer prev;
     private Integer change;
     private Double changeRate;
 }

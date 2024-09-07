@@ -1,5 +1,6 @@
-package com.hrth.ustock.dto.game.ranking;
+package com.hrth.ustock.dto.game.result;
 
+import com.hrth.ustock.entity.game.PlayerType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,8 +10,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameRankingDto {
+public class GameResultResponseDto {
     private String nickname;
     private long budget;
+    private long ret;
     private double ror;
+    private PlayerType playerType;
 }

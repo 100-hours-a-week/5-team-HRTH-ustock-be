@@ -22,7 +22,7 @@ public class GameStockYearly {
 
     private int price;
 
-    private String year;
+    private int year;
 
     @ManyToOne
     @JoinColumn(name = "stock_id")

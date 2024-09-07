@@ -1,6 +1,6 @@
 package com.hrth.ustock.entity.game;
 
-import com.hrth.ustock.dto.game.ranking.GameRankingDto;
+import com.hrth.ustock.dto.game.rank.GameRankingDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

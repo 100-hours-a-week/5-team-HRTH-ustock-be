@@ -1,6 +1,6 @@
-package com.hrth.ustock.controller;
+package com.hrth.ustock.controller.common;
 
-import com.hrth.ustock.controller.adapter.UserApi;
+import com.hrth.ustock.controller.api.UserApi;
 import com.hrth.ustock.dto.oauth2.UserResponseDto;
 import com.hrth.ustock.service.auth.CustomUserService;
 import lombok.RequiredArgsConstructor;
