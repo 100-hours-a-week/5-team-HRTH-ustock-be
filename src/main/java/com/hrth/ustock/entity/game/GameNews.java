@@ -1,5 +1,6 @@
 package com.hrth.ustock.entity.game;
 
+import com.hrth.ustock.dto.game.news.GameNewsResponseDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,4 +30,13 @@ public class GameNews {
     @ManyToOne
     @JoinColumn(name = "yearly_id")
     private GameStockYearly gameStockYearly;
+
+    public GameNewsResponseDto toDto() {
+        return GameNewsResponseDto.builder()
+                .date(this.date)
+                .title(this.title)
+                .url(this.url)
+                .publisher(this.publisher)
+                .build();
+    }
 }

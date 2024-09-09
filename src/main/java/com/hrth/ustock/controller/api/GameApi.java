@@ -1,15 +1,16 @@
 package com.hrth.ustock.controller.api;
 
 import com.hrth.ustock.dto.game.GameInitResponseDto;
-import com.hrth.ustock.dto.game.hint.GameHintRequestDto;
 import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
 import com.hrth.ustock.dto.game.news.GameNewsResponseDto;
 import com.hrth.ustock.dto.game.rank.GameRankingDto;
-import com.hrth.ustock.dto.game.result.GameInterimResponseDto;
-import com.hrth.ustock.dto.game.result.GameResultHoldingResponseDto;
+import com.hrth.ustock.dto.game.redis.GameHoldingsInfo;
+import com.hrth.ustock.dto.game.redis.GameUserInfo;
+import com.hrth.ustock.dto.game.result.GamePlayerResponseDto;
 import com.hrth.ustock.dto.game.result.GameResultResponseDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
+import com.hrth.ustock.entity.game.HintLevel;
 import com.hrth.ustock.exception.common.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -79,10 +80,28 @@ public interface GameApi {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(
                     responseCode = "500",
-                    description = "서버에 오류가 발생하였습니다.",
+                    description = "서gameHintRepository버에 오류가 발생하였습니다.",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    ResponseEntity<List<GameStockInfoResponseDto>> showStockList(@RequestParam int year, @RequestParam long gameId);
+    ResponseEntity<List<GameStockInfoResponseDto>> showStockList();
+
+    @Operation(
+            summary = "모든 유저 정보 조회 요청",
+            description = "특정 연도의 플레이어(플레이어, ai) 정보를 가져옴"
+    )
+    ResponseEntity<List<GameUserInfo>> showUserList();
+
+    @Operation(
+            summary = "플레이어 정보 조회 요청",
+            description = "특정 연도의 플레이어(플레이어) 정보를 가져옴"
+    )
+    ResponseEntity<GamePlayerResponseDto> showUser();
+
+    @Operation(
+            summary = "플레이어 보유 종목 조회",
+            description = "특정 연도의 플레이어(플레이어) 보유 종목 정보를 가져옴"
+    )
+    ResponseEntity<List<GameHoldingsInfo>> showHoldings();
 
     @Operation(
             summary = "종목 거래 요청",
@@ -94,18 +113,13 @@ public interface GameApi {
             summary = "회차별 결과 조회",
             description = "중간 결과를 순위대로 반환, 플레이어일 경우 보유 종목도 반환하지만 AI는 반환하지 않음 (사용자: USER, AI: COM)"
     )
-    @Parameter(
-            name = "gameId",
-            description = "게임 아이디",
-            required = true
-    )
-    ResponseEntity<GameInterimResponseDto> showInterimResult(@RequestParam Long gameId);
+    ResponseEntity<GamePlayerResponseDto> showInterimResult();
 
     @Operation(
             summary = "정보 거래소 힌트 조회",
             description = "년도, 종목 아이디, 레벨을 받으면 힌트를 반환, 레벨은 반드시 ONE, TWO, THREE 중 하나를 사용해주세요."
     )
-    ResponseEntity<GameHintResponseDto> showHint(@RequestBody GameHintRequestDto requestDto);
+    ResponseEntity<GameHintResponseDto> showHint(@RequestParam long stockId, @RequestParam HintLevel hintLevel);
 
     @Operation(
             summary = "최종 결과 조회",
@@ -116,7 +130,7 @@ public interface GameApi {
             description = "게임 아이디",
             required = true
     )
-    ResponseEntity<List<GameResultResponseDto>> showResult(@RequestParam long gameId);
+    ResponseEntity<List<GameResultResponseDto>> showResult();
 
     @Operation(
             summary = "게임 내 종목 리스트 조회",
@@ -128,7 +142,7 @@ public interface GameApi {
             description = "게임 아이디",
             required = true
     )
-    ResponseEntity<List<GameResultHoldingResponseDto>> showResultHolding(@RequestParam long gameId);
+    ResponseEntity<List<GameStockInfoResponseDto>> showResultStockList();
 
     @Operation(
             summary = "게임 종목별 뉴스 조회",
@@ -139,11 +153,17 @@ public interface GameApi {
             description = "게임 종목 아이디",
             required = true
     )
-    ResponseEntity<List<GameNewsResponseDto>> showHoldingNews(@RequestParam long stockId);
+    ResponseEntity<List<GameNewsResponseDto>> showStockNews(@RequestParam long stockId);
 
     @Operation(
             summary = "게임 랭킹 리스트 조회",
             description = "게임의 최종 금액을 기준으로 내림차순 정렬된 리스트 반환 (10위까지)"
     )
     ResponseEntity<List<GameRankingDto>> showRanking();
+
+    @Operation(
+            summary = "userId=7의 진행중인 게임 삭제(redis)",
+            description = "개발용, userId는 7로 고정"
+    )
+    ResponseEntity<?> stopGame();
 }

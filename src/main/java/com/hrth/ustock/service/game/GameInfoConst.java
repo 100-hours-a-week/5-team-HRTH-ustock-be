@@ -5,5 +5,6 @@ public interface GameInfoConst {
     String STOCKS_KEY = "stocks";
     String NICKNAME_KEY = "nickname";
     String USER_KEY = "user";
+    String YEAR_KEY = "current_year";
 
 }

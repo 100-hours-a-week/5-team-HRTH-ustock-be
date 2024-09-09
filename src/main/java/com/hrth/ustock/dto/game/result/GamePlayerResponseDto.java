@@ -1,7 +1,6 @@
 package com.hrth.ustock.dto.game.result;
 
-import com.hrth.ustock.dto.game.stock.GameHoldingDto;
-import com.hrth.ustock.entity.game.PlayerType;
+import com.hrth.ustock.dto.game.redis.GameHoldingsInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,12 +12,13 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameInterimResponseDto {
+public class GamePlayerResponseDto {
+    private String nickname;
+    private long total;
     private long budget;
     private long changeFromLast;
     private double changeRateFromLast;
     private long changeFromStart;
     private double changeRateFromStart;
-    private PlayerType playerType;
-    private List<GameHoldingDto> holdingList;
+    private List<GameHoldingsInfo> holdingList;
 }
