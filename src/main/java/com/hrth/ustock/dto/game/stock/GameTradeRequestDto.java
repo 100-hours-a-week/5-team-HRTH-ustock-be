@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GameTradeRequestDto {
-    private int year;
-    private long gameId;
     private long stockId;
     private int quantity;
     private GameActing acting;

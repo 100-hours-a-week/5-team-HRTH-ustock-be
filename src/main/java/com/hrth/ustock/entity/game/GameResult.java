@@ -21,20 +21,15 @@ public class GameResult {
 
     private long budget;
 
-    @Column(name = "player_type")
-    @Enumerated(EnumType.STRING)
-    private PlayerType playerType;
-
-    @ManyToOne
-    @JoinColumn(name = "game_id")
-    private GameInfo gameInfo;
+    private String nickname;
 
     public GameRankingDto toDto() {
-        final long START_BUDGET = 500000L;
+        final long START_BUDGET = 500_000L;
+
         return GameRankingDto.builder()
-                .nickname(gameInfo.getNickname())
+                .nickname(nickname)
                 .budget(budget)
-                .ror(budget==0L ? -100.0 : (double)(budget-START_BUDGET)/START_BUDGET)
+                .ror((double) (budget - START_BUDGET) / START_BUDGET * 100)
                 .build();
     }
 }
