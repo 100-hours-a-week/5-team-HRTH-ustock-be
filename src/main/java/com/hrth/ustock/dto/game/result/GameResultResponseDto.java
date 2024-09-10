@@ -12,8 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GameResultResponseDto {
     private String nickname;
-    private long budget;
-    private long ret;
+    private long total;
     private double ror;
     private PlayerType playerType;
 }

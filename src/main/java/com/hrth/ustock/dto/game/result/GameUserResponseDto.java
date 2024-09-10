@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GamePlayerResponseDto {
+public class GameUserResponseDto {
     private String nickname;
     private long total;
     private long budget;

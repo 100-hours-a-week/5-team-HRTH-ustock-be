@@ -13,7 +13,7 @@ public class GameStockInfoResponseDto {
     private long stockId;
     private String name;
     private int current;
-    private Integer prev;
-    private Integer change;
+    private int prev;
+    private int change;
     private Double changeRate;
 }

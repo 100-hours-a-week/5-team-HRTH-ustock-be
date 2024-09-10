@@ -1,10 +1,11 @@
 package com.hrth.ustock.service.game;
 
-import com.hrth.ustock.dto.game.hint.GameHintRequestDto;
 import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
 import com.hrth.ustock.dto.game.redis.GameHoldingsInfo;
 import com.hrth.ustock.dto.game.redis.GameUserInfo;
-import com.hrth.ustock.dto.game.result.GamePlayerResponseDto;
+import com.hrth.ustock.dto.game.result.GameInterimResponseDto;
+import com.hrth.ustock.dto.game.result.GameResultResponseDto;
+import com.hrth.ustock.dto.game.result.GameUserResponseDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.dto.game.stock.GameStocksRedisDto;
 import com.hrth.ustock.entity.game.*;
@@ -23,7 +24,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
+import static com.hrth.ustock.entity.game.PlayerType.COM;
+import static com.hrth.ustock.entity.game.PlayerType.USER;
 import static com.hrth.ustock.exception.domain.game.GameExceptionType.*;
 import static com.hrth.ustock.exception.domain.user.UserExceptionType.USER_NOT_FOUND;
 import static com.hrth.ustock.service.game.GameInfoConst.*;
@@ -45,7 +49,7 @@ public class GamePlayService {
     private final RedisJsonManager redisJsonManager;
 
 
-    public void startGame(Long userId, String nickname) {
+    public List<GameStockInfoResponseDto> startGame(Long userId, String nickname) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         List<GameStockInfo> stockInfoList = gameStockInfoRepository.findAll();
@@ -66,9 +70,9 @@ public class GamePlayService {
         for (int i = 0; i < USER_COUNT; i++) {
             List<GameHoldingsInfo> holdings = new ArrayList<>();
             userInfoList.add(GameUserInfo.builder()
-                    .prev(0)
-                    .playerType(i == 0 ? PlayerType.USER : PlayerType.COM)
-                    .nickname(i == 0 ? nickname : "COM")
+                    .prev(START_BUDGET)
+                    .playerType(i == 0 ? USER : COM)
+                    .nickname(i == 0 ? nickname : "COM" + i)
                     .budget(START_BUDGET)
                     .holdings(holdings)
                     .build()
@@ -78,15 +82,170 @@ public class GamePlayService {
         String stockIdList = redisJsonManager.serializeList(selectedList);
         String userList = redisJsonManager.serializeList(userInfoList);
         String gameKey = GAME_KEY + user.getUserId();
-        Integer year = 2014;
+        int year = 2014;
+
         redisTemplate.opsForHash().put(gameKey, STOCKS_KEY, stockIdList);
         redisTemplate.opsForHash().put(gameKey, NICKNAME_KEY, nickname);
-        redisTemplate.opsForHash().put(gameKey, YEAR_KEY, year.toString());
+        redisTemplate.opsForHash().put(gameKey, YEAR_KEY, String.valueOf(year));
         redisTemplate.opsForHash().put(gameKey, USER_KEY, userList);
+
+        return showStockList(userId);
     }
 
-    public List<GameStockInfoResponseDto> showStockList(long userId) {
-        Integer year = getGameYear(userId);
+    public List<GameUserResponseDto> getGamePlayerList(long userId) {
+        List<GameUserInfo> userInfoList = getUserInfoList(userId);
+        List<GameUserResponseDto> playerList = new ArrayList<>();
+
+        userInfoList.forEach(userInfo -> {
+            if (userInfo.getPlayerType() == COM) {
+
+                AtomicLong total = new AtomicLong(userInfo.getBudget());
+                userInfo.getHoldings().forEach(holding -> {
+                    total.addAndGet((long) holding.getPrice() * holding.getQuantity());
+                });
+                long totalValue = total.get();
+                long prev = userInfo.getPrev();
+
+                playerList.add(GameUserResponseDto.builder()
+                        .holdingList(null)
+                        .budget(userInfo.getBudget())
+                        .nickname(userInfo.getNickname())
+                        .total(totalValue)
+                        .changeFromLast(totalValue - prev)
+                        .changeRateFromLast(calcRate(prev, totalValue))
+                        .changeFromStart(totalValue - START_BUDGET)
+                        .changeRateFromStart(calcRate(START_BUDGET, totalValue))
+                        .build()
+                );
+            }
+        });
+        return playerList;
+    }
+
+    public GameUserResponseDto getUserInfo(long userId) {
+        List<GameUserInfo> userInfoList = getUserInfoList(userId);
+        GameUserInfo userInfo = userInfoList.get(0);
+        List<GameHoldingsInfo> holdingsInfo = userInfo.getHoldings();
+
+        long total = userInfo.getBudget();
+        for (GameHoldingsInfo holding : holdingsInfo) {
+            total += (long) holding.getPrice() * holding.getQuantity();
+        }
+        long prev = userInfo.getPrev();
+
+        return GameUserResponseDto.builder()
+                .nickname(userInfo.getNickname())
+                .total(total)
+                .budget(userInfo.getBudget())
+                .changeFromLast(total - prev)
+                .changeRateFromLast(calcRate(prev, total))
+                .changeFromStart(total - START_BUDGET)
+                .changeRateFromStart(calcRate(START_BUDGET, total))
+                .holdingList(holdingsInfo)
+                .build();
+    }
+
+    public void tradeHolding(long userId, long stockId, int quantity, GameActing act) {
+        switch (act) {
+            case BUY:
+                buyHolding(userId, stockId, quantity);
+                break;
+            case SELL:
+                sellHolding(userId, stockId, quantity);
+                break;
+            default:
+                throw new GameException(ACT_NOT_VALID);
+        }
+    }
+
+    public GameHintResponseDto getSingleHint(long userId, long stockId, HintLevel hintLevel) {
+        // TODO: 힌트 3회 제한 반영
+        int year = getGameYear(userId);
+        GameStockYearly yearInfo = gameStockYearlyRepository.findByGameStockInfoIdAndYear(stockId, year)
+                .orElseThrow(() -> new GameException(YEAR_INFO_NOT_FOUND));
+
+        return gameHintRepository.findByGameStockYearlyIdAndLevel(yearInfo.getId(), hintLevel)
+                .map(GameHint::toDto)
+                .orElseThrow(() -> new GameException(HINT_NOT_FOUND));
+    }
+
+    public GameInterimResponseDto getUserInterim(long userId) {
+        int year = getGameYear(userId);
+        if (year == 2023) {
+            // TODO: 2023년에 interim 요청시 게임 종료
+        }
+        List<GameUserInfo> userInfoList = getUserInfoList(userId);
+
+        int finalYear = year;
+        userInfoList.forEach(userInfo -> {
+            List<GameHoldingsInfo> holdingsInfo = userInfo.getHoldings();
+
+            long prev = userInfo.getBudget();
+            for (GameHoldingsInfo holding : holdingsInfo) {
+                prev += (long) holding.getPrice() * holding.getQuantity();
+                int price = getStockPrice(holding.getStockId(), finalYear + 1);
+                holding.setPrice(price);
+                holding.setRor(calcRate(holding.getAverage(), price));
+            }
+            userInfo.setPrev(prev);
+        });
+
+        year++;
+        redisTemplate.opsForHash().put(GAME_KEY + userId, YEAR_KEY, String.valueOf(year));
+
+        String json = redisJsonManager.serializeList(userInfoList);
+        redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
+
+        return GameInterimResponseDto.builder()
+                .year(year)
+                .stockList(showStockList(userId))
+                .userInfo(getUserInfo(userId))
+                .build();
+    }
+
+    public List<GameResultResponseDto> getGameResultList(long userId) {
+        List<GameUserInfo> userInfoList = getUserInfoList(userId);
+        List<GameResultResponseDto> gameResultList = new ArrayList<>();
+
+        for (GameUserInfo userInfo : userInfoList) {
+            List<GameHoldingsInfo> holdingsInfo = userInfo.getHoldings();
+
+            long total = userInfo.getBudget();
+            for (GameHoldingsInfo holding : holdingsInfo) {
+                total += (long) holding.getPrice() * holding.getQuantity();
+            }
+
+            gameResultList.add(
+                    GameResultResponseDto.builder()
+                            .nickname(userInfo.getNickname())
+                            .playerType(userInfo.getPlayerType())
+                            .total(total)
+                            .ror(calcRate(START_BUDGET, total))
+                            .build()
+            );
+        }
+        return gameResultList;
+    }
+
+    private String makeFakeStockName(int idx, GameStockIndustry industry) {
+        char alphabet = (char) ('A' + idx);
+
+        return switch (industry) {
+            case GAME -> alphabet + " 게임";
+            case AIR -> alphabet + " 항공";
+            case IT -> alphabet + " IT";
+            case BIO -> alphabet + " 바이오";
+            case ENTER -> alphabet + " 엔터";
+            case ELEC -> alphabet + " 전자";
+            case CAR -> alphabet + " 자동차";
+            case CHEM -> alphabet + " 화학";
+            case FOOD -> alphabet + " 식품";
+            case BANK -> alphabet + " 금융";
+        };
+    }
+
+    private List<GameStockInfoResponseDto> showStockList(long userId) {
+        int year = getGameYear(userId);
 
         List<GameStocksRedisDto> gameStocks = getGameStocks(userId);
 
@@ -116,105 +275,10 @@ public class GamePlayService {
         return gameInfoList;
     }
 
-    public List<GameUserInfo> getGameUserList(long userId) {
-
-        return getUserInfoList(userId);
-    }
-
-    public GamePlayerResponseDto getPlayerInfo(long userId) {
-        List<GameUserInfo> userInfoList = getUserInfoList(userId);
-        GameUserInfo userInfo = userInfoList.get(0);
-        List<GameHoldingsInfo> holdingsInfo = userInfo.getHoldings();
-
-        long total = userInfo.getBudget();
-        for (GameHoldingsInfo holding : holdingsInfo) {
-            total += (long) holding.getPrice() * holding.getQuantity();
-        }
-        return GamePlayerResponseDto.builder()
-                .nickname(userInfo.getNickname())
-                .total(total)
-                .budget(userInfo.getBudget())
-                .changeFromLast(total - userInfo.getPrev())
-                .changeRateFromLast(calcRate(userInfo.getPrev(), total))
-                .changeFromStart(total - START_BUDGET)
-                .changeRateFromStart(calcRate(START_BUDGET, total))
-                .holdingList(holdingsInfo)
-                .build();
-    }
-
-    public List<GameHoldingsInfo> showHoldingsList(long userId) {
-
-        return getUserInfoList(userId).get(0).getHoldings();
-    }
-
-    public void tradeHolding(long userId, long stockId, int quantity, GameActing act) {
-        switch (act) {
-            case BUY:
-                buyHolding(userId, stockId, quantity);
-                break;
-            case SELL:
-                sellHolding(userId, stockId, quantity);
-                break;
-        }
-    }
-
-    public GameHintResponseDto getSingleHint(long userId, long stockId, HintLevel hintLevel) {
-        int year = getGameYear(userId);
-        GameStockYearly yearInfo = gameStockYearlyRepository.findByGameStockInfoIdAndYear(stockId, year)
-                .orElseThrow(() -> new GameException(YEAR_INFO_NOT_FOUND));
-
-        return gameHintRepository.findByGameStockYearlyIdAndLevel(yearInfo.getId(), hintLevel)
-                .map(GameHint::toDto)
-                .orElseThrow(() -> new GameException(HINT_NOT_FOUND));
-    }
-
-    public GamePlayerResponseDto getPlayerInterim(long userId) {
-        Integer year = getGameYear(userId);
-        if(year==2023) {
-            // TODO: 2023년에 interim 요청시 게임 종료
-        }
-        List<GameUserInfo> userInfoList = getUserInfoList(userId);
-        GameUserInfo userInfo = userInfoList.get(0);
-
-        List<GameHoldingsInfo> holdingsInfo = userInfo.getHoldings();
-
-        for (GameHoldingsInfo holding : holdingsInfo) {
-            int price = getStockPrice(holding.getStockId(), year);
-            holding.setPrice(price);
-            holding.setRor(calcRate(holding.getAverage(), price));
-        }
-        year++;
-        redisTemplate.opsForHash().put(GAME_KEY + userId, YEAR_KEY, year.toString());
-
-        String json = redisJsonManager.serializeList(userInfoList);
-        redisTemplate.opsForHash().put(GAME_KEY+userId, USER_KEY, json);
-
-
-        return getPlayerInfo(userId);
-    }
-
-    private String makeFakeStockName(int idx, GameStockIndustry industry) {
-        char alphabet = (char) ('A' + idx);
-
-        return switch (industry) {
-            case GAME -> alphabet + " 게임";
-            case AIR -> alphabet + " 항공";
-            case IT -> alphabet + " IT";
-            case BIO -> alphabet + " 바이오";
-            case ENTER -> alphabet + " 엔터";
-            case ELEC -> alphabet + " 전자";
-            case CAR -> alphabet + " 자동차";
-            case CHEM -> alphabet + " 화학";
-            case FOOD -> alphabet + " 식품";
-            case BANK -> alphabet + " 금융";
-        };
-    }
-
     private void buyHolding(long userId, long stockId, int quantity) {
-        Integer year = getGameYear(userId);
+        int year = getGameYear(userId);
 
         List<GameUserInfo> userInfoList = getUserInfoList(userId);
-
         GameUserInfo userInfo = userInfoList.get(0);
         List<GameHoldingsInfo> holdingsList = userInfo.getHoldings();
         int price = getStockPrice(stockId, year);
@@ -224,7 +288,8 @@ public class GamePlayService {
             throw new GameException(NOT_ENOUGH_BUDGET);
 
         GameHoldingsInfo holding = holdingsList.stream()
-                .filter(dto -> dto.getStockId() == stockId).findFirst()
+                .filter(dto -> dto.getStockId() == stockId)
+                .findFirst()
                 .orElse(null);
 
         if (holding != null) {
@@ -250,7 +315,7 @@ public class GamePlayService {
     }
 
     private void sellHolding(long userId, long stockId, int quantity) {
-        Integer year = getGameYear(userId);
+        int year = getGameYear(userId);
 
         List<GameUserInfo> userInfoList = getUserInfoList(userId);
 
@@ -277,7 +342,7 @@ public class GamePlayService {
         redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
     }
 
-    private int getStockPrice(long stockId, Integer year) {
+    private int getStockPrice(long stockId, int year) {
         return gameStockYearlyRepository.findPriceByGameStockInfoIdAndYear(stockId, year)
                 .orElseThrow(() -> new GameException(STOCK_NOT_FOUND));
     }
