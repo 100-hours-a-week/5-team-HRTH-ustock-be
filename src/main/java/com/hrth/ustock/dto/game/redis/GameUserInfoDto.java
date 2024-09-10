@@ -12,10 +12,11 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class GameUserInfo {
+public class GameUserInfoDto {
     private PlayerType playerType;
     private String nickname;
     private long budget;
     private long prev;
-    private List<GameHoldingsInfo> holdings;
+    private List<GameHoldingsInfoDto> holdings;
+    private GameHintCheckDto hintCheck;
 }

@@ -54,7 +54,7 @@ public class GameController implements GameApi {
     public ResponseEntity<Void> tradeStock(@RequestBody GameTradeRequestDto requestDto) {
 //        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        gamePlayService.tradeHolding(userId, requestDto.getStockId(), requestDto.getQuantity(), requestDto.getActing());
+        gamePlayService.tradeHolding(userId, requestDto);
         return ResponseEntity.ok().build();
     }
 
