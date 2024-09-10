@@ -1,20 +1,14 @@
 package com.hrth.ustock.controller.game;
 
 import com.hrth.ustock.controller.api.GameApi;
-import com.hrth.ustock.dto.game.GameInitResponseDto;
 import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
-import com.hrth.ustock.dto.game.news.GameNewsResponseDto;
 import com.hrth.ustock.dto.game.rank.GameRankingDto;
-import com.hrth.ustock.dto.game.redis.GameHoldingsInfo;
-import com.hrth.ustock.dto.game.redis.GameUserInfo;
-import com.hrth.ustock.dto.game.result.GamePlayerResponseDto;
+import com.hrth.ustock.dto.game.result.GameInterimResponseDto;
 import com.hrth.ustock.dto.game.result.GameResultResponseDto;
+import com.hrth.ustock.dto.game.result.GameUserResponseDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
 import com.hrth.ustock.entity.game.HintLevel;
-import com.hrth.ustock.service.auth.CustomUserService;
-import com.hrth.ustock.service.game.GameHintService;
-import com.hrth.ustock.service.game.GameNewsService;
 import com.hrth.ustock.service.game.GamePlayService;
 import com.hrth.ustock.service.game.GameRankingService;
 import lombok.RequiredArgsConstructor;
@@ -32,55 +26,29 @@ import java.util.List;
 public class GameController implements GameApi {
 
     private final GamePlayService gamePlayService;
-    private final GameNewsService gameNewsService;
-    private final GameHintService gameHintService;
     private final GameRankingService gameRankingService;
-    private final CustomUserService customUserService;
 
     private static final long userId = 7L;
 
     @GetMapping("/start")
-    public ResponseEntity<GameInitResponseDto> startGame(@RequestParam String nickname) {
+    public ResponseEntity<List<GameStockInfoResponseDto>> startGame(@RequestParam String nickname) {
 //        Long userId = customUserService.getCurrentUserDetails().getUserId();
-
-        gamePlayService.startGame(userId, nickname);
-
-        // TODO: endpoint에서 dto를 return 할 필요가 없어보임
-        // TODO: 이미 진행중인 게임이 있다면 해당 게임을 이어서 할지, 새로 시작할지 물어봐야 함
-        // return ResponseEntity.ok(new GameInitResponseDto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(gamePlayService.startGame(userId, nickname));
     }
 
-    @GetMapping("/stock")
-    public ResponseEntity<List<GameStockInfoResponseDto>> showStockList() {
+    @GetMapping("/player")
+    public ResponseEntity<List<GameUserResponseDto>> showPlayer() {
 //        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        List<GameStockInfoResponseDto> stockList = gamePlayService.showStockList(userId);
-
-        return ResponseEntity.ok(stockList);
-    }
-
-    @GetMapping("/users")
-    public ResponseEntity<List<GameUserInfo>> showUserList() {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
-
-        return ResponseEntity.ok(gamePlayService.getGameUserList(userId));
+        return ResponseEntity.ok(gamePlayService.getGamePlayerList(userId));
     }
 
     @GetMapping("/user")
-    public ResponseEntity<GamePlayerResponseDto> showUser() {
+    public ResponseEntity<GameUserResponseDto> showUser() {
 //        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        return ResponseEntity.ok(gamePlayService.getPlayerInfo(userId));
+        return ResponseEntity.ok(gamePlayService.getUserInfo(userId));
     }
-
-    @GetMapping("/holdings")
-    public ResponseEntity<List<GameHoldingsInfo>> showHoldings() {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
-
-        return ResponseEntity.ok(gamePlayService.showHoldingsList(userId));
-    }
-
 
     @PostMapping("/stock")
     public ResponseEntity<Void> tradeStock(@RequestBody GameTradeRequestDto requestDto) {
@@ -91,45 +59,33 @@ public class GameController implements GameApi {
     }
 
     @GetMapping("/interim")
-    public ResponseEntity<GamePlayerResponseDto> showInterimResult() {
+    public ResponseEntity<GameInterimResponseDto> showInterimResult() {
 //        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        return ResponseEntity.ok(gamePlayService.getPlayerInterim(userId));
+        return ResponseEntity.ok(gamePlayService.getUserInterim(userId));
     }
 
     @GetMapping("/hint")
     public ResponseEntity<GameHintResponseDto> showHint(@RequestParam long stockId, @RequestParam HintLevel hintLevel) {
 //        Long userId = customUserService.getCurrentUserDetails().getUserId();
-        log.info("Show hint for stockId: {}, hintLevel: {}", stockId, hintLevel);
 
         GameHintResponseDto hint = gamePlayService.getSingleHint(userId, stockId, hintLevel);
 
         return ResponseEntity.ok(hint);
     }
 
-    // TODO: result, result/stock, result/news
     @GetMapping("/result")
     public ResponseEntity<List<GameResultResponseDto>> showResult() {
 //        Long userId = customUserService.getCurrentUserDetails().getUserId();
-        List<GameResultResponseDto> resultList = new ArrayList<>();
 
-        return ResponseEntity.ok(resultList);
+        return ResponseEntity.ok(gamePlayService.getGameResultList(userId));
     }
 
     @GetMapping("/result/stock")
     public ResponseEntity<List<GameStockInfoResponseDto>> showResultStockList() {
 //        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        return ResponseEntity.ok(gamePlayService.showStockList(userId));
-    }
-
-    @GetMapping("/result/news")
-    public ResponseEntity<List<GameNewsResponseDto>> showStockNews(@RequestParam long stockId) {
-
-        List<GameNewsResponseDto> newsList;
-        newsList = gameNewsService.getStockNews(stockId);
-
-        return ResponseEntity.ok(newsList);
+        return ResponseEntity.ok(new ArrayList<>());
     }
 
     @GetMapping("/ranking")
