@@ -192,6 +192,10 @@ public interface GameApi {
                     description = "enum값은 ONE, TWO, THREE 셋 중 하나여야 합니다.",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(
+                    responseCode = "400",
+                    description = "해당 힌트를 이미 구매하셨습니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
                     responseCode = "401",
                     description = "로그인 후 이용 가능",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),

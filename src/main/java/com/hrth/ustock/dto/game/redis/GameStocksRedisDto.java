@@ -7,13 +7,9 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class GameHoldingsInfo {
+@AllArgsConstructor
+public class GameStocksRedisDto {
+    private Long id;
     private String stockName;
-    private long average;
-    private int price;
-    private double ror;
-    private int quantity;
-    private long stockId;
 }

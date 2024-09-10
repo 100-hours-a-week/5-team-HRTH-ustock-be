@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.game.stock;
+package com.hrth.ustock.dto.game.redis;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameStocksRedisDto {
-    private Long id;
-    private String stockName;
+public class GameHintCheckDto {
+    long levelOneId;
+    long levelTwoId;
+    long levelThreeId;
 }

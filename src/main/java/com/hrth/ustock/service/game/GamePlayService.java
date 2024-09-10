@@ -1,13 +1,15 @@
 package com.hrth.ustock.service.game;
 
 import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
-import com.hrth.ustock.dto.game.redis.GameHoldingsInfo;
-import com.hrth.ustock.dto.game.redis.GameUserInfo;
+import com.hrth.ustock.dto.game.redis.GameHintCheckDto;
+import com.hrth.ustock.dto.game.redis.GameHoldingsInfoDto;
+import com.hrth.ustock.dto.game.redis.GameStocksRedisDto;
+import com.hrth.ustock.dto.game.redis.GameUserInfoDto;
 import com.hrth.ustock.dto.game.result.GameInterimResponseDto;
 import com.hrth.ustock.dto.game.result.GameResultResponseDto;
 import com.hrth.ustock.dto.game.result.GameUserResponseDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
-import com.hrth.ustock.dto.game.stock.GameStocksRedisDto;
+import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
 import com.hrth.ustock.entity.game.*;
 import com.hrth.ustock.entity.main.User;
 import com.hrth.ustock.exception.domain.game.GameException;
@@ -66,10 +68,10 @@ public class GamePlayService {
             );
         }
 
-        List<GameUserInfo> userInfoList = new ArrayList<>();
+        List<GameUserInfoDto> userInfoList = new ArrayList<>();
         for (int i = 0; i < USER_COUNT; i++) {
-            List<GameHoldingsInfo> holdings = new ArrayList<>();
-            userInfoList.add(GameUserInfo.builder()
+            List<GameHoldingsInfoDto> holdings = new ArrayList<>();
+            userInfoList.add(GameUserInfoDto.builder()
                     .prev(START_BUDGET)
                     .playerType(i == 0 ? USER : COM)
                     .nickname(i == 0 ? nickname : "COM" + i)
@@ -93,7 +95,7 @@ public class GamePlayService {
     }
 
     public List<GameUserResponseDto> getGamePlayerList(long userId) {
-        List<GameUserInfo> userInfoList = getUserInfoList(userId);
+        List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
         List<GameUserResponseDto> playerList = new ArrayList<>();
 
         userInfoList.forEach(userInfo -> {
@@ -123,12 +125,12 @@ public class GamePlayService {
     }
 
     public GameUserResponseDto getUserInfo(long userId) {
-        List<GameUserInfo> userInfoList = getUserInfoList(userId);
-        GameUserInfo userInfo = userInfoList.get(0);
-        List<GameHoldingsInfo> holdingsInfo = userInfo.getHoldings();
+        List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
+        GameUserInfoDto userInfo = userInfoList.get(0);
+        List<GameHoldingsInfoDto> holdingsInfo = userInfo.getHoldings();
 
         long total = userInfo.getBudget();
-        for (GameHoldingsInfo holding : holdingsInfo) {
+        for (GameHoldingsInfoDto holding : holdingsInfo) {
             total += (long) holding.getPrice() * holding.getQuantity();
         }
         long prev = userInfo.getPrev();
@@ -145,7 +147,11 @@ public class GamePlayService {
                 .build();
     }
 
-    public void tradeHolding(long userId, long stockId, int quantity, GameActing act) {
+    public void tradeHolding(long userId, GameTradeRequestDto requestDto) {
+        long stockId = requestDto.getStockId();
+        int quantity = requestDto.getQuantity();
+        GameActing act = requestDto.getActing();
+
         switch (act) {
             case BUY:
                 buyHolding(userId, stockId, quantity);
@@ -160,39 +166,59 @@ public class GamePlayService {
 
     public GameHintResponseDto getSingleHint(long userId, long stockId, HintLevel hintLevel) {
         int year = getGameYear(userId);
+
+        GameUserInfoDto userInfo = getUserInfoList(userId).get(0);
+        boolean flag = switch (hintLevel) {
+            case ONE -> userInfo.getHintCheck().getLevelOneId() != 0;
+            case TWO -> userInfo.getHintCheck().getLevelTwoId() != 0;
+            case THREE -> userInfo.getHintCheck().getLevelThreeId() != 0;
+            default -> throw new GameException(LEVEL_NOT_VALID);
+        };
+
+        if (flag) {
+            throw new GameException(HINT_ALREADY_USED);
+        }
+
         GameStockYearly yearInfo = gameStockYearlyRepository.findByGameStockInfoIdAndYear(stockId, year)
                 .orElseThrow(() -> new GameException(YEAR_INFO_NOT_FOUND));
 
-        // TODO: 힌트 3회 제한 반영
+        GameHintResponseDto hint = gameHintRepository.findByGameStockYearlyIdAndLevel(yearInfo.getId(), hintLevel)
+                .orElseThrow(() -> new GameException(HINT_NOT_FOUND))
+                .toDto();
+
         switch (hintLevel) {
-            case ONE, TWO, THREE -> gameHintRepository.findByGameStockYearlyIdAndLevel(yearInfo.getId(), hintLevel);
-            default -> throw new GameException(LEVEL_NOT_VALID);
+            case ONE -> userInfo.getHintCheck().setLevelOneId(stockId);
+            case TWO -> userInfo.getHintCheck().setLevelTwoId(stockId);
+            case THREE -> userInfo.getHintCheck().setLevelThreeId(stockId);
         }
 
-        return gameHintRepository.findByGameStockYearlyIdAndLevel(yearInfo.getId(), hintLevel)
-                .map(GameHint::toDto)
-                .orElseThrow(() -> new GameException(HINT_NOT_FOUND));
+        return hint;
     }
 
     public GameInterimResponseDto getUserInterim(long userId) {
         int year = getGameYear(userId);
         if (year == 2023) {
-            // TODO: 2023년에 interim 요청시 게임 종료
+            throw new GameException(GAME_END);
         }
-        List<GameUserInfo> userInfoList = getUserInfoList(userId);
+
+        List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
 
         int finalYear = year;
         userInfoList.forEach(userInfo -> {
-            List<GameHoldingsInfo> holdingsInfo = userInfo.getHoldings();
+            GameHintCheckDto hintCheck = userInfo.getHintCheck();
+            List<GameHoldingsInfoDto> holdingsInfo = userInfo.getHoldings();
 
             long prev = userInfo.getBudget();
-            for (GameHoldingsInfo holding : holdingsInfo) {
+            for (GameHoldingsInfoDto holding : holdingsInfo) {
                 prev += (long) holding.getPrice() * holding.getQuantity();
                 int price = getStockPrice(holding.getStockId(), finalYear + 1);
                 holding.setPrice(price);
                 holding.setRor(calcRate(holding.getAverage(), price));
             }
             userInfo.setPrev(prev);
+            hintCheck.setLevelOneId(0);
+            hintCheck.setLevelTwoId(0);
+            hintCheck.setLevelThreeId(0);
         });
 
         year++;
@@ -209,14 +235,14 @@ public class GamePlayService {
     }
 
     public List<GameResultResponseDto> getGameResultList(long userId) {
-        List<GameUserInfo> userInfoList = getUserInfoList(userId);
+        List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
         List<GameResultResponseDto> gameResultList = new ArrayList<>();
 
-        for (GameUserInfo userInfo : userInfoList) {
-            List<GameHoldingsInfo> holdingsInfo = userInfo.getHoldings();
+        for (GameUserInfoDto userInfo : userInfoList) {
+            List<GameHoldingsInfoDto> holdingsInfo = userInfo.getHoldings();
 
             long total = userInfo.getBudget();
-            for (GameHoldingsInfo holding : holdingsInfo) {
+            for (GameHoldingsInfoDto holding : holdingsInfo) {
                 total += (long) holding.getPrice() * holding.getQuantity();
             }
 
@@ -283,16 +309,16 @@ public class GamePlayService {
     private void buyHolding(long userId, long stockId, int quantity) {
         int year = getGameYear(userId);
 
-        List<GameUserInfo> userInfoList = getUserInfoList(userId);
-        GameUserInfo userInfo = userInfoList.get(0);
-        List<GameHoldingsInfo> holdingsList = userInfo.getHoldings();
+        List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
+        GameUserInfoDto userInfo = userInfoList.get(0);
+        List<GameHoldingsInfoDto> holdingsList = userInfo.getHoldings();
         int price = getStockPrice(stockId, year);
 
         long totalPrice = (long) price * quantity;
         if (totalPrice > userInfo.getBudget())
             throw new GameException(NOT_ENOUGH_BUDGET);
 
-        GameHoldingsInfo holding = holdingsList.stream()
+        GameHoldingsInfoDto holding = holdingsList.stream()
                 .filter(dto -> dto.getStockId() == stockId)
                 .findFirst()
                 .orElse(null);
@@ -305,7 +331,7 @@ public class GamePlayService {
                     .filter(stock -> stock.getId() == stockId).findFirst()
                     .orElseThrow(() -> new GameException(STOCK_NOT_FOUND))
                     .getStockName();
-            holding = GameHoldingsInfo.builder()
+            holding = GameHoldingsInfoDto.builder()
                     .stockName(stockName)
                     .stockId(stockId)
                     .average(price)
@@ -322,13 +348,13 @@ public class GamePlayService {
     private void sellHolding(long userId, long stockId, int quantity) {
         int year = getGameYear(userId);
 
-        List<GameUserInfo> userInfoList = getUserInfoList(userId);
+        List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
 
-        GameUserInfo userInfo = userInfoList.get(0);
-        List<GameHoldingsInfo> holdingsList = userInfo.getHoldings();
+        GameUserInfoDto userInfo = userInfoList.get(0);
+        List<GameHoldingsInfoDto> holdingsList = userInfo.getHoldings();
         int price = getStockPrice(stockId, year);
 
-        GameHoldingsInfo holding = holdingsList.stream()
+        GameHoldingsInfoDto holding = holdingsList.stream()
                 .filter(dto -> dto.getStockId() == stockId)
                 .findFirst()
                 .orElseThrow(() -> new GameException(NO_HOLDING_STOCK));
@@ -366,7 +392,7 @@ public class GamePlayService {
         return Integer.parseInt(year);
     }
 
-    private long calcAverage(GameHoldingsInfo holding, int quantity, int price) {
+    private long calcAverage(GameHoldingsInfoDto holding, int quantity, int price) {
         long total = holding.getAverage() * holding.getQuantity();
         long totalPrice = (long) quantity * price;
         total += totalPrice;
@@ -374,11 +400,11 @@ public class GamePlayService {
         return total;
     }
 
-    private List<GameUserInfo> getUserInfoList(long userId) {
+    private List<GameUserInfoDto> getUserInfoList(long userId) {
         String redisResult = (String) redisTemplate.opsForHash().get(GAME_KEY + userId, USER_KEY);
         if (redisResult == null)
             throw new GameException(GAME_NOT_FOUND);
-        return redisJsonManager.deserializeList(redisResult, GameUserInfo[].class);
+        return redisJsonManager.deserializeList(redisResult, GameUserInfoDto[].class);
     }
 
     private double calcRate(long prev, long now) {

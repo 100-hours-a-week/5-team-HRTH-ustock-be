@@ -1,6 +1,6 @@
 package com.hrth.ustock.dto.game.result;
 
-import com.hrth.ustock.dto.game.redis.GameHoldingsInfo;
+import com.hrth.ustock.dto.game.redis.GameHoldingsInfoDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,5 +20,5 @@ public class GameUserResponseDto {
     private double changeRateFromLast;
     private long changeFromStart;
     private double changeRateFromStart;
-    private List<GameHoldingsInfo> holdingList;
+    private List<GameHoldingsInfoDto> holdingList;
 }
