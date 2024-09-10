@@ -76,6 +76,7 @@ public class GamePlayService {
             userInfoList.add(GameUserInfoDto.builder()
                     .playerType(i == 0 ? USER : COM)
                     .nickname(i == 0 ? nickname : "COM" + i)
+                    .hintCheck(new GameHintCheckDto())
                     .budget(START_BUDGET)
                     .holdings(holdings)
                     .build()
