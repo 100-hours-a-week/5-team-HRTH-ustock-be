@@ -159,10 +159,15 @@ public class GamePlayService {
     }
 
     public GameHintResponseDto getSingleHint(long userId, long stockId, HintLevel hintLevel) {
-        // TODO: 힌트 3회 제한 반영
         int year = getGameYear(userId);
         GameStockYearly yearInfo = gameStockYearlyRepository.findByGameStockInfoIdAndYear(stockId, year)
                 .orElseThrow(() -> new GameException(YEAR_INFO_NOT_FOUND));
+
+        // TODO: 힌트 3회 제한 반영
+        switch (hintLevel) {
+            case ONE, TWO, THREE -> gameHintRepository.findByGameStockYearlyIdAndLevel(yearInfo.getId(), hintLevel);
+            default -> throw new GameException(LEVEL_NOT_VALID);
+        }
 
         return gameHintRepository.findByGameStockYearlyIdAndLevel(yearInfo.getId(), hintLevel)
                 .map(GameHint::toDto)

@@ -188,6 +188,10 @@ public interface GameApi {
             @ApiResponse(
                     responseCode = "200"),
             @ApiResponse(
+                    responseCode = "400",
+                    description = "enum값은 ONE, TWO, THREE 셋 중 하나여야 합니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
                     responseCode = "401",
                     description = "로그인 후 이용 가능",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
