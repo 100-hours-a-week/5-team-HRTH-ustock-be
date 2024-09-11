@@ -24,6 +24,8 @@ public class GameStockYearly {
 
     private int year;
 
+    private String date;
+
     @ManyToOne
     @JoinColumn(name = "stock_id")
     private GameStockInfo gameStockInfo;
