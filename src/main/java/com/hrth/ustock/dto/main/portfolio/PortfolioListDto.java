@@ -15,7 +15,7 @@ import java.util.List;
 public class PortfolioListDto {
     private long budget;
     private long principal;
-    private long proceed;
-    private double ror;
+    private long profit;
+    private double profitRate;
     private List<PortfolioEmbedDto> list = new ArrayList<>();
 }

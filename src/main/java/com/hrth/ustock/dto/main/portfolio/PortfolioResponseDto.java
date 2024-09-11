@@ -17,7 +17,7 @@ public class PortfolioResponseDto {
     private String name;
     private long budget;
     private long principal;
-    private long proceed;
-    private double ror;
+    private long profit;
+    private double profitRate;
     private List<HoldingEmbedDto> stocks = new ArrayList<>();
 }

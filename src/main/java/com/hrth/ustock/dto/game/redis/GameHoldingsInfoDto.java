@@ -13,7 +13,7 @@ public class GameHoldingsInfoDto {
     private String stockName;
     private long average;
     private int price;
-    private double ror;
+    private double profitRate;
     private int quantity;
     private long stockId;
 }
