@@ -37,7 +37,6 @@ public class RedisJsonManager {
     }
 
     public String mapStringConvert(Map<String, Object> data) {
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException e) {
@@ -46,12 +45,19 @@ public class RedisJsonManager {
     }
 
     public Map<String, Object> stringMapConvert(String data) {
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.readValue(data, new TypeReference<>() {
             });
         } catch (JsonProcessingException e) {
             throw new RedisException(DESERIALIZE_FAILED);
+        }
+    }
+
+    public <T> T deserializeObject(String jsonString, Class<T> clazz) {
+        try {
+            return objectMapper.readValue(jsonString, clazz);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 }
