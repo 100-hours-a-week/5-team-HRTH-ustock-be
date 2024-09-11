@@ -32,7 +32,7 @@ public class Portfolio {
 
     private Long principal;
 
-    private Long ret;
+    private Long proceed;
 
     @OneToMany(mappedBy = "portfolio", fetch = FetchType.EAGER)
     private List<Holding> holdings = new ArrayList<>();
@@ -42,13 +42,13 @@ public class Portfolio {
                 .id(this.id)
                 .name(this.name)
                 .budget(this.budget)
-                .ror((this.principal == 0L) ? 0.0 : (double) this.ret / this.principal * 100)
+                .ror((this.principal == 0L) ? 0.0 : (double) this.proceed / this.principal * 100)
                 .build();
     }
 
     public void updatePortfolio(PortfolioUpdateDto portfolioUpdateDto) {
         this.budget = portfolioUpdateDto.getBudget();
-        this.ret = portfolioUpdateDto.getRet();
+        this.proceed = portfolioUpdateDto.getProceed();
         this.principal = portfolioUpdateDto.getPrincipal();
     }
 }

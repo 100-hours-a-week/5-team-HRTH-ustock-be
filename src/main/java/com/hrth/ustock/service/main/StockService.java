@@ -480,7 +480,7 @@ public class StockService {
         int previousPrice = Integer.parseInt(previous);
         long quantity = requestDto.getPrice() / currentPrice;
 
-        long ret = (currentPrice - previousPrice) * quantity;
+        long proceed = (currentPrice - previousPrice) * quantity;
 
         int candy = 500;
         int soul = 9_000;
@@ -489,12 +489,12 @@ public class StockService {
         int slave = 9_860;
 
         return SkrrrCalculatorResponseDto.builder()
-                .price(ret)
-                .candy(String.valueOf(ret / candy))
-                .soul(String.valueOf(ret / soul))
-                .chicken(String.valueOf(ret / chicken))
-                .iphone(String.valueOf(ret / iphone))
-                .slave(String.valueOf(ret / slave))
+                .price(proceed)
+                .candy(String.valueOf(proceed / candy))
+                .soul(String.valueOf(proceed / soul))
+                .chicken(String.valueOf(proceed / chicken))
+                .iphone(String.valueOf(proceed / iphone))
+                .slave(String.valueOf(proceed / slave))
                 .build();
     }
 
