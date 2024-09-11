@@ -15,5 +15,6 @@ public class GameResultStockDto {
     private long stockId;
     private String fakeName;
     private String realName;
-    List<GameYearlyResultDto> yearlyResults;
+    private List<GameResultChartDto> chart;
+    private List<GameResultNewsDto> news;
 }

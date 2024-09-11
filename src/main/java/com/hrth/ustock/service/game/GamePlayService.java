@@ -6,9 +6,10 @@ import com.hrth.ustock.dto.game.redis.GameHintCheckDto;
 import com.hrth.ustock.dto.game.redis.GameHoldingsInfoDto;
 import com.hrth.ustock.dto.game.redis.GameStocksRedisDto;
 import com.hrth.ustock.dto.game.redis.GameUserInfoDto;
+import com.hrth.ustock.dto.game.result.GameResultChartDto;
+import com.hrth.ustock.dto.game.result.GameResultNewsDto;
 import com.hrth.ustock.dto.game.result.GameResultResponseDto;
 import com.hrth.ustock.dto.game.result.GameResultStockDto;
-import com.hrth.ustock.dto.game.result.GameYearlyResultDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
 import com.hrth.ustock.dto.game.user.GameUserResponseDto;
@@ -264,15 +265,16 @@ public class GamePlayService {
             long stockId = stock.getId();
             List<GameStockYearly> gameStockYearlyList = gameStockYearlyRepository.findAllByGameStockInfoId(stockId);
 
-            List<GameYearlyResultDto> stockYearlyList = new ArrayList<>();
+            List<GameResultChartDto> chartList = new ArrayList<>();
+            List<GameResultNewsDto> newsList = new ArrayList<>();
             for (GameStockYearly gameStockYearly : gameStockYearlyList) {
-                stockYearlyList.add(
-                        GameYearlyResultDto.builder()
-                                .year(gameStockYearly.getYear())
-                                .price(gameStockYearly.getPrice())
-                                .news(gameStockYearly.getGameNews().toDto())
+                chartList.add(
+                        GameResultChartDto.builder()
+                                .x(gameStockYearly.getDate())
+                                .y(gameStockYearly.getPrice())
                                 .build()
                 );
+                newsList.add(gameStockYearly.getGameNews().toDto());
             }
 
             gameResultStockDtoList.add(
@@ -280,7 +282,8 @@ public class GamePlayService {
                             .stockId(stockId)
                             .fakeName(stock.getStockName())
                             .realName(stock.getRealName())
-                            .yearlyResults(stockYearlyList)
+                            .chart(chartList)
+                            .news(newsList)
                             .build()
             );
         }

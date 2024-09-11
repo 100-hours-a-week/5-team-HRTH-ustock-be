@@ -1,19 +1,20 @@
 package com.hrth.ustock.controller.api;
 
 import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
-import com.hrth.ustock.dto.game.result.GameRankingDto;
 import com.hrth.ustock.dto.game.interim.GameInterimResponseDto;
+import com.hrth.ustock.dto.game.result.GameRankingDto;
 import com.hrth.ustock.dto.game.result.GameResultResponseDto;
 import com.hrth.ustock.dto.game.result.GameResultStockDto;
-import com.hrth.ustock.dto.game.user.GameUserResponseDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
+import com.hrth.ustock.dto.game.user.GameUserResponseDto;
 import com.hrth.ustock.entity.game.HintLevel;
 import com.hrth.ustock.exception.common.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -244,8 +245,33 @@ public interface GameApi {
                     "종목 리스트와 각 종목별 10년치 가격, 힌트의 모티브가 된 뉴스를 리스트로 보내드립니다."
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200"),
+            @ApiResponse(responseCode = "200",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = "[\n" +
+                                            "  {\n" +
+                                            "    \"stockId\": 1,\n" +
+                                            "    \"fakeName\": \"A 게임\",\n" +
+                                            "    \"realName\": \"넥슨게임즈\",\n" +
+                                            "    \"chart\": [\n" +
+                                            "      {\n" +
+                                            "        \"x\": \"2014/01/01\",\n" +
+                                            "        \"y\": 50000\n" +
+                                            "      }\n" +
+                                            "    ],\n" +
+                                            "    \"news\": [\n" +
+                                            "      {\n" +
+                                            "        \"title\": \"넥슨게임즈 (2014) - 하락\",\n" +
+                                            "        \"url\": \"https://example.com/news/1\",\n" +
+                                            "        \"publisher\": \"신문사 B\",\n" +
+                                            "        \"date\": \"2014/01/01\"\n" +
+                                            "      }\n" +
+                                            "    ]\n" +
+                                            "  }\n" +
+                                            "]"
+                            )
+                    )
+            ),
             @ApiResponse(
                     responseCode = "401",
                     description = "로그인 후 이용 가능",
