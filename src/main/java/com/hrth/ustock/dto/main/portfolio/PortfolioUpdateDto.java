@@ -13,5 +13,5 @@ import lombok.NoArgsConstructor;
 public class PortfolioUpdateDto {
     private long budget;
     private long principal;
-    private long ret;
+    private long proceed;
 }
