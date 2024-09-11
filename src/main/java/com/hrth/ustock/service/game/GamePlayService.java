@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static com.hrth.ustock.entity.game.PlayerType.COM;
 import static com.hrth.ustock.entity.game.PlayerType.USER;
@@ -100,29 +99,29 @@ public class GamePlayService {
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
         List<GameUserResponseDto> playerList = new ArrayList<>();
 
-        userInfoList.forEach(userInfo -> {
+        for (GameUserInfoDto userInfo : userInfoList) {
             if (userInfo.getPlayerType() == COM) {
+                long total = userInfo.getBudget();
 
-                AtomicLong total = new AtomicLong(userInfo.getBudget());
-                userInfo.getHoldings().forEach(holding -> {
-                    total.addAndGet((long) holding.getPrice() * holding.getQuantity());
-                });
-                long totalValue = total.get();
+                for (GameHoldingsInfoDto holding : userInfo.getHoldings()) {
+                    total += ((long) holding.getPrice() * holding.getQuantity());
+                }
+
                 long prev = userInfo.getPrev();
-
                 playerList.add(GameUserResponseDto.builder()
                         .holdingList(null)
                         .budget(userInfo.getBudget())
                         .nickname(userInfo.getNickname())
-                        .total(totalValue)
-                        .changeFromLast(totalValue - prev)
-                        .changeRateFromLast(calcRate(prev, totalValue))
-                        .changeFromStart(totalValue - START_BUDGET)
-                        .changeRateFromStart(calcRate(START_BUDGET, totalValue))
+                        .total(total)
+                        .changeFromLast(total - prev)
+                        .changeRateFromLast(calcRate(prev, total))
+                        .changeFromStart(total - START_BUDGET)
+                        .changeRateFromStart(calcRate(START_BUDGET, total))
                         .build()
                 );
             }
-        });
+        }
+
         return playerList;
     }
 
@@ -169,7 +168,6 @@ public class GamePlayService {
             case ONE -> userInfo.getHintCheck().getLevelOneId() != 0;
             case TWO -> userInfo.getHintCheck().getLevelTwoId() != 0;
             case THREE -> userInfo.getHintCheck().getLevelThreeId() != 0;
-            default -> throw new GameException(LEVEL_NOT_VALID);
         };
 
         if (flag) {
