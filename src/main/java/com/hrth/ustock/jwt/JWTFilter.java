@@ -24,8 +24,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
     public static final long ACCESS_EXPIRE = 600000L;
-    public static final long REFRESH_EXPIRE = 86400000L;
-    public static final int COOKIE_EXPIRE = 360000;
+    public static final long REFRESH_EXPIRE = 604800000L;
+    public static final int COOKIE_EXPIRE = (int) TimeUnit.MILLISECONDS.toSeconds(REFRESH_EXPIRE);
 
     private final String domain;
     private final JWTUtil jwtUtil;
@@ -75,6 +75,8 @@ public class JWTFilter extends OncePerRequestFilter {
                 log.info("refresh not valid, url: {}", request.getRequestURL());
                 PrintWriter writer = response.getWriter();
                 writer.print("refresh not valid");
+//                response.addCookie(setLogoutCookie("access"));
+//                response.addCookie(setLogoutCookie("refresh"));
 
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
