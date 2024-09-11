@@ -212,7 +212,7 @@ public class GamePlayService {
                 prev += (long) holding.getPrice() * holding.getQuantity();
                 int price = getStockPrice(holding.getStockId(), finalYear + 1);
                 holding.setPrice(price);
-                holding.setRor(calcRate(holding.getAverage(), price));
+                holding.setProfitRate(calcRate(holding.getAverage(), price));
             }
             userInfo.setPrev(prev);
             hintCheck.setLevelOneId(0);
@@ -251,7 +251,7 @@ public class GamePlayService {
                             .nickname(userInfo.getNickname())
                             .playerType(userInfo.getPlayerType())
                             .total(total)
-                            .ror(calcRate(START_BUDGET, total))
+                            .profitRate(calcRate(START_BUDGET, total))
                             .build()
             );
         }

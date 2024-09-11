@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 public class GameResultResponseDto {
     private String nickname;
     private long total;
-    private double ror;
+    private double profitRate;
     private PlayerType playerType;
 }

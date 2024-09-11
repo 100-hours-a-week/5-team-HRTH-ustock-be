@@ -13,5 +13,5 @@ public class PortfolioEmbedDto {
     private long id;
     private String name;
     private long budget;
-    private double ror;
+    private double profitRate;
 }
