@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface GameStockYearlyRepository extends JpaRepository<GameStockYearly, Long> {
     Optional<GameStockYearly> findByGameStockInfoIdAndYear(long stockId, int year);
 
-    List<GameStockYearly> findAllByGameStockInfoId(Long stockId);
+    List<GameStockYearly> findAllByGameStockInfoId(long stockId);
 
     Optional<GameStockYearly> findByGameStockInfoId(Long id);
 

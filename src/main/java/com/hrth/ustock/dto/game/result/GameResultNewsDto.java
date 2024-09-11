@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameResultHoldingResponseDto {
-    private long stockId;
-    private String inGame;
-    private String stockName;
-    private String stockCode;
+public class GameResultNewsDto {
+    private String title;
+    private String url;
+    private String publisher;
+    private String date;
 }

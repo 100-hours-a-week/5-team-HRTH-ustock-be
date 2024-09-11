@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.game;
+package com.hrth.ustock.dto.game.result;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameInitResponseDto {
-    private long gameId;
+public class GameYearlyResultDto {
+    private int year;
+    private int price;
+    private GameResultNewsDto news;
 }

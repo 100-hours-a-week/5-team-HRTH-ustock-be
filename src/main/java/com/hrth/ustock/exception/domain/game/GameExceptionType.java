@@ -6,9 +6,6 @@ import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.*;
 
 public enum GameExceptionType implements CustomExceptionType {
-    INVALID_YEAR_INPUT("올바르지 않은 년도 값입니다.", BAD_REQUEST),
-    ACT_NOT_VALID("enum값은 BUY, SELL 둘 중 하나여야 합니다.", BAD_REQUEST),
-    LEVEL_NOT_VALID("enum값은 ONE, TWO, THREE 셋 중 하나여야 합니다.", BAD_REQUEST),
     HINT_ALREADY_USED("해당 힌트를 이미 구매하셨습니다.", BAD_REQUEST), 
     GAME_NOT_FOUND("게임 정보를 조회할 수 없습니다.", NOT_FOUND),
     STOCK_NOT_FOUND("종목 정보를 조회할 수 없습니다.", NOT_FOUND),

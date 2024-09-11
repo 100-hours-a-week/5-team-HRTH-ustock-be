@@ -1,15 +1,17 @@
 package com.hrth.ustock.service.game;
 
 import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
+import com.hrth.ustock.dto.game.interim.GameInterimResponseDto;
 import com.hrth.ustock.dto.game.redis.GameHintCheckDto;
 import com.hrth.ustock.dto.game.redis.GameHoldingsInfoDto;
 import com.hrth.ustock.dto.game.redis.GameStocksRedisDto;
 import com.hrth.ustock.dto.game.redis.GameUserInfoDto;
-import com.hrth.ustock.dto.game.result.GameInterimResponseDto;
 import com.hrth.ustock.dto.game.result.GameResultResponseDto;
-import com.hrth.ustock.dto.game.result.GameUserResponseDto;
+import com.hrth.ustock.dto.game.result.GameResultStockDto;
+import com.hrth.ustock.dto.game.result.GameYearlyResultDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
+import com.hrth.ustock.dto.game.user.GameUserResponseDto;
 import com.hrth.ustock.entity.game.*;
 import com.hrth.ustock.entity.main.User;
 import com.hrth.ustock.exception.domain.game.GameException;
@@ -26,7 +28,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static com.hrth.ustock.entity.game.PlayerType.COM;
 import static com.hrth.ustock.entity.game.PlayerType.USER;
@@ -64,6 +65,7 @@ public class GamePlayService {
             selectedList.add(GameStocksRedisDto.builder()
                     .id(gameStockInfo.getId())
                     .stockName(makeFakeStockName(i, gameStockInfo.getIndustry()))
+                    .realName(gameStockInfo.getStockName())
                     .build()
             );
         }
@@ -100,29 +102,29 @@ public class GamePlayService {
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
         List<GameUserResponseDto> playerList = new ArrayList<>();
 
-        userInfoList.forEach(userInfo -> {
+        for (GameUserInfoDto userInfo : userInfoList) {
             if (userInfo.getPlayerType() == COM) {
+                long total = userInfo.getBudget();
 
-                AtomicLong total = new AtomicLong(userInfo.getBudget());
-                userInfo.getHoldings().forEach(holding -> {
-                    total.addAndGet((long) holding.getPrice() * holding.getQuantity());
-                });
-                long totalValue = total.get();
+                for (GameHoldingsInfoDto holding : userInfo.getHoldings()) {
+                    total += ((long) holding.getPrice() * holding.getQuantity());
+                }
+
                 long prev = userInfo.getPrev();
-
                 playerList.add(GameUserResponseDto.builder()
                         .holdingList(null)
                         .budget(userInfo.getBudget())
                         .nickname(userInfo.getNickname())
-                        .total(totalValue)
-                        .changeFromLast(totalValue - prev)
-                        .changeRateFromLast(calcRate(prev, totalValue))
-                        .changeFromStart(totalValue - START_BUDGET)
-                        .changeRateFromStart(calcRate(START_BUDGET, totalValue))
+                        .total(total)
+                        .changeFromLast(total - prev)
+                        .changeRateFromLast(calcRate(prev, total))
+                        .changeFromStart(total - START_BUDGET)
+                        .changeRateFromStart(calcRate(START_BUDGET, total))
                         .build()
                 );
             }
-        });
+        }
+
         return playerList;
     }
 
@@ -157,19 +159,18 @@ public class GamePlayService {
         switch (act) {
             case BUY -> buyHolding(userId, stockId, quantity);
             case SELL -> sellHolding(userId, stockId, quantity);
-            default -> throw new GameException(ACT_NOT_VALID);
         }
     }
 
     public GameHintResponseDto getSingleHint(long userId, long stockId, HintLevel hintLevel) {
         int year = getGameYear(userId);
+        // TODO: 힌트 가격 반영
 
         GameUserInfoDto userInfo = getUserInfoList(userId).get(0);
         boolean flag = switch (hintLevel) {
             case ONE -> userInfo.getHintCheck().getLevelOneId() != 0;
             case TWO -> userInfo.getHintCheck().getLevelTwoId() != 0;
             case THREE -> userInfo.getHintCheck().getLevelThreeId() != 0;
-            default -> throw new GameException(LEVEL_NOT_VALID);
         };
 
         if (flag) {
@@ -232,6 +233,7 @@ public class GamePlayService {
     }
 
     public List<GameResultResponseDto> getGameResultList(long userId) {
+        // TODO: 랭킹 등록
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
         List<GameResultResponseDto> gameResultList = new ArrayList<>();
 
@@ -253,6 +255,36 @@ public class GamePlayService {
             );
         }
         return gameResultList;
+    }
+
+    public List<GameResultStockDto> getGameResultStock(long userId) {
+        List<GameResultStockDto> gameResultStockDtoList = new ArrayList<>();
+
+        for (GameStocksRedisDto stock : getGameStocks(userId)) {
+            long stockId = stock.getId();
+            List<GameStockYearly> gameStockYearlyList = gameStockYearlyRepository.findAllByGameStockInfoId(stockId);
+
+            List<GameYearlyResultDto> stockYearlyList = new ArrayList<>();
+            for (GameStockYearly gameStockYearly : gameStockYearlyList) {
+                stockYearlyList.add(
+                        GameYearlyResultDto.builder()
+                                .year(gameStockYearly.getYear())
+                                .price(gameStockYearly.getPrice())
+                                .news(gameStockYearly.getGameNews().toDto())
+                                .build()
+                );
+            }
+
+            gameResultStockDtoList.add(
+                    GameResultStockDto.builder()
+                            .stockId(stockId)
+                            .fakeName(stock.getStockName())
+                            .realName(stock.getRealName())
+                            .yearlyResults(stockYearlyList)
+                            .build()
+            );
+        }
+        return gameResultStockDtoList;
     }
 
     private String makeFakeStockName(int idx, GameStockIndustry industry) {

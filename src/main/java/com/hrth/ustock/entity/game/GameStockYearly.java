@@ -1,7 +1,10 @@
 package com.hrth.ustock.entity.game;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -28,6 +31,6 @@ public class GameStockYearly {
     @OneToMany(mappedBy = "gameStockYearly")
     private List<GameHint> gameHints;
 
-    @OneToMany(mappedBy = "gameStockYearly")
-    private List<GameNews> gameNews;
+    @OneToOne(mappedBy = "gameStockYearly")
+    private GameNews gameNews;
 }
