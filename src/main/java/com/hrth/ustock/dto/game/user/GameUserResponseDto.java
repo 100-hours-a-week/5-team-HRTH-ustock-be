@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.game.result;
+package com.hrth.ustock.dto.game.user;
 
 import com.hrth.ustock.dto.game.redis.GameHoldingsInfoDto;
 import lombok.AllArgsConstructor;

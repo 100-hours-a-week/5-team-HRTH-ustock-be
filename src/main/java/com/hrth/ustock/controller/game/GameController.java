@@ -2,12 +2,13 @@ package com.hrth.ustock.controller.game;
 
 import com.hrth.ustock.controller.api.GameApi;
 import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
-import com.hrth.ustock.dto.game.rank.GameRankingDto;
-import com.hrth.ustock.dto.game.result.GameInterimResponseDto;
+import com.hrth.ustock.dto.game.interim.GameInterimResponseDto;
+import com.hrth.ustock.dto.game.result.GameRankingDto;
 import com.hrth.ustock.dto.game.result.GameResultResponseDto;
-import com.hrth.ustock.dto.game.result.GameUserResponseDto;
+import com.hrth.ustock.dto.game.result.GameResultStockDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
+import com.hrth.ustock.dto.game.user.GameUserResponseDto;
 import com.hrth.ustock.entity.game.HintLevel;
 import com.hrth.ustock.service.game.GamePlayService;
 import com.hrth.ustock.service.game.GameRankingService;
@@ -16,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -82,10 +82,10 @@ public class GameController implements GameApi {
     }
 
     @GetMapping("/result/stock")
-    public ResponseEntity<List<GameStockInfoResponseDto>> showResultStockList() {
+    public ResponseEntity<List<GameResultStockDto>> showResultStockList() {
 //        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        return ResponseEntity.ok(new ArrayList<>());
+        return ResponseEntity.ok(gamePlayService.getGameResultStock(userId));
     }
 
     @GetMapping("/ranking")

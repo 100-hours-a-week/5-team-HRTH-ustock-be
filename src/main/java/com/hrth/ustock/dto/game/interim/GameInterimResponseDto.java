@@ -1,5 +1,6 @@
-package com.hrth.ustock.dto.game.result;
+package com.hrth.ustock.dto.game.interim;
 
+import com.hrth.ustock.dto.game.user.GameUserResponseDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

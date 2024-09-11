@@ -1,10 +1,11 @@
 package com.hrth.ustock.controller.api;
 
 import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
-import com.hrth.ustock.dto.game.rank.GameRankingDto;
-import com.hrth.ustock.dto.game.result.GameInterimResponseDto;
+import com.hrth.ustock.dto.game.result.GameRankingDto;
+import com.hrth.ustock.dto.game.interim.GameInterimResponseDto;
 import com.hrth.ustock.dto.game.result.GameResultResponseDto;
-import com.hrth.ustock.dto.game.result.GameUserResponseDto;
+import com.hrth.ustock.dto.game.result.GameResultStockDto;
+import com.hrth.ustock.dto.game.user.GameUserResponseDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
 import com.hrth.ustock.entity.game.HintLevel;
@@ -97,10 +98,6 @@ public interface GameApi {
                     responseCode = "200"),
             @ApiResponse(
                     responseCode = "400",
-                    description = "enum값은 BUY, SELL 둘 중 하나여야 합니다.",
-                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @ApiResponse(
-                    responseCode = "400",
                     description = "잔액이 부족합니다.",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(
@@ -189,10 +186,6 @@ public interface GameApi {
                     responseCode = "200"),
             @ApiResponse(
                     responseCode = "400",
-                    description = "enum값은 ONE, TWO, THREE 셋 중 하나여야 합니다.",
-                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @ApiResponse(
-                    responseCode = "400",
                     description = "해당 힌트를 이미 구매하셨습니다.",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(
@@ -222,15 +215,55 @@ public interface GameApi {
             summary = "최종 결과 조회",
             description = "최종 결과를 순위대로 반환 (사용자: USER, AI: COM)"
     )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200"),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "로그인 후 이용 가능",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "게임 정보를 조회할 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "서버에 오류가 발생하였습니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "JSON->Object 역직렬화에 실패했습니다",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+    })
     ResponseEntity<List<GameResultResponseDto>> showResult();
 
     @Operation(
-            summary = "게임 내 종목 리스트 조회 - 미완",
+            summary = "게임 내 종목 리스트 조회",
             description = "게임에 사용된 종목의 리스트를 반환, 차트는 /v1/stocks/{code}/chart를 이용해주세요. " +
                     "stockName은 원래의 종목명을 의미하며, inGameName은 게임에서 사용된 종목명을 의미합니다. " +
-                    "종목 리스트의 각 종목별 10년치 가격, 힌트의 모티브가 된 뉴스를 리스트로 보내드립니다."
+                    "종목 리스트와 각 종목별 10년치 가격, 힌트의 모티브가 된 뉴스를 리스트로 보내드립니다."
     )
-    ResponseEntity<List<GameStockInfoResponseDto>> showResultStockList();
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200"),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "로그인 후 이용 가능",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "종목 정보를 조회할 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "서버에 오류가 발생하였습니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "JSON->Object 역직렬화에 실패했습니다",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+    })
+    ResponseEntity<List<GameResultStockDto>> showResultStockList();
 
     @Operation(
             summary = "게임 랭킹 리스트 조회",

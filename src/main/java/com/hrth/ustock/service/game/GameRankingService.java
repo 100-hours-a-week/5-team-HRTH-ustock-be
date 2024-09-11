@@ -1,6 +1,6 @@
 package com.hrth.ustock.service.game;
 
-import com.hrth.ustock.dto.game.rank.GameRankingDto;
+import com.hrth.ustock.dto.game.result.GameRankingDto;
 import com.hrth.ustock.entity.game.GameResult;
 import com.hrth.ustock.repository.game.GameResultRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +12,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GameRankingService {
     private final GameResultRepository gameResultRepository;
+
     public List<GameRankingDto> getRankingList() {
         return gameResultRepository.findTop10ByOrderByBudgetDescIdAsc().stream()
                 .map(GameResult::toDto)

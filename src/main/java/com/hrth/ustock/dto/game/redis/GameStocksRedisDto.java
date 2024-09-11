@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class GameStocksRedisDto {
     private Long id;
     private String stockName;
+    private String realName;
 }
