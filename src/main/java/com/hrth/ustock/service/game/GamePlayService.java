@@ -399,6 +399,7 @@ public class GamePlayService {
 
         if (holding != null) {
             holding.setAverage(calcAverage(holding, quantity, price));
+            holding.setProfitRate(calcRate(holding.getAverage(), price));
             holding.setQuantity(holding.getQuantity() + quantity);
         } else {
             String stockName = getGameStocks(userId).stream()
@@ -411,6 +412,7 @@ public class GamePlayService {
                     .stockId(stockId)
                     .average(price)
                     .price(price)
+                    .profitRate(0.0)
                     .quantity(quantity)
                     .build();
 
