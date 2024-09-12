@@ -7,10 +7,7 @@ import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.entity.game.GameHint;
 import com.hrth.ustock.repository.game.GameHintRepository;
 import com.hrth.ustock.util.RedisJsonManager;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -91,7 +88,8 @@ public class GameAiService {
         return redisJsonManager.deserializeObject(mapString, GameAiSelectDto.class);
     }
 
-    @Data
+    @Getter
+    @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     private static class Hint {
@@ -128,7 +126,8 @@ public class GameAiService {
         return selectedHints;
     }
 
-    @Data
+    @Getter
+    @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     private static class AiInformation {
