@@ -1,5 +1,7 @@
 package com.hrth.ustock.service.game;
 
+import com.hrth.ustock.dto.game.ai.GameAiSelectDto;
+import com.hrth.ustock.dto.game.ai.GameAiStockDto;
 import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
 import com.hrth.ustock.dto.game.interim.GameInterimResponseDto;
 import com.hrth.ustock.dto.game.redis.GameHintCheckDto;
@@ -29,7 +31,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import static com.hrth.ustock.entity.game.GameActing.BUY;
+import static com.hrth.ustock.entity.game.GameActing.SELL;
 import static com.hrth.ustock.entity.game.PlayerType.COM;
 import static com.hrth.ustock.entity.game.PlayerType.USER;
 import static com.hrth.ustock.exception.domain.game.GameExceptionType.*;
@@ -46,6 +51,8 @@ public class GamePlayService {
     private final GameStockInfoRepository gameStockInfoRepository;
     private final GameStockYearlyRepository gameStockYearlyRepository;
     private final GameHintRepository gameHintRepository;
+
+    private final GameAiService gameAiService;
 
     private final RedisTemplate<String, String> redisTemplate;
     private final RedisJsonManager redisJsonManager;
@@ -95,6 +102,8 @@ public class GamePlayService {
         redisTemplate.opsForHash().put(gameKey, NICKNAME_KEY, nickname);
         redisTemplate.opsForHash().put(gameKey, YEAR_KEY, String.valueOf(year));
         redisTemplate.opsForHash().put(gameKey, USER_KEY, userList);
+
+        tradePlayer(userId, year);
 
         return showStockList(userId);
     }
@@ -152,14 +161,14 @@ public class GamePlayService {
                 .build();
     }
 
-    public void tradeHolding(long userId, GameTradeRequestDto requestDto) {
+    public void tradeHolding(long userId, GameTradeRequestDto requestDto, int playerId) {
         long stockId = requestDto.getStockId();
         int quantity = requestDto.getQuantity();
         GameActing act = requestDto.getActing();
 
         switch (act) {
-            case BUY -> buyHolding(userId, stockId, quantity);
-            case SELL -> sellHolding(userId, stockId, quantity);
+            case BUY -> buyHolding(userId, stockId, quantity, playerId);
+            case SELL -> sellHolding(userId, stockId, quantity, playerId);
         }
     }
 
@@ -226,6 +235,8 @@ public class GamePlayService {
         String json = redisJsonManager.serializeList(userInfoList);
         redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
 
+        tradePlayer(userId, year);
+
         return GameInterimResponseDto.builder()
                 .year(year)
                 .stockList(showStockList(userId))
@@ -290,6 +301,35 @@ public class GamePlayService {
         return gameResultStockDtoList;
     }
 
+    private void tradePlayer(long userId, int year) {
+        List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
+        Map<String, GameAiSelectDto> aiSelectResult = gameAiService.getAiSelectResult(
+                year, userInfoList, showStockList(userId)
+        );
+        for (int i = 1; i <= 3; i++) {
+            String aiName = userInfoList.get(i).getNickname();
+            GameAiSelectDto gameAiSelectDto = aiSelectResult.get(aiName);
+
+            for (GameAiStockDto gameAiStockDto : gameAiSelectDto.getBuy()) {
+                GameTradeRequestDto requestDto = GameTradeRequestDto.builder()
+                        .acting(BUY)
+                        .stockId(gameAiStockDto.getId())
+                        .quantity(gameAiStockDto.getQuantity())
+                        .build();
+                tradeHolding(userId, requestDto, i);
+            }
+
+            for (GameAiStockDto gameAiStockDto : gameAiSelectDto.getSell()) {
+                GameTradeRequestDto requestDto = GameTradeRequestDto.builder()
+                        .acting(SELL)
+                        .stockId(gameAiStockDto.getId())
+                        .quantity(gameAiStockDto.getQuantity())
+                        .build();
+                tradeHolding(userId, requestDto, i);
+            }
+        }
+    }
+
     private String makeFakeStockName(int idx, GameStockIndustry industry) {
         char alphabet = (char) ('A' + idx);
 
@@ -338,12 +378,12 @@ public class GamePlayService {
         return gameInfoList;
     }
 
-    private void buyHolding(long userId, long stockId, int quantity) {
+    private void buyHolding(long userId, long stockId, int quantity, int playerId) {
         int year = getGameYear(userId);
 
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
 
-        GameUserInfoDto userInfo = userInfoList.get(0);
+        GameUserInfoDto userInfo = userInfoList.get(playerId);
         List<GameHoldingsInfoDto> holdingsList = userInfo.getHoldings();
         int price = getStockPrice(stockId, year);
 
@@ -382,12 +422,12 @@ public class GamePlayService {
         redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
     }
 
-    private void sellHolding(long userId, long stockId, int quantity) {
+    private void sellHolding(long userId, long stockId, int quantity, int playerId) {
         int year = getGameYear(userId);
 
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
 
-        GameUserInfoDto userInfo = userInfoList.get(0);
+        GameUserInfoDto userInfo = userInfoList.get(playerId);
         List<GameHoldingsInfoDto> holdingsList = userInfo.getHoldings();
         int price = getStockPrice(stockId, year);
 

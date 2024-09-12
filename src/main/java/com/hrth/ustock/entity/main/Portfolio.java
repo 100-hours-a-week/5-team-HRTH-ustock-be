@@ -16,6 +16,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+// TODO: develop -> main에 push 할 때 portfolio_temp를 삭제 후 push 해야함
+@Table(name = "portfolio_temp")
 public class Portfolio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
