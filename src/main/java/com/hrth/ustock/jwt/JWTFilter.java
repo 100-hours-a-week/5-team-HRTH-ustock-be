@@ -65,6 +65,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 log.info("access category not match, url: {}", request.getRequestURL());
                 PrintWriter writer = response.getWriter();
                 writer.print("access category not match");
+                response.addCookie(setLogoutCookie("access"));
 
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
@@ -75,8 +76,8 @@ public class JWTFilter extends OncePerRequestFilter {
                 log.info("refresh not valid, url: {}", request.getRequestURL());
                 PrintWriter writer = response.getWriter();
                 writer.print("refresh not valid");
-//                response.addCookie(setLogoutCookie("access"));
-//                response.addCookie(setLogoutCookie("refresh"));
+                response.addCookie(setLogoutCookie("access"));
+                response.addCookie(setLogoutCookie("refresh"));
 
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
@@ -134,6 +135,16 @@ public class JWTFilter extends OncePerRequestFilter {
     private Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(COOKIE_EXPIRE);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setDomain(domain);
+        return cookie;
+    }
+
+    private Cookie setLogoutCookie(String str) {
+        Cookie cookie = new Cookie(str, null);
+        cookie.setMaxAge(0);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
