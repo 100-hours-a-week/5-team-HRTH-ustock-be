@@ -88,6 +88,7 @@ public class GamePlayService {
                     .nickname(i == 0 ? nickname : "COM" + i)
                     .hintCheck(new GameHintCheckDto())
                     .budget(START_BUDGET)
+                    .prev(START_BUDGET)
                     .holdings(holdings)
                     .build()
             );
@@ -103,7 +104,7 @@ public class GamePlayService {
         redisTemplate.opsForHash().put(gameKey, YEAR_KEY, String.valueOf(year));
         redisTemplate.opsForHash().put(gameKey, USER_KEY, userList);
 
-        tradePlayer(userId, year);
+//        tradePlayer(userId, year);
 
         return showStockList(userId);
     }
@@ -122,7 +123,7 @@ public class GamePlayService {
 
                 long prev = userInfo.getPrev();
                 playerList.add(GameUserResponseDto.builder()
-                        .holdingList(null)
+                        .holdingList(userInfo.getHoldings())
                         .budget(userInfo.getBudget())
                         .nickname(userInfo.getNickname())
                         .total(total)
@@ -235,7 +236,7 @@ public class GamePlayService {
         String json = redisJsonManager.serializeList(userInfoList);
         redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
 
-        tradePlayer(userId, year);
+//        tradePlayer(userId, year);
 
         return GameInterimResponseDto.builder()
                 .year(year)
@@ -306,22 +307,23 @@ public class GamePlayService {
         Map<String, GameAiSelectDto> aiSelectResult = gameAiService.getAiSelectResult(
                 year, userInfoList, showStockList(userId)
         );
+
         for (int i = 1; i <= 3; i++) {
             String aiName = userInfoList.get(i).getNickname();
             GameAiSelectDto gameAiSelectDto = aiSelectResult.get(aiName);
 
-            for (GameAiStockDto gameAiStockDto : gameAiSelectDto.getBuy()) {
+            for (GameAiStockDto gameAiStockDto : gameAiSelectDto.getSell()) {
                 GameTradeRequestDto requestDto = GameTradeRequestDto.builder()
-                        .acting(BUY)
+                        .acting(SELL)
                         .stockId(gameAiStockDto.getId())
                         .quantity(gameAiStockDto.getQuantity())
                         .build();
                 tradeHolding(userId, requestDto, i);
             }
 
-            for (GameAiStockDto gameAiStockDto : gameAiSelectDto.getSell()) {
+            for (GameAiStockDto gameAiStockDto : gameAiSelectDto.getBuy()) {
                 GameTradeRequestDto requestDto = GameTradeRequestDto.builder()
-                        .acting(SELL)
+                        .acting(BUY)
                         .stockId(gameAiStockDto.getId())
                         .quantity(gameAiStockDto.getQuantity())
                         .build();
