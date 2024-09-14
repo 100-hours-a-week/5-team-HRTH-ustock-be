@@ -88,6 +88,14 @@ public class GameController implements GameApi {
         return ResponseEntity.ok(gamePlayService.getGameResultStock(userId));
     }
 
+    @PutMapping("/result/save")
+    public ResponseEntity<?> saveRanking() {
+//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+
+        gamePlayService.saveRankInfo(userId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/ranking")
     public ResponseEntity<List<GameRankingDto>> showRanking() {
 
@@ -97,7 +105,7 @@ public class GameController implements GameApi {
         return ResponseEntity.ok(ranking);
     }
 
-    @DeleteMapping("/stop")
+    @GetMapping("/stop")
     public ResponseEntity<?> stopGame() {
 //        Long userId = customUserService.getCurrentUserDetails().getUserId();
         gamePlayService.deleteRedis(userId);
