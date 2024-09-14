@@ -187,6 +187,10 @@ public interface GameApi {
                     responseCode = "200"),
             @ApiResponse(
                     responseCode = "400",
+                    description = "잔액이 부족합니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
+                    responseCode = "400",
                     description = "해당 힌트를 이미 구매하셨습니다.",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(
@@ -290,6 +294,20 @@ public interface GameApi {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
     })
     ResponseEntity<List<GameResultStockDto>> showResultStockList();
+
+    @Operation(
+            summary = "게임 결과 저장",
+            description = "게임의 최종 결과를 DB에 저장"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200"),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "서버에 오류가 발생하였습니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    ResponseEntity<?> saveRanking();
 
     @Operation(
             summary = "게임 랭킹 리스트 조회",

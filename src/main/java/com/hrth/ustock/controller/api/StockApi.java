@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -185,11 +186,32 @@ public interface StockApi {
             summary = "스껄계산기",
             description = "특정 종목의 특정 날짜 현재가 기준 계산 결과 반환"
     )
-    @Parameter(
-            name = "code",
-            description = "종목 코드",
-            required = true
-    )
+    @Parameters({
+            @Parameter(
+                    name = "code",
+                    description = "종목 코드",
+                    required = true
+            ),
+            @Parameter(
+                    name = "price",
+                    description = "requestDto의 요소, 1~9,999,999,999,999원",
+                    schema =
+                    @Schema(
+                            minimum = "1",
+                            maximum = "9999999999999"
+                    )
+            ),
+            @Parameter(
+                    name = "date",
+                    description = "requestDto의 요소, \"2014/01/01\"~현재 날짜",
+                    schema =
+                    @Schema(
+                            description = "과거 날짜",
+                            minimum = "2014/01/01",
+                            maximum = "$Current date"
+                    )
+            )
+    })
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200"),
@@ -224,6 +246,6 @@ public interface StockApi {
     })
     ResponseEntity<SkrrrCalculatorResponseDto> skrrrCalculator(
             @PathVariable String code,
-            @ModelAttribute SkrrrCalculatorRequestDto requestDto
+            @RequestBody SkrrrCalculatorRequestDto requestDto
     );
 }

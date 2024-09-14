@@ -21,6 +21,7 @@ import com.hrth.ustock.exception.domain.game.GameException;
 import com.hrth.ustock.exception.domain.user.UserException;
 import com.hrth.ustock.repository.UserRepository;
 import com.hrth.ustock.repository.game.GameHintRepository;
+import com.hrth.ustock.repository.game.GameResultRepository;
 import com.hrth.ustock.repository.game.GameStockInfoRepository;
 import com.hrth.ustock.repository.game.GameStockYearlyRepository;
 import com.hrth.ustock.util.RedisJsonManager;
@@ -45,12 +46,16 @@ import static com.hrth.ustock.service.game.GameInfoConst.*;
 @Service
 @RequiredArgsConstructor
 public class GamePlayService {
-    public static final long START_BUDGET = 500_000L;
+    private static final long START_BUDGET = 500_000L;
+    private static final long hintPriceOne = 100000L;
+    private static final long hintPriceTwo = 500000L;
+    private static final long hintPriceThree = 1000000L;
 
     private final UserRepository userRepository;
     private final GameStockInfoRepository gameStockInfoRepository;
     private final GameStockYearlyRepository gameStockYearlyRepository;
     private final GameHintRepository gameHintRepository;
+    private final GameResultRepository gameResultRepository;
 
     private final GameAiService gameAiService;
 
@@ -175,9 +180,9 @@ public class GamePlayService {
 
     public GameHintResponseDto getSingleHint(long userId, long stockId, HintLevel hintLevel) {
         int year = getGameYear(userId);
-        // TODO: 힌트 가격 반영
+        List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
+        GameUserInfoDto userInfo = userInfoList.get(0);
 
-        GameUserInfoDto userInfo = getUserInfoList(userId).get(0);
         boolean flag = switch (hintLevel) {
             case ONE -> userInfo.getHintCheck().getLevelOneId() != 0;
             case TWO -> userInfo.getHintCheck().getLevelTwoId() != 0;
@@ -195,18 +200,38 @@ public class GamePlayService {
                 .orElseThrow(() -> new GameException(HINT_NOT_FOUND))
                 .toDto();
 
+        long budget = userInfo.getBudget();
         switch (hintLevel) {
-            case ONE -> userInfo.getHintCheck().setLevelOneId(stockId);
-            case TWO -> userInfo.getHintCheck().setLevelTwoId(stockId);
-            case THREE -> userInfo.getHintCheck().setLevelThreeId(stockId);
+            case ONE:
+                reduceHintBudget(budget, userInfo, hintPriceOne);
+                userInfo.getHintCheck().setLevelOneId(stockId);
+                break;
+            case TWO:
+                reduceHintBudget(budget, userInfo, hintPriceTwo);
+                userInfo.getHintCheck().setLevelTwoId(stockId);
+                break;
+            case THREE:
+                reduceHintBudget(budget, userInfo, hintPriceThree);
+                userInfo.getHintCheck().setLevelThreeId(stockId);
+                break;
         }
+
+        String json = redisJsonManager.serializeList(userInfoList);
+        redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
 
         return hint;
     }
 
+    private void reduceHintBudget(long budget, GameUserInfoDto userInfo, long price) {
+        if (budget < price) {
+            throw new GameException(NOT_ENOUGH_BUDGET);
+        }
+        userInfo.setBudget(budget - price);
+    }
+
     public GameInterimResponseDto getUserInterim(long userId) {
         int year = getGameYear(userId);
-        if (year == 2023) {
+        if (2014 > year || 2023 <= year) {
             throw new GameException(GAME_END);
         }
 
@@ -246,7 +271,6 @@ public class GamePlayService {
     }
 
     public List<GameResultResponseDto> getGameResultList(long userId) {
-        // TODO: 랭킹 등록
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
         List<GameResultResponseDto> gameResultList = new ArrayList<>();
 
@@ -300,6 +324,15 @@ public class GamePlayService {
             );
         }
         return gameResultStockDtoList;
+    }
+
+    public void saveRankInfo(long userId) {
+        GameUserResponseDto userInfo = getUserInfo(userId);
+        gameResultRepository.save(GameResult.builder()
+                .budget(userInfo.getTotal())
+                .nickname(userInfo.getNickname())
+                .build());
+        redisTemplate.delete(GAME_KEY + userId);
     }
 
     private void tradePlayer(long userId, int year) {

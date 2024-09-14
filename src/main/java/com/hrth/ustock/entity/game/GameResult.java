@@ -29,7 +29,7 @@ public class GameResult {
         return GameRankingDto.builder()
                 .nickname(nickname)
                 .budget(budget)
-                .ror((double) (budget - START_BUDGET) / START_BUDGET * 100)
+                .profitRate((double) (budget - START_BUDGET) / START_BUDGET * 100)
                 .build();
     }
 }
