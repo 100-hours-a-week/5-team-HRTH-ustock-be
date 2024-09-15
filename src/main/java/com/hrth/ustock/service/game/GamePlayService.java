@@ -331,7 +331,8 @@ public class GamePlayService {
         gameResultRepository.save(GameResult.builder()
                 .budget(userInfo.getTotal())
                 .nickname(userInfo.getNickname())
-                .build());
+                .build()
+        );
         redisTemplate.delete(GAME_KEY + userId);
     }
 
