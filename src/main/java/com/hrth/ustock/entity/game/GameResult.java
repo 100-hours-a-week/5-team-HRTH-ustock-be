@@ -28,7 +28,7 @@ public class GameResult {
 
         return GameRankingDto.builder()
                 .nickname(nickname)
-                .budget(budget)
+                .total(budget)
                 .profitRate((double) (budget - START_BUDGET) / START_BUDGET * 100)
                 .build();
     }

@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GameRankingDto {
     private String nickname;
-    private long budget;
+    private long total;
     private double profitRate;
 }
