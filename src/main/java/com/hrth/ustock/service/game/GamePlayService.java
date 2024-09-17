@@ -297,13 +297,21 @@ public class GamePlayService {
     public List<GameResultStockDto> getGameResultStock(long userId) {
         List<GameResultStockDto> gameResultStockDtoList = new ArrayList<>();
 
-        for (GameStocksRedisDto stock : getGameStocks(userId)) {
+        List<GameStocksRedisDto> gameStocks = getGameStocks(userId);
+        List<Long> gameStockIdList = gameStocks.stream()
+                .map(GameStocksRedisDto::getId)
+                .toList();
+        List<GameStockYearly> gameStockYearlyList = gameStockYearlyRepository.findAllByGameStockInfoIdIn(gameStockIdList);
+
+        for (GameStocksRedisDto stock : gameStocks) {
             long stockId = stock.getId();
-            List<GameStockYearly> gameStockYearlyList = gameStockYearlyRepository.findAllByGameStockInfoId(stockId);
+            List<GameStockYearly> thisGameStockYearlyList = gameStockYearlyList.stream()
+                    .filter(yearly -> yearly.getGameStockInfo().getId() == stockId)
+                    .toList();
 
             List<GameResultChartDto> chartList = new ArrayList<>();
             List<GameResultNewsDto> newsList = new ArrayList<>();
-            for (GameStockYearly gameStockYearly : gameStockYearlyList) {
+            for (GameStockYearly gameStockYearly : thisGameStockYearlyList) {
                 chartList.add(
                         GameResultChartDto.builder()
                                 .x(gameStockYearly.getDate())
