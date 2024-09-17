@@ -109,7 +109,7 @@ public class GamePlayService {
         redisTemplate.opsForHash().put(gameKey, YEAR_KEY, String.valueOf(year));
         redisTemplate.opsForHash().put(gameKey, USER_KEY, userList);
 
-//        tradePlayer(userId, year);
+        tradePlayer(userId, year);
 
         return showStockList(userId);
     }
@@ -261,7 +261,7 @@ public class GamePlayService {
         String json = redisJsonManager.serializeList(userInfoList);
         redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
 
-//        tradePlayer(userId, year);
+        tradePlayer(userId, year);
 
         return GameInterimResponseDto.builder()
                 .year(year)
