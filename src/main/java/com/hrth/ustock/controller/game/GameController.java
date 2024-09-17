@@ -10,6 +10,7 @@ import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
 import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
 import com.hrth.ustock.dto.game.user.GameUserResponseDto;
 import com.hrth.ustock.entity.game.HintLevel;
+import com.hrth.ustock.service.auth.CustomUserService;
 import com.hrth.ustock.service.game.GamePlayService;
 import com.hrth.ustock.service.game.GameRankingService;
 import lombok.RequiredArgsConstructor;
@@ -27,32 +28,32 @@ public class GameController implements GameApi {
 
     private final GamePlayService gamePlayService;
     private final GameRankingService gameRankingService;
-
-    private static final long userId = 7L;
+    private final CustomUserService customUserService;
 
     @GetMapping("/start")
     public ResponseEntity<List<GameStockInfoResponseDto>> startGame(@RequestParam String nickname) {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
+
         return ResponseEntity.ok(gamePlayService.startGame(userId, nickname));
     }
 
     @GetMapping("/player")
     public ResponseEntity<List<GameUserResponseDto>> showPlayer() {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
         return ResponseEntity.ok(gamePlayService.getGamePlayerList(userId));
     }
 
     @GetMapping("/user")
     public ResponseEntity<GameUserResponseDto> showUser() {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
         return ResponseEntity.ok(gamePlayService.getUserInfo(userId));
     }
 
     @PostMapping("/stock")
     public ResponseEntity<Void> tradeStock(@RequestBody GameTradeRequestDto requestDto) {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
         gamePlayService.tradeHolding(userId, requestDto, 0);
         return ResponseEntity.ok().build();
@@ -60,14 +61,14 @@ public class GameController implements GameApi {
 
     @GetMapping("/interim")
     public ResponseEntity<GameInterimResponseDto> showInterimResult() {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
         return ResponseEntity.ok(gamePlayService.getUserInterim(userId));
     }
 
     @GetMapping("/hint")
     public ResponseEntity<GameHintResponseDto> showHint(@RequestParam long stockId, @RequestParam HintLevel hintLevel) {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
         GameHintResponseDto hint = gamePlayService.getSingleHint(userId, stockId, hintLevel);
 
@@ -76,21 +77,21 @@ public class GameController implements GameApi {
 
     @GetMapping("/result")
     public ResponseEntity<List<GameResultResponseDto>> showResult() {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
         return ResponseEntity.ok(gamePlayService.getGameResultList(userId));
     }
 
     @GetMapping("/result/stock")
     public ResponseEntity<List<GameResultStockDto>> showResultStockList() {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
         return ResponseEntity.ok(gamePlayService.getGameResultStock(userId));
     }
 
     @PutMapping("/result/save")
     public ResponseEntity<?> saveRanking() {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
         gamePlayService.saveRankInfo(userId);
         return ResponseEntity.ok().build();
@@ -107,7 +108,8 @@ public class GameController implements GameApi {
 
     @GetMapping("/stop")
     public ResponseEntity<?> stopGame() {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
+
         gamePlayService.deleteRedis(userId);
 
         return ResponseEntity.ok().build();
