@@ -128,7 +128,6 @@ public class GamePlayService {
 
                 long prev = userInfo.getPrev();
                 playerList.add(GameUserResponseDto.builder()
-                        .holdingList(userInfo.getHoldings())
                         .budget(userInfo.getBudget())
                         .nickname(userInfo.getNickname())
                         .total(total)
