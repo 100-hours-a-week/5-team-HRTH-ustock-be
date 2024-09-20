@@ -436,8 +436,11 @@ public class GamePlayService {
 
         long totalPrice = (long) price * quantity;
 
-        if (totalPrice > userInfo.getBudget())
+        if (totalPrice > userInfo.getBudget()) {
+            // TODO: AI 로직 수정할때까지만 임시로 추가한 return state
+            if (playerId != USER_INDEX) return;
             throw new GameException(NOT_ENOUGH_BUDGET);
+        }
 
         GameHoldingsInfoDto holding = holdingsList.stream()
                 .filter(dto -> dto.getStockId() == stockId)
@@ -485,8 +488,11 @@ public class GamePlayService {
                 .findFirst()
                 .orElseThrow(() -> new GameException(NO_HOLDING_STOCK));
 
-        if (holding.getQuantity() < quantity)
+        if (holding.getQuantity() < quantity) {
+            // TODO: AI 로직 수정할때까지만 임시로 추가한 return state
+            if (playerId != USER_INDEX) return;
             throw new GameException(NOT_ENOUGH_QUANTITY);
+        }
 
         long totalPrice = (long) price * quantity;
         holding.setQuantity(holding.getQuantity() - quantity);
