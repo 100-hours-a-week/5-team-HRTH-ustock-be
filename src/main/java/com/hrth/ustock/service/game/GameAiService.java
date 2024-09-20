@@ -14,6 +14,7 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -51,11 +52,14 @@ public class GameAiService {
         String requestJson = redisJsonManager.mapStringConvert(aiMap);
         log.info(requestJson);
 
-        String prompt = getPrompt();
-        SystemMessage systemMessage = new SystemMessage(prompt);
+        SystemMessage systemMessage = new SystemMessage(makePrompt());
         UserMessage userMessage = new UserMessage(requestJson);
-        ChatResponse response = openAiChatModel.call(new Prompt(List.of(systemMessage, userMessage)));
+        OpenAiChatOptions chatModel = OpenAiChatOptions.builder()
+                .withModel("gpt-4o-mini")
+                .withTemperature(0.7f)
+                .build();
 
+        ChatResponse response = openAiChatModel.call(new Prompt(List.of(systemMessage, userMessage), chatModel));
         String responseJson = response.getResult().getOutput().getContent();
         log.info(responseJson);
 
@@ -68,7 +72,7 @@ public class GameAiService {
         return aiSelectResult;
     }
 
-    private static String getPrompt() {
+    private static String makePrompt() {
         return """
                너는 주식 모의투자 게임의 플레이어 AI(각 AI는 투자 성향이 다르며, 독립적인 판단을 함) 3개를 시뮬레이션 해야해.
                반드시 하나의 종목만 구매해야하지만, 필요하다면 보유 종목을 판매해서 예수금을 충당해도 돼.
