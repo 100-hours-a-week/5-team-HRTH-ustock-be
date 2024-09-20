@@ -46,10 +46,11 @@ import static com.hrth.ustock.service.game.GameInfoConst.*;
 @Service
 @RequiredArgsConstructor
 public class GamePlayService {
-    private static final long START_BUDGET = 500_000L;
-    private static final long hintPriceOne = 100000L;
-    private static final long hintPriceTwo = 500000L;
-    private static final long hintPriceThree = 1000000L;
+    private static final int USER_INDEX = 0;
+    private static final int START_BUDGET = 500_000;
+    private static final int HINT_ONE_PRICE = 100_000;
+    private static final int HINT_TWO_PRICE = 300_000;
+    private static final int HINT_THREE_PRICE = 500_000;
 
     private final UserRepository userRepository;
     private final GameStockInfoRepository gameStockInfoRepository;
@@ -89,8 +90,8 @@ public class GamePlayService {
             ArrayList<GameHoldingsInfoDto> holdings = new ArrayList<>();
 
             userInfoList.add(GameUserInfoDto.builder()
-                    .playerType(i == 0 ? USER : COM)
-                    .nickname(i == 0 ? nickname : "COM" + i)
+                    .playerType(i == USER_INDEX ? USER : COM)
+                    .nickname(i == USER_INDEX ? nickname : "COM" + i)
                     .hintCheck(new GameHintCheckDto())
                     .budget(START_BUDGET)
                     .prev(START_BUDGET)
@@ -145,7 +146,7 @@ public class GamePlayService {
 
     public GameUserResponseDto getUserInfo(long userId) {
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
-        GameUserInfoDto userInfo = userInfoList.get(0);
+        GameUserInfoDto userInfo = userInfoList.get(USER_INDEX);
         List<GameHoldingsInfoDto> holdingsInfo = userInfo.getHoldings();
 
         long total = userInfo.getBudget();
@@ -180,7 +181,7 @@ public class GamePlayService {
     public GameHintResponseDto getSingleHint(long userId, long stockId, HintLevel hintLevel) {
         int year = getGameYear(userId);
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
-        GameUserInfoDto userInfo = userInfoList.get(0);
+        GameUserInfoDto userInfo = userInfoList.get(USER_INDEX);
 
         boolean flag = switch (hintLevel) {
             case ONE -> userInfo.getHintCheck().getLevelOneId() != 0;
@@ -200,20 +201,22 @@ public class GamePlayService {
                 .toDto();
 
         long budget = userInfo.getBudget();
-        switch (hintLevel) {
-            case ONE:
-                reduceHintBudget(budget, userInfo, hintPriceOne);
+        int price = switch (hintLevel) {
+            case ONE -> {
                 userInfo.getHintCheck().setLevelOneId(stockId);
-                break;
-            case TWO:
-                reduceHintBudget(budget, userInfo, hintPriceTwo);
+                yield HINT_ONE_PRICE;
+            }
+            case TWO -> {
                 userInfo.getHintCheck().setLevelTwoId(stockId);
-                break;
-            case THREE:
-                reduceHintBudget(budget, userInfo, hintPriceThree);
+                yield HINT_TWO_PRICE;
+            }
+            case THREE -> {
                 userInfo.getHintCheck().setLevelThreeId(stockId);
-                break;
-        }
+                yield HINT_THREE_PRICE;
+            }
+        };
+
+        reduceHintBudget(budget, userInfo, price);
 
         String json = redisJsonManager.serializeList(userInfoList);
         redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
@@ -230,13 +233,13 @@ public class GamePlayService {
 
     public GameInterimResponseDto getUserInterim(long userId) {
         int year = getGameYear(userId);
-        if (2014 > year || 2023 <= year) {
+        if (2023 <= year) {
             throw new GameException(GAME_END);
         }
 
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
 
-        int finalYear = year;
+        int lastYear = year;
         userInfoList.forEach(userInfo -> {
             GameHintCheckDto hintCheck = userInfo.getHintCheck();
             List<GameHoldingsInfoDto> holdingsInfo = userInfo.getHoldings();
@@ -244,7 +247,8 @@ public class GamePlayService {
             long prev = userInfo.getBudget();
             for (GameHoldingsInfoDto holding : holdingsInfo) {
                 prev += (long) holding.getPrice() * holding.getQuantity();
-                int price = getStockPrice(holding.getStockId(), finalYear + 1);
+                int price = getStockPrice(holding.getStockId(), lastYear
+                );
                 holding.setPrice(price);
                 holding.setProfitRate(calcRate(holding.getAverage(), price));
             }
