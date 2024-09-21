@@ -1,9 +1,11 @@
 package com.hrth.ustock.service.game;
 
 import com.hrth.ustock.dto.game.ai.GameAiSelectDto;
+import com.hrth.ustock.dto.game.ai.GameAiStockDto;
 import com.hrth.ustock.dto.game.redis.GameHoldingsInfoDto;
 import com.hrth.ustock.dto.game.redis.GameUserInfoDto;
 import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
+import com.hrth.ustock.entity.game.GameActing;
 import com.hrth.ustock.entity.game.GameHint;
 import com.hrth.ustock.repository.game.GameHintRepository;
 import com.hrth.ustock.util.RedisJsonManager;
@@ -19,73 +21,158 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.hrth.ustock.entity.game.GameActing.*;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class GameAiService {
+    public static final int NUMBERS_OF_AI = 3;
+
     private final OpenAiChatModel openAiChatModel;
     private final RedisJsonManager redisJsonManager;
     private final GameHintRepository gameHintRepository;
+
+    private final OpenAiChatOptions chatModel = OpenAiChatOptions.builder()
+            .withModel("gpt-4o-mini")
+            .withTemperature(0.7f)
+            .build();
 
     public Map<String, GameAiSelectDto> getAiSelectResult(
             int year, List<GameUserInfoDto> playerList, List<GameStockInfoResponseDto> stockList) {
 
         Map<String, GameAiSelectDto> aiSelectResult = new HashMap<>();
 
-        Map<String, Object> aiMap = new HashMap<>();
+        Map<String, Object> sellResponse = requestToAiTradeStock(year, setSellInfoMap(playerList), SELL);
+        log.info("sellResponse: {}", sellResponse);
 
-        int numbersOfAi = 3;
-        for (int i = 1; i <= numbersOfAi; i++) {
-            Map<String, Object> infoMap = new HashMap<>();
+        for (int i = 1; i <= NUMBERS_OF_AI; i++) {
+            String aiNickname = playerList.get(i).getNickname();
 
-            GameUserInfoDto ai = playerList.get(i);
+            List<GameAiStockDto> stocks = ((List<Map<String, Object>>) sellResponse.get(aiNickname)).stream()
+                    .map(this::convertMapToDto)
+                    .toList();
+            GameAiSelectDto gameAiSelectDto = new GameAiSelectDto();
+            gameAiSelectDto.setSell(stocks);
 
-            AiInformation aiInformation = getAiInformation(ai);
-            infoMap.put("account", aiInformation);
-
-            List<Hint> selectedHints = getHints(year, stockList);
-            infoMap.put("hint", selectedHints);
-
-            aiMap.put(ai.getNickname(), infoMap);
+            aiSelectResult.put(aiNickname, gameAiSelectDto);
         }
 
-        String requestJson = redisJsonManager.mapStringConvert(aiMap);
-        log.info(requestJson);
+        Map<String, Object> buyResponse = requestToAiTradeStock(year, setBuyInfoMap(year, playerList, stockList), BUY);
+        log.info("buyResponse: {}", buyResponse);
 
-        SystemMessage systemMessage = new SystemMessage(makePrompt());
-        UserMessage userMessage = new UserMessage(requestJson);
-        OpenAiChatOptions chatModel = OpenAiChatOptions.builder()
-                .withModel("gpt-4o-mini")
-                .withTemperature(0.7f)
-                .build();
+        for (int i = 1; i <= NUMBERS_OF_AI; i++) {
+            String aiNickname = playerList.get(i).getNickname();
 
-        ChatResponse response = openAiChatModel.call(new Prompt(List.of(systemMessage, userMessage), chatModel));
-        String responseJson = response.getResult().getOutput().getContent();
-        log.info(responseJson);
+            Map<String, Object> buyMap = (Map<String, Object>) buyResponse.get(aiNickname);
 
-        Map<String, Object> responseMap = redisJsonManager.stringMapConvert(responseJson);
-        for (int i = 1; i <= numbersOfAi; i++) {
-            String nickname = playerList.get(i).getNickname();
-            aiSelectResult.put(nickname, convertResponseToDto(responseMap, nickname));
+            List<GameAiStockDto> stocks = ((List<Map<String, Object>>) buyMap.get("list")).stream()
+                    .map(this::convertMapToDto)
+                    .toList();
+            String reason = (String) buyMap.get("reason");
+
+            GameAiSelectDto gameAiSelectDto = aiSelectResult.get(aiNickname);
+            gameAiSelectDto.setBuy(stocks);
+            gameAiSelectDto.setReason(reason);
+
+            aiSelectResult.put(aiNickname, gameAiSelectDto);
         }
 
         return aiSelectResult;
     }
 
-    private static String makePrompt() {
+    private Map<String, Object> setBuyInfoMap(
+            int year, List<GameUserInfoDto> playerList, List<GameStockInfoResponseDto> stockList) {
+
+        Map<String, Object> buyInfoMap = new HashMap<>();
+
+        for (int i = 1; i <= NUMBERS_OF_AI; i++) {
+            GameUserInfoDto ai = playerList.get(i);
+
+            Map<String, Object> requestMap = new HashMap<>();
+            List<Hint> selectedHints = getHints(year, stockList);
+            requestMap.put("budget", ai.getBudget());
+            requestMap.put("hints", selectedHints);
+
+            buyInfoMap.put(ai.getNickname(), requestMap);
+        }
+
+        log.info("buyInfoMap: {}", buyInfoMap);
+
+        return buyInfoMap;
+    }
+
+    private Map<String, Object> setSellInfoMap(List<GameUserInfoDto> playerList) {
+        Map<String, Object> sellInfoMap = new HashMap<>();
+
+        for (int i = 1; i <= NUMBERS_OF_AI; i++) {
+            GameUserInfoDto ai = playerList.get(i);
+
+            AiInformation aiInformation = getAiInformation(ai);
+            sellInfoMap.put(ai.getNickname(), aiInformation);
+        }
+
+        log.info("sellInfoMap: {}", sellInfoMap);
+
+        return sellInfoMap;
+    }
+
+    private String makeBuyPrompt() {
         return """
                너는 주식 모의투자 게임의 플레이어 AI(각 AI는 투자 성향이 다르며, 독립적인 판단을 함) 3개를 시뮬레이션 해야해.
-               반드시 하나의 종목만 구매해야하지만, 필요하다면 보유 종목을 판매해서 예수금을 충당해도 돼.
+               나는 각 AI가 보유 중인 예수금과 할당된 힌트에 대한 정보를 줄거고, 너는 이걸 바탕으로 구매 여부를 결정하면 돼.
                응답 타입은 반드시 주어진 JSON 형태의 문자열으로만 반환(JSON 객체 외의 모든 문자는 전부 빼)해야 하고 닉네임을 키로 반환해.
-               만약 구매 가격(price*quantity)이 budget보다 크다면 구매량을 줄여서 budget보다 작게 만들어.
                id는 요청 정보에 넣어서 보낸 종목 정보 안에 있는 id와 정확하게 매칭해서 반환해.
-               ("COM1":{"sell":[{"id": 1, "name":"A 전자", "quantity": 3}],"buy":[{"id": 3, "name":"C 게임", "quantity": 5}], "reason":"선택한 이유"}, ...
+               판매할 종목의 아이디, 이름, 수량을 객체로 묶은 후, 리스트로 반환해. 그리고 왜 그런 선택을 했는지 이유도 같이 반환해.
+               아래의 예시를 참고해.
+               {"COM1":{"list":[{"id": 1, "name":"A 전자", "quantity": 3}, {"id":2, "name":"C 게임", "quantity": 5}],
+               "reason":"종목을 선택한 이유"}, "COM2":{...},...}
                """;
     }
 
-    private GameAiSelectDto convertResponseToDto(Map<String, Object> responseMap, String nickname) {
-        String mapString = redisJsonManager.mapStringConvert((Map<String, Object>) responseMap.get(nickname));
-        return redisJsonManager.deserializeObject(mapString, GameAiSelectDto.class);
+    private String makeSellPrompt() {
+        return """
+               너는 주식 모의투자 게임의 플레이어 AI(각 AI는 투자 성향이 다르며, 독립적인 판단을 함) 3개를 시뮬레이션 해야해.
+               나는 각 AI가 보유 중인 종목에 대한 정보와 현재 종목 가격에 대한 정보를 줄거고, 너는 이걸로 종목 판매 여부를 선택해야 해.
+               반드시 보유 중인 종목을 판매할 필요는 없고, 최대한 수익이 발생했을 때만 판매해.
+               응답 타입은 반드시 주어진 JSON 형태의 문자열으로만 반환(JSON 객체 외의 모든 문자는 전부 빼)해야 하고 닉네임을 키로 반환해.
+               id는 요청 정보에 넣어서 보낸 종목 정보 안에 있는 id와 정확하게 매칭해서 반환해.
+               판매할 종목의 아이디, 이름, 수량을 객체로 묶은 후, 리스트로 반환해. 아래의 예시를 참고해.
+               {"COM1":[{"id": 1, "name":"A 전자", "quantity": 3}, {"id":2, "name":"C 게임", "quantity": 5}], "COM2":{...},...}
+               """;
+    }
+
+    private Map<String, Object> requestToAiTradeStock(int year, Map<String, Object> infoMap, GameActing acting) {
+
+        if (acting == SELL && year == 2014) {
+            Map<String, Object> emptyMap = new HashMap<>();
+
+            for (int i = 1; i <= NUMBERS_OF_AI; i++) {
+                emptyMap.put("COM" + i, new ArrayList<>());
+            }
+
+            return emptyMap;
+        }
+
+        String infoJson = redisJsonManager.mapStringConvert(infoMap);
+
+        String requestPrompt = acting == BUY ? makeBuyPrompt() : makeSellPrompt();
+        SystemMessage systemMessage = new SystemMessage(requestPrompt);
+        UserMessage userMessage = new UserMessage(infoJson);
+
+        ChatResponse response = openAiChatModel.call(new Prompt(List.of(systemMessage, userMessage), chatModel));
+        String responseJson = response.getResult().getOutput().getContent();
+        log.info("responseJson: {}", responseJson);
+
+        if (responseJson.startsWith("```"))
+            responseJson = responseJson.replace("```", "").replace("json", "");
+
+        return redisJsonManager.stringMapConvert(responseJson);
+    }
+
+    private GameAiStockDto convertMapToDto(Map<String, Object> map) {
+        String mapString = redisJsonManager.mapStringConvert(map);
+        return redisJsonManager.deserializeObject(mapString, GameAiStockDto.class);
     }
 
     @Getter
@@ -117,7 +204,7 @@ public class GameAiService {
             GameHint gameHint = gameHints.get(j * 3 + j);
             GameStockInfoResponseDto selectedStock = selectedStocks.get(j);
 
-            Long id = selectedStock.getStockId();
+            long id = selectedStock.getStockId();
             String name = selectedStock.getName();
             String hint = gameHint.getHint();
             selectedHints.add(new Hint(id, selectedStock.getCurrent(), name, hint));

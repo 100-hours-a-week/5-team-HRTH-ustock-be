@@ -23,4 +23,10 @@ public interface GameStockYearlyRepository extends JpaRepository<GameStockYearly
             "left join GameStockInfo i on y.gameStockInfo.id = i.id " +
             "where y.gameStockInfo.id = :id and y.year = :year")
     Optional<Integer> findPriceByGameStockInfoIdAndYear(Long id, int year);
+
+    @Query(value = "select y from GameStockYearly y " +
+            "join fetch y.gameStockInfo i join fetch y.gameNews n " +
+            "where i.id in (:stockIds) and y.year = :year " +
+            "order by i.id")
+    List<GameStockYearly> findPriceListByGameStockInfoIdAndYear(List<Long> stockIds, int year);
 }

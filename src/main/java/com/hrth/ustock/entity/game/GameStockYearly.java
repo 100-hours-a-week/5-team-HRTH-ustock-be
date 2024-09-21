@@ -30,9 +30,9 @@ public class GameStockYearly {
     @JoinColumn(name = "stock_id")
     private GameStockInfo gameStockInfo;
 
-    @OneToMany(mappedBy = "gameStockYearly")
+    @OneToMany(mappedBy = "gameStockYearly", fetch = FetchType.LAZY)
     private List<GameHint> gameHints;
 
-    @OneToOne(mappedBy = "gameStockYearly")
+    @OneToOne(mappedBy = "gameStockYearly", fetch = FetchType.LAZY)
     private GameNews gameNews;
 }
