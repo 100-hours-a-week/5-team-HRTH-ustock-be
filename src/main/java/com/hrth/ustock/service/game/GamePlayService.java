@@ -70,6 +70,7 @@ public class GamePlayService {
         List<GameStockInfo> stockInfoList = gameStockInfoRepository.findAll();
         // TODO: 이후에 실제 데이터 추가하고 주석 해제
 //        Collections.shuffle(stockInfoList);
+//        stockInfoList.sort(Comparator.comparingLong(GameStockInfo::getId));
 
         List<GameStocksRedisDto> selectedList = new ArrayList<>();
         int stockCount = 8;
@@ -247,8 +248,7 @@ public class GamePlayService {
             long prev = userInfo.getBudget();
             for (GameHoldingsInfoDto holding : holdingsInfo) {
                 prev += (long) holding.getPrice() * holding.getQuantity();
-                int price = getStockPrice(holding.getStockId(), lastYear
-                );
+                int price = getStockPrice(holding.getStockId(), lastYear);
                 holding.setPrice(price);
                 holding.setProfitRate(calcRate(holding.getAverage(), price));
             }
@@ -400,19 +400,26 @@ public class GamePlayService {
         List<GameStocksRedisDto> gameStocks = getGameStocks(userId);
 
         List<GameStockInfoResponseDto> gameInfoList = new ArrayList<>();
-        for (GameStocksRedisDto gameStock : gameStocks) {
-            Long stockId = gameStock.getId();
 
+        List<Long> stockIds = gameStocks.stream()
+                .map(GameStocksRedisDto::getId)
+                .toList();
+        List<Integer> prevList = getPriceList(stockIds, year - 1);
+        List<Integer> currentList = getPriceList(stockIds, year);
+
+        for (int i = 0; i < stockIds.size(); i++) {
+            GameStocksRedisDto gameStock = gameStocks.get(i);
+            int prev = prevList.isEmpty() ? 0 : prevList.get(i);
+
+            Long stockId = gameStock.getId();
             GameStockInfoResponseDto gameStockInfo = GameStockInfoResponseDto.builder()
                     .stockId(stockId)
                     .name(gameStock.getStockName())
                     .build();
 
-            int prev = gameStockYearlyRepository.findPriceByGameStockInfoIdAndYear(stockId, year - 1)
-                    .orElse(0);
             gameStockInfo.setPrev(prev);
 
-            int current = getStockPrice(stockId, year);
+            int current = currentList.get(i);
             gameStockInfo.setCurrent(current);
 
             if (prev != 0) {
@@ -423,6 +430,13 @@ public class GamePlayService {
             gameInfoList.add(gameStockInfo);
         }
         return gameInfoList;
+    }
+
+    private List<Integer> getPriceList(List<Long> stockIds, int year) {
+        return gameStockYearlyRepository.findPriceListByGameStockInfoIdAndYear(stockIds, year)
+                .stream()
+                .map(GameStockYearly::getPrice)
+                .toList();
     }
 
     private void buyHolding(long userId, long stockId, int quantity, int playerId) {
