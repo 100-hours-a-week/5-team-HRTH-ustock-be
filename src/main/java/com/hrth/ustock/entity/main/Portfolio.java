@@ -37,7 +37,7 @@ public class Portfolio {
     private Long profit;
 
     @OneToMany(mappedBy = "portfolio", fetch = FetchType.EAGER)
-    private List<Holding> holdings = new ArrayList<>();
+    private List<Holding> holdings;
 
     public PortfolioEmbedDto toPortfolioDto() {
         return PortfolioEmbedDto.builder()
