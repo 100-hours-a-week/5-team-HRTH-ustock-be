@@ -446,6 +446,7 @@ public class GamePlayService {
     }
 
     private void buyHolding(long userId, long stockId, int quantity, int playerId) {
+        if(quantity <= 0) return;
         int year = getGameYear(userId);
 
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
