@@ -13,6 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GameUserResponseDto {
+    // TODO: 디버깅이 종료되면 year 삭제
+    private int year;
     private String nickname;
     private long total;
     private long budget;
