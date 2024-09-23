@@ -157,6 +157,8 @@ public class GamePlayService {
         long prev = userInfo.getPrev();
 
         return GameUserResponseDto.builder()
+                // TODO: 디버깅 끝나면 year 삭제
+                .year(getGameYear(userId))
                 .nickname(userInfo.getNickname())
                 .total(total)
                 .budget(userInfo.getBudget())
@@ -288,6 +290,8 @@ public class GamePlayService {
             String nickname = userInfo.getPlayerType() == USER ? userInfo.getNickname() : userInfo.getName();
             gameResultList.add(
                     GameResultResponseDto.builder()
+                            // TODO: 디버깅 끝나면 year 삭제
+                            .year(getGameYear(userId))
                             .nickname(nickname)
                             .playerType(userInfo.getPlayerType())
                             .total(total)
