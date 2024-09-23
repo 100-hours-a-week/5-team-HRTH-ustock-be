@@ -32,9 +32,9 @@ public class GameController implements GameApi {
 
     @GetMapping("/start")
     public ResponseEntity<List<GameStockInfoResponseDto>> startGame(@RequestParam String nickname) {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        return ResponseEntity.ok(gamePlayService.startGame(7L, nickname));
+        return ResponseEntity.ok(gamePlayService.startGame(userId, nickname));
     }
 
     @GetMapping("/player")
@@ -61,9 +61,9 @@ public class GameController implements GameApi {
 
     @GetMapping("/interim")
     public ResponseEntity<GameInterimResponseDto> showInterimResult() {
-//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        return ResponseEntity.ok(gamePlayService.getUserInterim(7L));
+        return ResponseEntity.ok(gamePlayService.getUserInterim(userId));
     }
 
     @GetMapping("/hint")
