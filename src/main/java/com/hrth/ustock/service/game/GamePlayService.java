@@ -31,6 +31,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -294,6 +295,7 @@ public class GamePlayService {
                             .build()
             );
         }
+        gameResultList.sort(Comparator.comparingLong(GameResultResponseDto::getTotal).reversed());
         return gameResultList;
     }
 
