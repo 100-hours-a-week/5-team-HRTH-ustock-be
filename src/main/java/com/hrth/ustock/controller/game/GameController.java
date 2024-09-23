@@ -89,7 +89,7 @@ public class GameController implements GameApi {
         return ResponseEntity.ok(gamePlayService.getGameResultStock(userId));
     }
 
-    @PutMapping("/result/save")
+    @PostMapping("/result/save")
     public ResponseEntity<?> saveRanking() {
         Long userId = customUserService.getCurrentUserDetails().getUserId();
 
