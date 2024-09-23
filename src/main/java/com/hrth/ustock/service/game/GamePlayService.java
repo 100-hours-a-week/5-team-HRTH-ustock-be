@@ -30,10 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.hrth.ustock.entity.game.GameActing.BUY;
 import static com.hrth.ustock.entity.game.GameActing.SELL;
@@ -86,6 +83,7 @@ public class GamePlayService {
             );
         }
 
+        String[] randomKtbNames = getRandomKtbNames();
         List<GameUserInfoDto> userInfoList = new ArrayList<>();
         int userCount = 4;
         for (int i = 0; i < userCount; i++) {
@@ -93,6 +91,7 @@ public class GamePlayService {
 
             userInfoList.add(GameUserInfoDto.builder()
                     .playerType(i == USER_INDEX ? USER : COM)
+                    .name(randomKtbNames[i])
                     .nickname(i == USER_INDEX ? nickname : "COM" + i)
                     .hintCheck(new GameHintCheckDto())
                     .budget(START_BUDGET)
@@ -132,7 +131,7 @@ public class GamePlayService {
                 long prev = userInfo.getPrev();
                 playerList.add(GameUserResponseDto.builder()
                         .budget(userInfo.getBudget())
-                        .nickname(userInfo.getNickname())
+                        .nickname(userInfo.getName())
                         .total(total)
                         .changeFromLast(total - prev)
                         .changeRateFromLast(calcRate(prev, total))
@@ -286,9 +285,10 @@ public class GamePlayService {
                 total += (long) holding.getPrice() * holding.getQuantity();
             }
 
+            String nickname = userInfo.getPlayerType() == USER ? userInfo.getNickname() : userInfo.getName();
             gameResultList.add(
                     GameResultResponseDto.builder()
-                            .nickname(userInfo.getNickname())
+                            .nickname(nickname)
                             .playerType(userInfo.getPlayerType())
                             .total(total)
                             .profitRate(calcRate(START_BUDGET, total))
@@ -566,6 +566,47 @@ public class GamePlayService {
 
         double rate = (double) (current - prev) / prev * 100.0;
         return Math.round(rate * 100.0) / 100.0;
+    }
+
+    private String[] getRandomKtbNames() {
+        List<String> adjectives = new ArrayList<>(List.of(
+                "주식왕", "주린이", "파산각", "인생역전", "지갑텅텅", "가보자고", "잔고파괴왕",
+                "이걸지네", "이게되네", "운빨왕", "주식바보", "주식천재", "존버왕", "재능충", "웃음만개", "미소왕",
+                "울지마", "껄무새", "우상향", "우량주", "아살껄", "아팔껄", "잡주", "테마주"
+        ));
+
+        List<String> names = new ArrayList<>(List.of(
+                "레나", "로빈", "스놀랙스", "앨런", "웬디",
+                "루시", "베로니카", "엘", "케빈유", "제이드",
+                "케빈리", "대니", "레아", "데릭", "릴리",
+                "하이든", "콜리", "엘리", "션",
+                "첸", "실비아", "테오", "카터", "앤디최",
+                "노아", "파즈", "트루", "에릭하", "세니",
+                "준원", "에스핀", "이안김", "헤이즐", "에릭신",
+                "스티븐", "주디", "토니", "헤이즐리", "미아",
+                "이안정", "헤일리", "카누다", "앤디김", "에리얼",
+                "준투", "홍", "지키", "제이미", "에리카"
+        ));
+
+        Collections.shuffle(adjectives);
+        Collections.shuffle(names);
+
+        String[] selected = new String[4];
+        for (int i = 0; i < 4; i++) {
+            int idx = 0;
+
+            while (true) {
+                if ((adjectives.get(idx) + " " + names.get(i)).length() > 8) {
+                    idx++;
+                } else {
+                    break;
+                }
+            }
+
+            selected[i] = adjectives.remove(idx) + " " + names.remove(i);
+        }
+
+        return selected;
     }
 
     public void deleteRedis(long userId) {

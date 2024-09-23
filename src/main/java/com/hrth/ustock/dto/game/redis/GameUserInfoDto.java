@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class GameUserInfoDto {
     private PlayerType playerType;
+    private String name;
     private String nickname;
     private long budget;
     private long prev;
