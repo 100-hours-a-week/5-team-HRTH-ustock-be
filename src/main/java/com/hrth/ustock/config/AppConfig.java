@@ -1,12 +1,13 @@
 package com.hrth.ustock.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hrth.ustock.util.DateConverter;
-import com.hrth.ustock.util.RedisJsonManager;
-import com.hrth.ustock.util.RedisTTLCalculator;
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
+import java.time.Duration;
+
 
 @Configuration
 public class AppConfig {
@@ -19,17 +20,13 @@ public class AppConfig {
     }
 
     @Bean
-    public DateConverter dateConverter() {
-        return new DateConverter();
-    }
-
-    @Bean
-    public RedisTTLCalculator redisTTLCalculator() {
-        return new RedisTTLCalculator();
-    }
-
-    @Bean
-    public RedisJsonManager redisJsonManager() {
-        return new RedisJsonManager(new ObjectMapper());
+    public RateLimiter kisApiRateLimiter() {
+        RateLimiterConfig config = RateLimiterConfig.custom()
+                .limitRefreshPeriod(Duration.ofSeconds(1))
+                .limitForPeriod(19)
+                .timeoutDuration(Duration.ofSeconds(1))
+                .build();
+        RateLimiterRegistry rateLimiterRegistry = RateLimiterRegistry.of(config);
+        return rateLimiterRegistry.rateLimiter("kisApiRateLimiter", config);
     }
 }
