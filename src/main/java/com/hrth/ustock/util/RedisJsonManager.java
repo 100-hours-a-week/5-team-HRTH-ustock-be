@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hrth.ustock.exception.redis.RedisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +17,7 @@ import static com.hrth.ustock.exception.redis.RedisExceptionType.SERIALIZE_FAILE
 
 @Slf4j
 @RequiredArgsConstructor
+@Component
 public class RedisJsonManager {
     private final ObjectMapper objectMapper;
 
