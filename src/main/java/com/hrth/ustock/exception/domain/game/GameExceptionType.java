@@ -13,6 +13,7 @@ public enum GameExceptionType implements CustomExceptionType {
     HINT_NOT_FOUND("종목 힌트를 조회할 수 없습니다.", NOT_FOUND),
     NO_HOLDING_STOCK("종목을 보유하고 있지 않습니다.", BAD_REQUEST),
     NOT_ENOUGH_BUDGET("잔액이 부족합니다.", BAD_REQUEST),
+    GAME_NOT_END("게임이 종료되지 않았습니다.", BAD_REQUEST),
     GAME_END("게임이 종료되었습니다.", NO_CONTENT),
     NOT_ENOUGH_QUANTITY("수량이 부족합니다.", BAD_REQUEST);
 
