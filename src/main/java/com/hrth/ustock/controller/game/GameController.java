@@ -37,12 +37,12 @@ public class GameController implements GameApi {
         return ResponseEntity.ok(gamePlayService.startGame(userId, nickname));
     }
 
-    @GetMapping("/player")
-    public ResponseEntity<List<GameUserResponseDto>> showPlayer() {
-        Long userId = customUserService.getCurrentUserDetails().getUserId();
-
-        return ResponseEntity.ok(gamePlayService.getGamePlayerList(userId));
-    }
+//    @GetMapping("/player")
+//    public ResponseEntity<List<GameUserResponseDto>> showPlayer() {
+//        Long userId = customUserService.getCurrentUserDetails().getUserId();
+//
+//        return ResponseEntity.ok(gamePlayService.getGamePlayerList(userId));
+//    }
 
     @GetMapping("/user")
     public ResponseEntity<GameUserResponseDto> showUser() {
