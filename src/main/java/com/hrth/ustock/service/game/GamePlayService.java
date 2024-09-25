@@ -276,6 +276,10 @@ public class GamePlayService {
     }
 
     public List<GameResultResponseDto> getGameResultList(long userId) {
+        int year = getGameYear(userId);
+        if(year < 2023) {
+            throw new GameException(GAME_NOT_END);
+        }
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
         List<GameResultResponseDto> gameResultList = new ArrayList<>();
 
@@ -304,6 +308,10 @@ public class GamePlayService {
     }
 
     public List<GameResultStockDto> getGameResultStock(long userId) {
+        int year = getGameYear(userId);
+        if(year < 2023) {
+            throw new GameException(GAME_NOT_END);
+        }
         List<GameResultStockDto> gameResultStockDtoList = new ArrayList<>();
 
         List<GameStocksRedisDto> gameStocks = getGameStocks(userId);
