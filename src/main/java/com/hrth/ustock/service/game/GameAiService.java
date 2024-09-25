@@ -48,6 +48,9 @@ public class GameAiService {
 
         for (int i = 1; i <= NUMBERS_OF_AI; i++) {
             String aiNickname = playerList.get(i).getNickname();
+            if (sellResponse.get(aiNickname).toString().equals("{}")) {
+                continue;
+            }
 
             List<GameAiStockDto> stocks = ((List<Map<String, Object>>) sellResponse.get(aiNickname)).stream()
                     .map(this::convertMapToDto)
