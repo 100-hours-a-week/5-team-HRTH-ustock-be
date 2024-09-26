@@ -95,9 +95,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleNoResourceFoundException(
             NoResourceFoundException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
-        Sentry.captureException(ex);
-        log.warn(ex.getMessage(), ex);
-
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ExceptionResponse(HttpStatus.METHOD_NOT_ALLOWED.value(), "접근할 수 없는 페이지입니다."));
