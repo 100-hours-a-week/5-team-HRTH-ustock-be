@@ -67,8 +67,8 @@ public class GamePlayService {
 
         List<GameStockInfo> stockInfoList = gameStockInfoRepository.findAll();
         // TODO: 이후에 실제 데이터 추가하고 주석 해제
-//        Collections.shuffle(stockInfoList);
-//        stockInfoList.sort(Comparator.comparingLong(GameStockInfo::getId));
+        Collections.shuffle(stockInfoList);
+        stockInfoList.sort(Comparator.comparingLong(GameStockInfo::getId));
 
         List<GameStocksRedisDto> selectedList = new ArrayList<>();
         int stockCount = 8;
@@ -581,7 +581,7 @@ public class GamePlayService {
         List<String> adjectives = new ArrayList<>(List.of(
                 "주식왕", "주린이", "파산각", "인생역전", "지갑텅텅", "가보자고", "잔고파괴왕",
                 "이걸지네", "이게되네", "운빨왕", "주식바보", "주식천재", "존버왕", "재능충", "웃음만개", "미소왕",
-                "울지마", "껄무새", "우상향", "우량주", "아살껄", "아팔껄", "잡주", "테마주", "팔랑귀", "왜안돼요"
+                "울지마", "껄무새", "우상향", "우량주", "아살껄", "아팔껄", "귀요미", "테마주", "팔랑귀", "왜안돼요"
         ));
 
         List<String> names = new ArrayList<>(List.of(
