@@ -122,27 +122,27 @@ public class GameAiService {
 
     private String makeBuyPrompt() {
         return """
-               너는 주식 모의투자 게임의 플레이어 AI(각 AI는 투자 성향이 다르며, 독립적인 판단을 함) 3개를 시뮬레이션 해야해.
-               나는 각 AI가 보유 중인 예수금과 할당된 힌트에 대한 정보를 줄거고, 너는 이걸 바탕으로 구매 여부를 결정하면 돼.
-               응답 타입은 반드시 주어진 JSON 형태의 문자열으로만 반환(JSON 객체 외의 모든 문자는 전부 빼)해야 하고 닉네임을 키로 반환해.
-               id는 요청 정보에 넣어서 보낸 종목 정보 안에 있는 id와 정확하게 매칭해서 반환해.
-               판매할 종목의 아이디, 이름, 수량을 객체로 묶은 후, 리스트로 반환해. 그리고 왜 그런 선택을 했는지 이유도 같이 반환해.
-               아래의 예시를 참고해.
-               {"COM1":{"list":[{"id": 1, "name":"A 전자", "quantity": 3}, {"id":2, "name":"C 게임", "quantity": 5}],
-               "reason":"종목을 선택한 이유"}, "COM2":{...},...}
-               """;
+                너는 주식 모의투자 게임의 플레이어 AI(각 AI는 투자 성향이 다르며, 독립적인 판단을 함) 3개를 시뮬레이션 해야해.
+                나는 각 AI가 보유 중인 예수금과 할당된 힌트에 대한 정보를 줄거고, 너는 이걸 바탕으로 구매 여부를 결정하면 돼.
+                응답 타입은 반드시 주어진 JSON 형태의 문자열으로만 반환(JSON 객체 외의 모든 문자는 전부 빼)해야 하고 닉네임을 키로 반환해.
+                id는 요청 정보에 넣어서 보낸 종목 정보 안에 있는 id와 정확하게 매칭해서 반환해.
+                판매할 종목의 아이디, 이름, 수량을 객체로 묶은 후, 리스트로 반환해. 그리고 왜 그런 선택을 했는지 이유도 같이 반환해.
+                아래의 예시를 참고해.
+                {"COM1":{"list":[{"id": 1, "name":"A 전자", "quantity": 3}, {"id":2, "name":"C 게임", "quantity": 5}],
+                "reason":"종목을 선택한 이유"}, "COM2":{...},...}
+                """;
     }
 
     private String makeSellPrompt() {
         return """
-               너는 주식 모의투자 게임의 플레이어 AI(각 AI는 투자 성향이 다르며, 독립적인 판단을 함) 3개를 시뮬레이션 해야해.
-               나는 각 AI가 보유 중인 종목에 대한 정보와 현재 종목 가격에 대한 정보를 줄거고, 너는 이걸로 종목 판매 여부를 선택해야 해.
-               반드시 보유 중인 종목을 판매할 필요는 없고, 최대한 수익이 발생했을 때만 판매해.
-               응답 타입은 반드시 주어진 JSON 형태의 문자열으로만 반환(JSON 객체 외의 모든 문자는 전부 빼)해야 하고 닉네임을 키로 반환해.
-               id는 요청 정보에 넣어서 보낸 종목 정보 안에 있는 id와 정확하게 매칭해서 반환해.
-               판매할 종목의 아이디, 이름, 수량을 객체로 묶은 후, 리스트로 반환해. 아래의 예시를 참고해.
-               {"COM1":[{"id": 1, "name":"A 전자", "quantity": 3}, {"id":2, "name":"C 게임", "quantity": 5}], "COM2":{...},...}
-               """;
+                너는 주식 모의투자 게임의 플레이어 AI(각 AI는 투자 성향이 다르며, 독립적인 판단을 함) 3개를 시뮬레이션 해야해.
+                나는 각 AI가 보유 중인 종목에 대한 정보와 현재 종목 가격에 대한 정보를 줄거고, 너는 이걸로 종목 판매 여부를 선택해야 해.
+                반드시 보유 중인 종목을 판매할 필요는 없고, 최대한 수익이 발생했을 때만 판매해.
+                응답 타입은 반드시 주어진 JSON 형태의 문자열으로만 반환(JSON 객체 외의 모든 문자는 전부 빼)해야 하고 닉네임을 키로 반환해.
+                id는 요청 정보에 넣어서 보낸 종목 정보 안에 있는 id와 정확하게 매칭해서 반환해.
+                판매할 종목의 아이디, 이름, 수량을 객체로 묶은 후, 리스트로 반환해. 아래의 예시를 참고해.
+                {"COM1":[{"id": 1, "name":"A 전자", "quantity": 3}, {"id":2, "name":"C 게임", "quantity": 5}], "COM2":{...},...}
+                """;
     }
 
     private Map<String, Object> requestToAiTradeStock(int year, Map<String, Object> infoMap, GameActing acting) {
@@ -194,8 +194,13 @@ public class GameAiService {
 
         int numbersOfHint = 3;
         List<GameStockInfoResponseDto> selectedStocks = new ArrayList<>();
-        for (int j = 0; j < numbersOfHint; j++) {
-            selectedStocks.add(stockList.get(j));
+        for (int j = 0; j < 3; j++) {
+            GameStockInfoResponseDto stock = stockList.get(j);
+
+            if (stock.getCurrent() == 0)
+                numbersOfHint--;
+
+            selectedStocks.add(stock);
         }
 
         stockList.sort((a, b) -> (int) (a.getStockId() - b.getStockId()));

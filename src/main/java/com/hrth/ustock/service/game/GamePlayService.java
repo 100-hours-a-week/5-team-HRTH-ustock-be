@@ -242,8 +242,7 @@ public class GamePlayService {
 
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
 
-        year++;
-        int finalYear = year;
+        int nextYear = year+1;
         userInfoList.forEach(userInfo -> {
             GameHintCheckDto hintCheck = userInfo.getHintCheck();
             List<GameHoldingsInfoDto> holdingsInfo = userInfo.getHoldings();
@@ -251,7 +250,7 @@ public class GamePlayService {
             long prev = userInfo.getBudget();
             for (GameHoldingsInfoDto holding : holdingsInfo) {
                 prev += (long) holding.getPrice() * holding.getQuantity();
-                int price = getStockPrice(holding.getStockId(), finalYear);
+                int price = getStockPrice(holding.getStockId(), nextYear);
                 holding.setPrice(price);
                 holding.setProfitRate(calcRate(holding.getAverage(), price));
             }
@@ -261,7 +260,7 @@ public class GamePlayService {
             hintCheck.setLevelThreeId(0);
         });
 
-        redisTemplate.opsForHash().put(GAME_KEY + userId, YEAR_KEY, String.valueOf(year));
+        redisTemplate.opsForHash().put(GAME_KEY + userId, YEAR_KEY, String.valueOf(nextYear));
 
         String json = redisJsonManager.serializeList(userInfoList);
         redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
@@ -269,7 +268,7 @@ public class GamePlayService {
         tradePlayer(userId, year);
 
         return GameInterimResponseDto.builder()
-                .year(year)
+                .year(nextYear)
                 .stockList(showStockList(userId))
                 .userInfo(getUserInfo(userId))
                 .build();
