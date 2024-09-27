@@ -68,7 +68,6 @@ public class GamePlayService {
         List<GameStockInfo> stockInfoList = gameStockInfoRepository.findAll();
         // TODO: 이후에 실제 데이터 추가하고 주석 해제
         Collections.shuffle(stockInfoList);
-        stockInfoList.sort(Comparator.comparingLong(GameStockInfo::getId));
 
         List<GameStocksRedisDto> selectedList = new ArrayList<>();
         int stockCount = 8;
@@ -82,6 +81,7 @@ public class GamePlayService {
                     .build()
             );
         }
+        selectedList.sort(Comparator.comparingLong(GameStocksRedisDto::getId));
 
         String[] randomKtbNames = getRandomKtbNames();
         List<GameUserInfoDto> userInfoList = new ArrayList<>();

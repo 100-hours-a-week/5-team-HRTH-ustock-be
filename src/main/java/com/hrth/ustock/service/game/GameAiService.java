@@ -198,10 +198,12 @@ public class GameAiService {
             selectedStocks.add(stockList.get(j));
         }
 
+        stockList.sort((a, b) -> (int) (a.getStockId() - b.getStockId()));
+
         List<Long> stockIds = selectedStocks.stream()
                 .map(GameStockInfoResponseDto::getStockId)
                 .toList();
-        List<GameHint> gameHints = gameHintRepository.findByStockIds(stockIds, year);
+        List<GameHint> gameHints = gameHintRepository.findByStockIds(stockIds, year + 1);
         List<Hint> selectedHints = new ArrayList<>();
         for (int j = 0; j < numbersOfHint; j++) {
             GameHint gameHint = gameHints.get(j * 3 + j);

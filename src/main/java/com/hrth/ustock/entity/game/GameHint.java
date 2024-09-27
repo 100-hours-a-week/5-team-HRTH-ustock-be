@@ -23,7 +23,7 @@ public class GameHint {
     @Column(columnDefinition = "ENUM('ONE', 'TWO', 'THREE')")
     private HintLevel level;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "yearly_id")
     private GameStockYearly gameStockYearly;
 
