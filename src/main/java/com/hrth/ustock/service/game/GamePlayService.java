@@ -68,7 +68,6 @@ public class GamePlayService {
         List<GameStockInfo> stockInfoList = gameStockInfoRepository.findAll();
         // TODO: 이후에 실제 데이터 추가하고 주석 해제
         Collections.shuffle(stockInfoList);
-        stockInfoList.sort(Comparator.comparingLong(GameStockInfo::getId));
 
         List<GameStocksRedisDto> selectedList = new ArrayList<>();
         int stockCount = 8;
@@ -82,6 +81,7 @@ public class GamePlayService {
                     .build()
             );
         }
+        selectedList.sort(Comparator.comparingLong(GameStocksRedisDto::getId));
 
         String[] randomKtbNames = getRandomKtbNames();
         List<GameUserInfoDto> userInfoList = new ArrayList<>();
@@ -196,7 +196,7 @@ public class GamePlayService {
             throw new GameException(HINT_ALREADY_USED);
         }
 
-        GameStockYearly yearInfo = gameStockYearlyRepository.findByGameStockInfoIdAndYear(stockId, year)
+        GameStockYearly yearInfo = gameStockYearlyRepository.findByGameStockInfoIdAndYear(stockId, year + 1)
                 .orElseThrow(() -> new GameException(YEAR_INFO_NOT_FOUND));
 
         GameHintResponseDto hint = gameHintRepository.findByGameStockYearlyIdAndLevel(yearInfo.getId(), hintLevel)
@@ -242,8 +242,7 @@ public class GamePlayService {
 
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
 
-        year++;
-        int finalYear = year;
+        int nextYear = year + 1;
         userInfoList.forEach(userInfo -> {
             GameHintCheckDto hintCheck = userInfo.getHintCheck();
             List<GameHoldingsInfoDto> holdingsInfo = userInfo.getHoldings();
@@ -251,7 +250,7 @@ public class GamePlayService {
             long prev = userInfo.getBudget();
             for (GameHoldingsInfoDto holding : holdingsInfo) {
                 prev += (long) holding.getPrice() * holding.getQuantity();
-                int price = getStockPrice(holding.getStockId(), finalYear);
+                int price = getStockPrice(holding.getStockId(), nextYear);
                 holding.setPrice(price);
                 holding.setProfitRate(calcRate(holding.getAverage(), price));
             }
@@ -261,7 +260,7 @@ public class GamePlayService {
             hintCheck.setLevelThreeId(0);
         });
 
-        redisTemplate.opsForHash().put(GAME_KEY + userId, YEAR_KEY, String.valueOf(year));
+        redisTemplate.opsForHash().put(GAME_KEY + userId, YEAR_KEY, String.valueOf(nextYear));
 
         String json = redisJsonManager.serializeList(userInfoList);
         redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
@@ -269,7 +268,7 @@ public class GamePlayService {
         tradePlayer(userId, year);
 
         return GameInterimResponseDto.builder()
-                .year(year)
+                .year(nextYear)
                 .stockList(showStockList(userId))
                 .userInfo(getUserInfo(userId))
                 .build();
@@ -305,7 +304,7 @@ public class GamePlayService {
 
     public List<GameResultStockDto> getGameResultStock(long userId) {
         int year = getGameYear(userId);
-        if(year < 2023) {
+        if (year < 2023) {
             throw new GameException(GAME_NOT_END);
         }
         List<GameResultStockDto> gameResultStockDtoList = new ArrayList<>();
@@ -450,7 +449,7 @@ public class GamePlayService {
     }
 
     private void buyHolding(long userId, long stockId, int quantity, int playerId) {
-        if(quantity <= 0) return;
+        if (quantity <= 0) return;
         int year = getGameYear(userId);
 
         List<GameUserInfoDto> userInfoList = getUserInfoList(userId);
@@ -611,6 +610,17 @@ public class GamePlayService {
                     break;
                 }
             }
+
+            selected[i] = switch (names.get(i)) {
+                case "제이드" -> "완전럭키 제이드";
+                case "루시" -> "왜안돼요 루시";
+                case "베로니카" -> "GOD 베로니카";
+                case "엘" -> "테트리스킹 엘";
+                case "케빈" -> "그냥 케빈";
+                default -> "";
+            };
+
+            if (!"".equals(selected[i])) continue;
 
             selected[i] = adjectives.remove(idx) + " " + names.remove(i);
         }
