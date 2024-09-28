@@ -347,10 +347,13 @@ public class GamePlayService {
     }
 
     public void saveRankInfo(long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
         GameUserResponseDto userInfo = getUserInfo(userId);
         gameResultRepository.save(GameResult.builder()
                 .budget(userInfo.getTotal())
                 .nickname(userInfo.getNickname())
+                .user(user)
                 .build()
         );
         redisTemplate.delete(GAME_KEY + userId);
