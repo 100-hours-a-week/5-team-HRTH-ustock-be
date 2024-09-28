@@ -94,28 +94,25 @@ public class StockService {
     private boolean isQueryInvalid(String query) {
         if (query.isBlank()) return true;
 
-        StringTokenizer st = new StringTokenizer(query, "");
+        String[] words = query.split("");
 
         Map<String, Integer> indexMap = new HashMap<>();
         int[] counts = new int[1000];
         int idx = 0;
 
-        while (st.hasMoreTokens()) {
-            String token = st.nextToken();
+        for (String word : words) {
+            if (!indexMap.containsKey(word))
+                indexMap.put(word, idx++);
 
-            if (!indexMap.containsKey(token))
-                indexMap.put(token, idx++);
+            int wordIndex = indexMap.get(word);
 
-            int wordIndex = indexMap.get(token);
-
-            if (idx >= counts[wordIndex]) return true;
+            if (idx >= counts.length) return true;
             if (++counts[wordIndex] >= 10) return true;
         }
 
         return false;
     }
 
-    // 14. 주식 상세정보 조회
     @Transactional
     public StockResponseDto getStockInfo(String code) {
         Stock stock = stockRepository.findByCode(code).orElseThrow(() -> new StockException(STOCK_NOT_FOUND));
@@ -139,7 +136,6 @@ public class StockService {
                 .build();
     }
 
-    // 15. 종목 차트 조회
     public List<ChartResponseDto> getStockChartAndNews(String code, int period) {
         // 1: 일봉, 2: 주봉, 3: 월봉
         if (period < 1 || 3 < period)
@@ -180,7 +176,6 @@ public class StockService {
         };
     }
 
-    // chart, news 범위 조회
     private List<ChartResponseDto> getChartByRangeList(String code, List<Pair<String, String>> dateList, String start, String end) {
         List<ChartResponseDto> chartListResponse = new ArrayList<>();
         List<Chart> chartList = chartRepository.findAllByStockCodeAndDateBetween(code, start, end);
@@ -219,10 +214,8 @@ public class StockService {
 
             if (candle.getHigh() == Integer.MIN_VALUE) continue;
 
-            // 시가 0으로 반환하지 않도록 수정
-            if (candle.getOpen() == 0) {
+            if (candle.getOpen() == 0)
                 candle.setOpen(chartList.get(0).getOpen());
-            }
 
             newsList.stream()
                     .filter(news ->
