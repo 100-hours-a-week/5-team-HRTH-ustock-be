@@ -46,9 +46,9 @@ import static com.hrth.ustock.service.game.GameInfoConst.*;
 public class GamePlayService {
     private static final int USER_INDEX = 0;
     private static final int START_BUDGET = 500_000;
-    private static final int HINT_ONE_PRICE = 100_000;
-    private static final int HINT_TWO_PRICE = 300_000;
-    private static final int HINT_THREE_PRICE = 500_000;
+    private static final int HINT_ONE_PRICE = 50_000;
+    private static final int HINT_TWO_PRICE = 100_000;
+    private static final int HINT_THREE_PRICE = 200_000;
 
     private final UserRepository userRepository;
     private final GameStockInfoRepository gameStockInfoRepository;
