@@ -27,9 +27,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.hrth.ustock.exception.domain.chart.ChartExceptionType.CHART_NOT_FOUND;
@@ -56,9 +54,11 @@ public class StockService {
 
     private static final DateTimeFormatter redisFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd/HH/mm");
 
-    // 6. 종목 검색
     @Transactional
     public List<StockResponseDto> searchStock(String query) {
+        if (isQueryInvalid(query))
+            throw new StockException(STOCK_NOT_FOUND);
+
         String stockCodeRegex = "^\\d{1,6}$|^Q\\d{1,6}$";
 
         List<Stock> list;
@@ -89,6 +89,30 @@ public class StockService {
         }
 
         return stockDtoList;
+    }
+
+    private boolean isQueryInvalid(String query) {
+        if (query.isBlank()) return true;
+
+        StringTokenizer st = new StringTokenizer(query, "");
+
+        Map<String, Integer> indexMap = new HashMap<>();
+        int[] counts = new int[1000];
+        int idx = 0;
+
+        while (st.hasMoreTokens()) {
+            String token = st.nextToken();
+
+            if (!indexMap.containsKey(token))
+                indexMap.put(token, idx++);
+
+            int wordIndex = indexMap.get(token);
+
+            if (idx >= counts[wordIndex]) return true;
+            if (++counts[wordIndex] >= 10) return true;
+        }
+
+        return false;
     }
 
     // 14. 주식 상세정보 조회
