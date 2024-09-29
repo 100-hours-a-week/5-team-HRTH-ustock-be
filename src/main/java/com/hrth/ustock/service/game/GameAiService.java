@@ -66,6 +66,9 @@ public class GameAiService {
 
         for (int i = 1; i <= NUMBERS_OF_AI; i++) {
             String aiNickname = playerList.get(i).getNickname();
+            if (buyResponse.get(aiNickname).toString().equals("{}")) {
+                continue;
+            }
 
             Map<String, Object> buyMap = (Map<String, Object>) buyResponse.get(aiNickname);
 
