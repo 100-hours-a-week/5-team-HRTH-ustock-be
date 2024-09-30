@@ -204,6 +204,8 @@ public class GamePlayService {
                 .orElseThrow(() -> new GameException(HINT_NOT_FOUND))
                 .toDto();
 
+        changeHintVariableToStockName(userId, stockId, hint);
+
         long budget = userInfo.getBudget();
         int price = switch (hintLevel) {
             case ONE -> {
@@ -226,6 +228,17 @@ public class GamePlayService {
         redisTemplate.opsForHash().put(GAME_KEY + userId, USER_KEY, json);
 
         return hint;
+    }
+
+    private void changeHintVariableToStockName(long userId, long stockId, GameHintResponseDto hint) {
+        String stocksJson = (String) redisTemplate.opsForHash().get(GAME_KEY + userId, STOCKS_KEY);
+        List<GameStocksRedisDto> gameStocks = redisJsonManager.deserializeList(stocksJson, GameStocksRedisDto[].class);
+
+        for (GameStocksRedisDto gameStocksRedisDto : gameStocks) {
+            if (gameStocksRedisDto.getId() == stockId) {
+                hint.setHint(hint.getHint().replace("{name}", gameStocksRedisDto.getStockName()));
+            }
+        }
     }
 
     private void reduceHintBudget(long budget, GameUserInfoDto userInfo, long price) {
@@ -358,7 +371,6 @@ public class GamePlayService {
                 .user(user)
                 .build()
         );
-        redisTemplate.delete(GAME_KEY + userId);
     }
 
     private void tradePlayer(long userId, int year) {
