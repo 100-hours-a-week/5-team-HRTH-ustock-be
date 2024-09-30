@@ -69,7 +69,7 @@ public class StockCronService {
                     "&fid_org_adj_prc=0";
             String apiUri = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
 
-            Map response = authManager.getApiData(apiUri, queryParams, "FHKST03010100");
+            Map response = authManager.getCronData(apiUri, queryParams, "FHKST03010100");
 
             if (response == null) {
                 continue;
@@ -140,7 +140,7 @@ public class StockCronService {
                 + "&fid_input_iscd=" + marketCode;
         String apiUri = "/uapi/domestic-stock/v1/quotations/inquire-index-price";
 
-        Map response = authManager.getApiData(apiUri, queryParams, "FHPUP02100000");
+        Map response = authManager.getCronData(apiUri, queryParams, "FHPUP02100000");
 
         if (response == null) {
             throw new KisApiException(API_REQUEST_FAILED);
@@ -186,7 +186,7 @@ public class StockCronService {
                     "&fid_org_adj_prc=0";
             String apiUri = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
 
-            Map response = authManager.getApiData(apiUri, queryParams, "FHKST03010100");
+            Map response = authManager.getCronData(apiUri, queryParams, "FHKST03010100");
 
             if (response == null) continue;
 
@@ -242,7 +242,7 @@ public class StockCronService {
                 "&fid_input_date_1=";
 
         String apiUri = "/uapi/domestic-stock/v1/quotations/volume-rank";
-        Map response = authManager.getApiData(apiUri, queryParams, "FHPST01710000");
+        Map response = authManager.getCronData(apiUri, queryParams, "FHPST01710000");
         return saveToRedis(response, "change", addMinute);
     }
 
@@ -258,7 +258,7 @@ public class StockCronService {
                 "&fid_vol_cnt=";
 
         String apiUri = "/uapi/domestic-stock/v1/ranking/market-cap";
-        Map response = authManager.getApiData(apiUri, queryParams, "FHPST01740000");
+        Map response = authManager.getCronData(apiUri, queryParams, "FHPST01740000");
         return saveToRedis(response, "capital", addMinute);
     }
 
@@ -279,7 +279,7 @@ public class StockCronService {
                 "&fid_vol_cnt=";
 
         String apiUri = "/uapi/domestic-stock/v1/ranking/fluctuation";
-        Map response = authManager.getApiData(apiUri, queryParams, "FHPST01700000");
+        Map response = authManager.getCronData(apiUri, queryParams, "FHPST01700000");
         return saveToRedis(response, "change", addMinute);
     }
 

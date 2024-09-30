@@ -36,27 +36,38 @@ public class KisApiAuthManager {
     private final RestClient restClient;
     private final RedisTemplate<String, String> redisTemplate;
     private static final DateTimeFormatter requestFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private final RateLimiter kisApiRateLimiter;
+    private final RateLimiter cronRateLimiter;
+    private final RateLimiter userRateLimiter;
 
 
     public KisApiAuthManager(@Value("${kis.appkey}") String appKey,
                              @Value("${kis.appsecret}") String appSecret,
                              RedisTemplate<String, String> redisTemplate,
                              RestClient restClient,
-                             RateLimiter kisApiRateLimiter) {
+                             RateLimiter cronRateLimiter,
+                             RateLimiter userRateLimiter) {
 
         this.appKey = appKey;
         this.appSecret = appSecret;
         this.redisTemplate = redisTemplate;
         this.restClient = restClient;
-        this.kisApiRateLimiter = kisApiRateLimiter;
+        this.cronRateLimiter = cronRateLimiter;
+        this.userRateLimiter = userRateLimiter;
     }
 
-    public Map getApiData(String uri, String queryParams, String header) {
+    public Map getUserData(String uri, String queryParams, String header) {
+        return getApiData(uri, queryParams, header, userRateLimiter);
+    }
+
+    public Map getCronData(String uri, String queryParams, String header) {
+        return getApiData(uri, queryParams, header, cronRateLimiter);
+    }
+
+    private Map getApiData(String uri, String queryParams, String header, RateLimiter rateLimiter) {
         for (int i = 0; i < MAX_TRY; i++) {
             Map response;
             try {
-                response = kisApiRateLimiter.executeSupplier(() -> restClient.get()
+                response = rateLimiter.executeSupplier(() -> restClient.get()
                         .uri(uri + queryParams)
                         .headers(setRequestHeaders(header))
                         .retrieve()
@@ -106,12 +117,12 @@ public class KisApiAuthManager {
         requestBody.put("appkey", appKey);
         requestBody.put("appsecret", appSecret);
 
-        Map response = restClient.post()
+        Map response = cronRateLimiter.executeSupplier(() -> restClient.post()
                 .uri("/oauth2/tokenP")
                 .headers(httpHeaders -> httpHeaders.setContentType(MediaType.APPLICATION_JSON))
                 .body(requestBody)
                 .retrieve()
-                .body(Map.class);
+                .body(Map.class));
 
         String token = (String) response.get("access_token");
         String tokenExpired = (String) response.get("access_token_token_expired");

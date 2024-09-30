@@ -24,11 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static com.hrth.ustock.exception.domain.chart.ChartExceptionType.CHART_NOT_FOUND;
 import static com.hrth.ustock.exception.domain.chart.ChartExceptionType.PERIOD_NOT_ALLOWED;
@@ -51,8 +48,6 @@ public class StockService {
     private final DateConverter dateConverter;
     private final KisApiAuthManager authManager;
     private final RedisJsonManager redisJsonManager;
-
-    private static final DateTimeFormatter redisFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd/HH/mm");
 
     @Transactional
     public List<StockResponseDto> searchStock(String query) {
@@ -279,150 +274,30 @@ public class StockService {
 
     private List<StockResponseDto> requestOrderByTrade(String order) {
         String redis_key = order.equals(REDIS_ORDER_TOP) ? REDIS_ORDER_TOP : REDIS_ORDER_TRADE;
-        String redisResult = redisTemplate.opsForValue().get("ranking_" + redis_key + "_" + minuteFormatter());
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + redis_key + "_" + dateConverter.minuteFormatter(0));
 
         if (redisResult != null)
             return redisJsonManager.deserializeList(redisResult, StockResponseDto[].class);
 
-        String queryParams = "?fid_cond_mrkt_div_code=J" +
-                "&fid_cond_scr_div_code=20171" +
-                "&fid_div_cls_code=1" +
-                "&fid_input_iscd=0000" +
-                "&fid_trgt_cls_code=0" +
-                "&fid_blng_cls_code=0" +
-                "&fid_trgt_cls_code=111111111" +
-                "&fid_trgt_exls_cls_code=0111001101" +
-                "&fid_input_price_1=" +
-                "&fid_input_price_2=" +
-                "&fid_vol_cnt=" +
-                "&fid_input_date_1=";
-
-        String apiUri = "/uapi/domestic-stock/v1/quotations/volume-rank";
-        Map response = authManager.getApiData(apiUri, queryParams, "FHPST01710000");
-
-        return saveToRedis(response, redis_key);
+        return stockCronService.saveTradeRank(0);
     }
 
     private List<StockResponseDto> requestOrderByCapital() {
-        String redisResult = redisTemplate.opsForValue().get("ranking_" + "capital_" + minuteFormatter());
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + "capital_" + dateConverter.minuteFormatter(0));
 
         if (redisResult != null)
             return redisJsonManager.deserializeList(redisResult, StockResponseDto[].class);
 
-        String queryParams = "?fid_cond_mrkt_div_code=J" +
-                "&fid_cond_scr_div_code=20174" +
-                "&fid_div_cls_code=1" +
-                "&fid_input_iscd=0000" +
-                "&fid_trgt_cls_code=0" +
-                "&fid_trgt_exls_cls_code=0" +
-                "&fid_input_price_1=" +
-                "&fid_input_price_2=" +
-                "&fid_vol_cnt=";
-
-        String apiUri = "/uapi/domestic-stock/v1/ranking/market-cap";
-        Map response = authManager.getApiData(apiUri, queryParams, "FHPST01740000");
-
-        return saveToRedis(response, "capital");
+        return stockCronService.saveCapitalRank(0);
     }
 
     private List<StockResponseDto> requestOrderByChange() {
-        String redisResult = redisTemplate.opsForValue().get("ranking_" + "change_" + minuteFormatter());
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + "change_" + dateConverter.minuteFormatter(0));
 
         if (redisResult != null)
             return redisJsonManager.deserializeList(redisResult, StockResponseDto[].class);
 
-        String queryParams = "?fid_cond_mrkt_div_code=J" +
-                "&fid_cond_scr_div_code=20170" +
-                "&fid_input_iscd=0000" +
-                "&fid_rank_sort_cls_code=0" +
-                "&fid_input_cnt_1=0" +
-                "&fid_prc_cls_code=1" +
-                "&fid_trgt_cls_code=0" +
-                "&fid_trgt_exls_cls_code=0" +
-                "&fid_div_cls_code=0" +
-                "&fid_input_price_1=" +
-                "&fid_input_price_2=" +
-                "&fid_rsfl_rate1=" +
-                "&fid_rsfl_rate2=" +
-                "&fid_vol_cnt=";
-
-        String apiUri = "/uapi/domestic-stock/v1/ranking/fluctuation";
-        Map response = authManager.getApiData(apiUri, queryParams, "FHPST01700000");
-
-        return saveToRedis(response, "change");
-    }
-
-    private List<StockResponseDto> saveToRedis(Map response, String redis_key) {
-        if (response == null || response.get("output") == null || response.get("output").equals(""))
-            throw new StockException(STOCK_REQUEST_FAILED);
-
-        List<Map<String, String>> output = (List<Map<String, String>>) response.get("output");
-
-        List<StockResponseDto> stockList = makeStockResponseDto(output, redis_key);
-
-        String dtoString = redisJsonManager.serializeList(stockList);
-        redisTemplate.opsForValue().set("ranking_" + redis_key + "_" + minuteFormatter(), dtoString);
-
-        int fortyMinute = 40 * 60;
-        redisTemplate.expire("ranking_" + redis_key + "_" + minuteFormatter(), fortyMinute, TimeUnit.SECONDS);
-
-        return stockList;
-    }
-
-    private String minuteFormatter() {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
-
-        // 현재 분을 00분 또는 30분으로 맞춤
-        int minute = now.getMinute();
-        now = minute >= 30 ? now.withMinute(30) : now.withMinute(0);
-
-        return now.format(redisFormatter);
-    }
-
-    private List<StockResponseDto> makeStockResponseDto(List<Map<String, String>> responseList, String order) {
-        int range = "top".equals(order) ? TOP_RANK_RANGE : responseList.size();
-        String stockCodeKey = "change".equals(order) ? CHANGE_STOCK_CODE : STOCK_CODE;
-
-        List<StockResponseDto> stockList = new ArrayList<>();
-        for (int i = 0; i < range; i++) {
-            Map<String, String> responseMap = responseList.get(i);
-
-            stockList.add(StockResponseDto.builder()
-                    .name(responseMap.get(STOCK_NAME))
-                    .code(responseMap.get(stockCodeKey))
-                    .price(Integer.parseInt(responseMap.get(STOCK_CURRENT_PRICE)))
-                    .change(Integer.parseInt(responseMap.get(CHANGE_FROM_PREVIOUS_STOCK)))
-                    .changeRate(Double.parseDouble(responseMap.get(CHANGE_RATE_FROM_PREVIOUS_STOCK)))
-                    .build()
-            );
-        }
-
-        List<String> codeList = stockList.stream()
-                .map(StockResponseDto::getCode)
-                .toList();
-
-        List<Stock> findStockList = stockRepository.findAllByCodeIn(codeList);
-        for (Stock stock : findStockList) {
-            for (StockResponseDto dto : stockList) {
-                if (dto.getCode().equals(stock.getCode())) {
-                    dto.setLogo(stock.getLogo());
-                    break;
-                }
-            }
-        }
-
-        for (StockResponseDto stock : stockList) {
-            if (!codeList.contains(stock.getCode())) {
-                stockRepository.save(
-                        Stock.builder()
-                                .name(stock.getName())
-                                .code(stock.getCode())
-                                .build()
-                );
-            }
-        }
-
-        return stockList;
+        return stockCronService.saveChangeRank(0);
     }
 
     public SkrrrCalculatorResponseDto calculateSkrrr(String code, SkrrrCalculatorRequestDto requestDto) {
@@ -446,10 +321,11 @@ public class StockService {
         String startDate = originDate.minusDays(5).format(newFormatter);
         String endDate = originDate.format(newFormatter);
 
+        // TODO: 종목 목업 데이터에 상장날짜 전부 넣어둬야함(API 호출 1회로 단축)
         String publicParams = "?PRDT_TYPE_CD=300&PDNO=" + code;
 
         String publicUri = "/uapi/domestic-stock/v1/quotations/search-stock-info";
-        Map publicResponse = authManager.getApiData(publicUri, publicParams, "CTPF1002R");
+        Map publicResponse = authManager.getUserData(publicUri, publicParams, "CTPF1002R");
 
         Map<String, String> publicOutput = (Map<String, String>) publicResponse.get("output");
 
@@ -468,7 +344,7 @@ public class StockService {
                 "&fid_org_adj_prc=0";
 
         String apiUri = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
-        Map response = authManager.getApiData(apiUri, queryParams, "FHKST03010100");
+        Map response = authManager.getUserData(apiUri, queryParams, "FHKST03010100");
 
         List<Map<String, String>> output = (List<Map<String, String>>) response.get("output2");
 
