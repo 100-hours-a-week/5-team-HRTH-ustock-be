@@ -146,11 +146,11 @@ public class StockService {
         return switch (period) {
             case 1 -> {
                 List<ChartResponseDto> list = getChartByRangeList(code, dateConverter.getDailyRanges(start, end), start, end);
-                String str = (String) redisTemplate.opsForHash().get(code, "chart");
-                if (str == null) {
+                String chart = (String) redisTemplate.opsForHash().get(code, "chart");
+                if (chart == null) {
                     yield list;
                 }
-                Map<String, Object> json = redisJsonManager.stringMapConvert(str);
+                Map<String, Object> json = redisJsonManager.stringMapConvert(chart);
                 String date = json.get("date").toString();
                 int open = Integer.parseInt(json.get("open").toString());
                 int close = Integer.parseInt(json.get("close").toString());
@@ -231,7 +231,7 @@ public class StockService {
         return chartListResponse;
     }
 
-    public AllMarkterResponseDto getMarketInfo() {
+    public AllMarketResponseDto getMarketInfo() {
         String marketInfo = redisTemplate.opsForValue().get("market_info");
 
         if (marketInfo == null) {
@@ -240,16 +240,14 @@ public class StockService {
         }
 
         Map<String, Object> redisResult = redisJsonManager.stringMapConvert(marketInfo);
-        log.info("redisResult: {}", redisResult);
 
         MarketResponseDto kospi = objectMapper.convertValue(redisResult.get("kospi"), MarketResponseDto.class);
         MarketResponseDto kosdaq = objectMapper.convertValue(redisResult.get("kosdaq"), MarketResponseDto.class);
 
-        return AllMarkterResponseDto.builder()
+        return AllMarketResponseDto.builder()
                 .kospi(kospi)
                 .kosdaq(kosdaq)
                 .build();
-
     }
 
     public List<StockResponseDto> getStockList(String order) {

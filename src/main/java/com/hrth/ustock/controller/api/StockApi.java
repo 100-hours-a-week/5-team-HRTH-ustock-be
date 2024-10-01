@@ -1,7 +1,7 @@
 package com.hrth.ustock.controller.api;
 
 import com.hrth.ustock.dto.main.chart.ChartResponseDto;
-import com.hrth.ustock.dto.main.stock.AllMarkterResponseDto;
+import com.hrth.ustock.dto.main.stock.AllMarketResponseDto;
 import com.hrth.ustock.dto.main.stock.SkrrrCalculatorRequestDto;
 import com.hrth.ustock.dto.main.stock.SkrrrCalculatorResponseDto;
 import com.hrth.ustock.dto.main.stock.StockResponseDto;
@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -85,7 +84,7 @@ public interface StockApi {
                     description = "API 요청에 실패했습니다",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    ResponseEntity<AllMarkterResponseDto> marketInformation();
+    ResponseEntity<AllMarketResponseDto> marketInformation();
 
     @Operation(
             summary = "종목 검색",
