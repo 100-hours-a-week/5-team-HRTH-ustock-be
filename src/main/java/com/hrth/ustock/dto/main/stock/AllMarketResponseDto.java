@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AllMarkterResponseDto {
+public class AllMarketResponseDto {
     private MarketResponseDto kospi;
     private MarketResponseDto kosdaq;
 }

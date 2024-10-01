@@ -2,7 +2,7 @@ package com.hrth.ustock.controller.main;
 
 import com.hrth.ustock.controller.api.StockApi;
 import com.hrth.ustock.dto.main.chart.ChartResponseDto;
-import com.hrth.ustock.dto.main.stock.AllMarkterResponseDto;
+import com.hrth.ustock.dto.main.stock.AllMarketResponseDto;
 import com.hrth.ustock.dto.main.stock.SkrrrCalculatorRequestDto;
 import com.hrth.ustock.dto.main.stock.SkrrrCalculatorResponseDto;
 import com.hrth.ustock.dto.main.stock.StockResponseDto;
@@ -27,8 +27,8 @@ public class StockController implements StockApi {
     }
 
     @GetMapping("/market")
-    public ResponseEntity<AllMarkterResponseDto> marketInformation() {
-        AllMarkterResponseDto marketInfo = stockService.getMarketInfo();
+    public ResponseEntity<AllMarketResponseDto> marketInformation() {
+        AllMarketResponseDto marketInfo = stockService.getMarketInfo();
 
         return ResponseEntity.ok(marketInfo);
     }
