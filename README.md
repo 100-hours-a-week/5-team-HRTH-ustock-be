@@ -115,7 +115,7 @@
 <p align="justify">
 main
 /stocks
-/portfolio <img src="images/springsecurity.png" height="40px" width="40px"/>
+/portfolio <img src="images/springsecurity.png" height="30px" width="30px"/>
 /news
 
 game
