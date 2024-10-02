@@ -116,7 +116,7 @@
 <h3>메인 서비스</h3>
 
 - /stocks
-- <img src="images/springsecurity.png" height="20px" width="20px"/> /portfolio
+- /portfolio
 - /news
 
 <h3>스껄 게임</h3>
@@ -167,10 +167,13 @@
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
-|GET|/v1/stocks|종목 순위 리스트|
-|GET|/v1/stocks/market|코스피, 코스닥 지수|
-|GET|/v1/stocks/search|종목 검색|
-|GET|/v1/stocks/{code}|종목 조회|
-|GET|/v1/stocks/{code}/chart|차트 조회|
-|GET|/v1/stocks/{code}/skrrr|스껄계산기|
+|GET|/v1/game/start|게임 정보 초기화+시작|
+|GET|/v1/game/user|유저 정보 조회 요청|
+|POST|/v1/game/stock|종목 거래 요청|
+|GET|/v1/game/hint|정보 거래소 힌트 조회|
+|GET|/v1/game/interim|다음 연도로 진행|
+|GET|/v1/game/result|최종 결과 조회|
+|GET|/v1/game/result/stock|게임 내 종목 리스트 조회|
+|POST|/v1/game/result/save|게임 결과 저장|
+|GET|/v1/game/ranking|게임 랭킹 리스트 조회|
 
