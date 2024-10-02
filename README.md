@@ -17,13 +17,12 @@
   <summary>목차</summary>
   <ol>
     <li><a href="#architecture"> ➤ 아키텍쳐</a></li>
-    <li><a href="#architecture"> ➤ 기술 스택</a></li>
-    <li><a href="#architecture"> ➤ 디렉토리 구조</a></li>
+    <li><a href="#tech"> ➤ 기술 스택</a></li>
+    <li><a href="#directory"> ➤ 디렉토리 구조</a></li>
     <li><a href="#api"> ➤ api 개요</a></li>
     <li><a href="#stocks"> ➤ /v1/stocks</a></li>
     <li><a href="#portfolio"> ➤ /v1/portfolio</a></li>
     <li><a href="#news"> ➤ /v1/news</a></li>
-    <li><a href="#scheduler"> ➤ /v1/scheduler</a></li>
     <li><a href="#game"> ➤ /v1/game</a></li>
     <li><a href="#teammates"> ➤ 팀 소개</a></li>
   </ol>
@@ -37,7 +36,7 @@
 # DevOps 구조도 추가 예정 - tree 위 or 아래에 추가
 
 <!-- 기술 스택 -->
-<h2 id="architecture"> :small_orange_diamond: 기술 스택</h2>
+<h2 id="tech"> :small_orange_diamond: 기술 스택</h2>
 
 | 분류 | 기술 |
 | :------: | --- |
@@ -47,8 +46,10 @@
 |Server|<img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white"> <img src="https://img.shields.io/badge/nginx-green?style=for-the-badge&logo=nginx&logoColor=white">|
 |DevOps|<img src="https://img.shields.io/badge/docker-0066ff?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/docker%20compose-0099ff?style=for-the-badge&logo=docker_compose&logoColor=white"> <img src="https://img.shields.io/badge/Github%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">|
 
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+
 <!-- BE 디렉토리 구조 -->
-<h2 id="architecture"> :small_orange_diamond: 디렉토리 구조</h2>
+<h2 id="directory"> :small_orange_diamond: 디렉토리 구조</h2>
 
 ```
   .
@@ -109,18 +110,35 @@
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
-<!--  -->
+<!-- api 개요 -->
 <h2 id="api"> :small_orange_diamond: api 개요</h2>
 
-<p align="justify">
-main
-/stocks
-/portfolio <img src="images/springsecurity.png" height="30px" width="30px"/>
-/news
+<h4>메인 서비스</h4>
+- /stocks
+- <img src="images/springsecurity.png" height="20px" width="20px"/>/portfolio
+- /news
 
-game
-/game
-
-</p>
+<h4>스껄 게임</h4>
+- /game
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+
+<!-- main -->
+<h2 id="stocks"> :small_orange_diamond: /stocks</h2>
+
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+
+<!-- main -->
+<h2 id="stocks"> <img src="images/springsecurity.png" height="40px" width="40px"/> /portfolio</h2>
+
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+
+<!-- main -->
+<h2 id="stocks"> :small_orange_diamond: /news</h2>
+
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+
+<!-- game -->
+<h2 id="stocks"> :small_orange_diamond: /game</h2>
+
+
