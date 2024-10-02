@@ -35,7 +35,8 @@
 # DevOps 구조도 추가 예정 - tree 위 or 아래에 추가
 
 <h3>기술 스택</h4>
-#기술 스택
+# 기술 스택
+
 | 분류 | 기술 |
 | :------: | --- |
 | Language | <img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=Java&logoColor=white"> |
