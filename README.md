@@ -33,8 +33,8 @@
 <!-- 서비스 소개 -->
 <h2 id="about-the-project"> :pencil: 서비스 소개</h2>
 
+<h3>📈 뉴스 중심의 차트 분석 서비스, U'STOCK을 소개합니다 🚀</h3>
 <p align="justify"> 
-📈 뉴스 중심의 차트 분석 서비스, U'STOCK을 소개합니다 🚀
 
 주식을 거래를 하고 계신 여러분, "아 그 때 살걸~ 아 그 때 팔걸 ~" 을 외치는 껄무새 한 마리쯤 마음 속에 품고 계시지 않습니까?
 
@@ -64,6 +64,10 @@ U'STOCK을 통해 더 간단하고 재밌게 주식 차트 분석을 시작해�
 🦜 열정 가득한 개발자 5명이 모여 개발한 U'STOCK은 여러분의 피드백과 적극적인 사용을 기다리고 있습니다 : )
 
 U'STOCK과 함께 더 스마트하고, 재미있게 주식을 시작해보세요!
+</p>
+
+<p align="justify">
+  
 </p>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
