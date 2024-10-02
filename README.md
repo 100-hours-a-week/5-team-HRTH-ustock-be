@@ -125,8 +125,10 @@
 
 <!-- main -->
 <h2 id="stocks"> :small_orange_diamond: /stocks</h2>
-<span background="#61affe" border-radius="3px" font-weight="700" min-width="80px" align="center">GET</span>
-  <div class="opblock-summary-path-description-wrapper"><span class="opblock-summary-path" data-path="/v1/news/user"><a class="nostyle" href="#/News/myHoldingsNews"><span>/v1<wbr>/news<wbr>/user</span></a></span><div class="opblock-summary-description">나만의 뉴스 조회</div></div>
+|메소드|엔드포인트|설명|
+|:---:|:---|:---|
+|GET|/v1/stocks|종목 순위 리스트|
+|GET|/v1/stocks/{code}|종목 조회|
 
 <!-- main -->
 <h2 id="stocks"> <img src="images/springsecurity.png" height="40px" width="40px"/> /portfolio</h2>
