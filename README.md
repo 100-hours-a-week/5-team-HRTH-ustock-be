@@ -38,7 +38,7 @@
 # DevOps 구조도 추가 예정 - tree 위 or 아래에 추가
 
 <!-- 기술 스택 -->
-<h2 id="tech"> 🔸 기술 스택</h2>
+<h3 id="tech"> 🔸 기술 스택</h3>
 
 | 분류 | 기술 |
 | :------: | --- |
@@ -50,8 +50,9 @@
 |DevOps|<img src="https://img.shields.io/badge/docker-0066ff?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/docker%20compose-0099ff?style=for-the-badge&logo=docker_compose&logoColor=white"> <img src="https://img.shields.io/badge/Github%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">|
 |Monitoring|<img src="https://img.shields.io/badge/Grafana-f46800?style=for-the-badge&logo=Grafana&logoColor=white"> <img src="https://img.shields.io/badge/Loki-f46800?style=for-the-badge&logo=&logoColor=white"> <img src="https://img.shields.io/badge/Promtail-f46800?style=for-the-badge&logo=&logoColor=white"> <img src="https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white">|
 
+<hr>
 <!-- BE 디렉토리 구조 -->
-<h2 id="directory"> :small_orange_diamond: 디렉토리 구조</h2>
+<h3 id="directory"> 🔸 디렉토리 구조</h3>
 
 ```
   .
@@ -116,8 +117,6 @@
 <h2 id="trouble"> 🪓 트러블 슈팅</h2>
 
 
-
-
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- 리팩토링 -->
@@ -142,7 +141,7 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- main -->
-<h2 id="stocks"> <img src="images/unlock.256x256.png" height="30px" width="30px"/> /stocks</h2>
+<h3 id="stocks"> <img src="images/unlock.256x256.png" height="30px" width="30px"/> /stocks</h3>
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
@@ -154,7 +153,7 @@
 |GET|/v1/stocks/{code}/skrrr|스껄계산기|
 
 <!-- main -->
-<h2 id="portfolio"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /portfolio</h2>
+<h3 id="portfolio"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /portfolio</h3>
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
@@ -169,14 +168,14 @@
 |PATCH|/v1/portfolio/{pfid}/holding/{code}|포트폴리오 보유 여부 확인|
 
 <!-- main -->
-<h2 id="news"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /news</h2>
+<h3 id="news"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /news</h3>
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
 |GET|/v1/news/user|나만의 뉴스 조회|
 
 <!-- game -->
-<h2 id="game"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /game</h2>
+<h3 id="game"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /game</h3>
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
