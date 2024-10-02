@@ -113,12 +113,14 @@
 <!-- api 개요 -->
 <h2 id="api"> :small_orange_diamond: api 개요</h2>
 
-<h4>메인 서비스</h4>
+<h3>메인 서비스</h3>
+
 - /stocks
-- <img src="images/springsecurity.png" height="20px" width="20px"/>/portfolio
+- <img src="images/springsecurity.png" height="20px" width="20px"/> /portfolio
 - /news
 
-<h4>스껄 게임</h4>
+<h3>스껄 게임</h3>
+
 - /game
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
