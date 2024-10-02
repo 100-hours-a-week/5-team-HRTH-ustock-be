@@ -37,6 +37,7 @@
 
 # DevOps 구조도 추가 예정 - tree 위 or 아래에 추가
 
+<hr>
 <!-- 기술 스택 -->
 <h3 id="tech"> 🔸 기술 스택</h3>
 
@@ -114,7 +115,8 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- 트러블 슈팅 -->
-<h2 id="trouble"> 🪓 트러블 슈팅</h2>
+<h2 id="trouble"> 💡 기술적 어려움 및 트러블 슈팅</h2>
+
 
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
@@ -127,6 +129,9 @@
 
 <!-- api 개요 -->
 <h2 id="api"> 📜 REST API 개요</h2>
+<p>
+  /stocks 제외 모든 endpoint는 OAuth2 로그인이 필요합니다.
+</p>
 
 <h3>메인 서비스</h3>
 
