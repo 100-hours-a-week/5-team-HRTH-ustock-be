@@ -19,6 +19,8 @@
     <li><a href="#architecture"> ➤ 아키텍쳐</a></li>
     <li><a href="#tech"> ➤ 기술 스택</a></li>
     <li><a href="#directory"> ➤ 디렉토리 구조</a></li>
+    <li><a href="#trouble"> ➤ 트러블 슈팅</a></li>
+    <li><a href="#refactor"> ➤ 리팩토링</a></li>
     <li><a href="#api"> ➤ REST API 개요</a></li>
     <li><a href="#stocks"> ➤ /v1/stocks</a></li>
     <li><a href="#portfolio"> ➤ /v1/portfolio</a></li>
@@ -110,6 +112,18 @@
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
+<!-- 트러블 슈팅 -->
+<h2 id="trouble"> 🔸 트러블 슈팅</h2>
+
+
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+
+<!-- 리팩토링 -->
+<h2 id="refactor"> 🔸 리팩토링</h2>
+
+
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+
 <!-- api 개요 -->
 <h2 id="api"> REST API 개요</h2>
 
@@ -140,7 +154,6 @@
 <!-- main -->
 <h2 id="portfolio"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /portfolio</h2>
 
-
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
 |GET|/v1/portfolio|보유 포트폴리오 리스트 조회|
@@ -156,15 +169,12 @@
 <!-- main -->
 <h2 id="news"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /news</h2>
 
-
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
 |GET|/v1/news/user|나만의 뉴스 조회|
 
 <!-- game -->
 <h2 id="game"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /game</h2>
-
-<span style="width: 20; height:20; background-color=white;">
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
@@ -177,4 +187,3 @@
 |GET|/v1/game/result/stock|게임 내 종목 리스트 조회|
 |POST|/v1/game/result/save|게임 결과 저장|
 |GET|/v1/game/ranking|게임 랭킹 리스트 조회|
-
