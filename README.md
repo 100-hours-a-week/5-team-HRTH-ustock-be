@@ -17,8 +17,8 @@
   <summary>목차</summary>
   <ol>
     <li><a href="#architecture"> ➤ 아키텍쳐</a></li>
-    <li><a href="#api"> ➤ api 개요</a></li>
-    <li><a href="#stocks"> ➤ /v1/stocks</a></li>
+    <li><a href="#api"> ➤ api 개요</a></li>
+    <li><a href="#stocks"> ➤ /v1/stocks</a></li>
     <li><a href="#portfolio"> ➤ /v1/portfolio</a></li>
     <li><a href="#news"> ➤ /v1/news</a></li>
     <li><a href="#scheduler"> ➤ /v1/scheduler</a></li>
@@ -36,9 +36,9 @@
 
 <h3>기술 스택</h4>
 #기술 스택
-|분류|기술|
-|:---:|---|
-|Language|<img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=Java&logoColor=white">|
+| 분류 | 기술 |
+| :------: | --- |
+| Language | <img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=Java&logoColor=white"> |
 |Framework|<img src="https://img.shields.io/badge/Spring-6DB33F?style=for-the-badge&logo=Spring&logoColor=white"> <img src="https://img.shields.io/badge/Spring%20boot-6DB33F?style=for-the-badge&logo=Spring%20boot&logoColor=white"> <img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=Spring%20Security&logoColor=white">|
 |DB|<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white"> <img src="https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white"> <img src="https://img.shields.io/badge/JPQL-6DB33F?style=for-the-badge&logo=JPQL&logoColor=white"> <img src="https://img.shields.io/badge/redis-B71C1C?style=for-the-badge&logo=redis&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20ElastiCache-C925D1?style=for-the-badge&logo=amazonelasticache&logoColor=white">|
 |Server|<img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white"> <img src="https://img.shields.io/badge/nginx-green?style=for-the-badge&logo=nginx&logoColor=white">|
