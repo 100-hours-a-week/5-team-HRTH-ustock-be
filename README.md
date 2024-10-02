@@ -16,8 +16,8 @@
 <details open="open">
   <summary>목차</summary>
   <ol>
+    <li><a href="#project-files-description"> ➤ 프로젝트 실행</a></li>
     <li><a href="#architecture"> ➤ 아키텍쳐</a></li>
-    <li><a href="#project-files-description"> ➤ api 소개</a></li>
     <li><a href="#stocks"> ➤ /v1/stocks</a></li>
     <li><a href="#portfolio"> ➤ /v1/portfolio</a></li>
     <li><a href="#news"> ➤ /v1/news</a></li>
@@ -30,11 +30,19 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- 아키텍쳐 소개 -->
-<h2 id="architecture"> :small_orange_diamond: 아키텍쳐 소개</h2>
+<h2 id="architecture"> :small_orange_diamond: 프로젝트 실행</h2>
 
-<p align="justify"> 
+```
 
-</p>
+```
+
+```
+
+```
+
+```
+
+```
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
