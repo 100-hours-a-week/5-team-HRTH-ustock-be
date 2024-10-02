@@ -5,7 +5,7 @@
 <h3 align="center"> 뉴스 중심의 차트 분석 서비스 U'STOCK의 backend repository </h3>
 <h5 align="center"> 카카오테크부트캠프 클라우드 in JEJU 2팀 HRTH (2024-07-02 ~ 2024-10-11) </h5>
 
-# TODO: 프로젝트 영상 추가
+# TODO: 프로젝트 영상 추가?
 <p align="center"> 
   <img src="images/ustock demo.gif" alt="U'STOCK 시연 영상" height="282px" width="637">
 </p>
@@ -33,12 +33,12 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- 아키텍쳐 -->
-<h2 id="architecture"> :small_orange_diamond: 아키텍쳐</h2>
+<h2 id="architecture"> 🏙️ 아키텍쳐</h2>
 
 # DevOps 구조도 추가 예정 - tree 위 or 아래에 추가
 
 <!-- 기술 스택 -->
-<h2 id="tech"> :small_orange_diamond: 기술 스택</h2>
+<h2 id="tech"> 🔸 기술 스택</h2>
 
 | 분류 | 기술 |
 | :------: | --- |
@@ -113,19 +113,21 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- 트러블 슈팅 -->
-<h2 id="trouble"> 🔸 트러블 슈팅</h2>
+<h2 id="trouble"> 🪓 트러블 슈팅</h2>
+
+
 
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- 리팩토링 -->
-<h2 id="refactor"> 🔸 리팩토링</h2>
+<h2 id="refactor"> 🔧 리팩토링</h2>
 
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- api 개요 -->
-<h2 id="api"> REST API 개요</h2>
+<h2 id="api"> 📜 REST API 개요</h2>
 
 <h3>메인 서비스</h3>
 
@@ -144,7 +146,7 @@
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
-|<span style="background-color: #61affe" width="50px" height="20px">GET</span>|/v1/stocks|종목 순위 리스트|
+|GET|/v1/stocks|종목 순위 리스트|
 |GET|/v1/stocks/market|코스피, 코스닥 지수|
 |GET|/v1/stocks/search|종목 검색|
 |GET|/v1/stocks/{code}|종목 조회|
