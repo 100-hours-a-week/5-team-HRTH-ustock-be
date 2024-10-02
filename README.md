@@ -168,7 +168,7 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- main -->
-<h3 id="stocks"> <img src="images/unlock.256x256.png" height="30px" width="30px"/> /stocks</h3>
+<h3 id="stocks"> <img src="images/unlock.256x256.png" height="20px" width="20px"/> /stocks</h3>
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
@@ -180,7 +180,7 @@
 |GET|/v1/stocks/{code}/skrrr|스껄계산기|
 
 <!-- main -->
-<h3 id="portfolio"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /portfolio</h3>
+<h3 id="portfolio"> <img src="images/system-lock-screen.256x256.png" height="20px" width="20px"/> /portfolio</h3>
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
@@ -195,14 +195,14 @@
 |PATCH|/v1/portfolio/{pfid}/holding/{code}|포트폴리오 보유 여부 확인|
 
 <!-- main -->
-<h3 id="news"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /news</h3>
+<h3 id="news"> <img src="images/system-lock-screen.256x256.png" height="20px" width="20px"/> /news</h3>
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
 |GET|/v1/news/user|나만의 뉴스 조회|
 
 <!-- game -->
-<h3 id="game"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /game</h3>
+<h3 id="game"> <img src="images/system-lock-screen.256x256.png" height="20px" width="20px"/> /game</h3>
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
