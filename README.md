@@ -129,16 +129,46 @@
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
 |GET|/v1/stocks|종목 순위 리스트|
+|GET|/v1/stocks/market|코스피, 코스닥 지수|
+|GET|/v1/stocks/search|종목 검색|
 |GET|/v1/stocks/{code}|종목 조회|
+|GET|/v1/stocks/{code}/chart|차트 조회|
+|GET|/v1/stocks/{code}/skrrr|스껄계산기|
 
 <!-- main -->
-<h2 id="stocks"> <img src="images/springsecurity.png" height="40px" width="40px"/> /portfolio</h2>
+<h2 id="portfolio"> <img src="images/springsecurity.png" height="40px" width="40px"/> /portfolio</h2>
 
+
+|메소드|엔드포인트|설명|
+|:---:|:---|:---|
+|GET|/v1/portfolio|보유 포트폴리오 리스트 조회|
+|POST|/v1/portfolio|포트폴리오 생성|
+|GET|/v1/portfolio/{pfid}|포트폴리오 조회|
+|GET|/v1/portfolio/{pfid}|포트폴리오 삭제|
+|DELETE|/v1/portfolio/{pfid}/holding/{code}|종목 수정|
+|PUT|/v1/portfolio/{pfid}/holding/{code}|종목 매수|
+|POST|/v1/portfolio/{pfid}/holding/{code}|보유 종목 삭제|
+|DELETE|/v1/portfolio/{pfid}/holding/{code}|종목 추가 매수|
+|PATCH|/v1/portfolio/{pfid}/holding/{code}|포트폴리오 보유 여부 확인|
 
 <!-- main -->
-<h2 id="stocks"> :small_orange_diamond: /news</h2>
+<h2 id="news"> <img src="images/springsecurity.png" height="40px" width="40px"/> /news</h2>
+
+
+|메소드|엔드포인트|설명|
+|:---:|:---|:---|
+|GET|/v1/news/user|나만의 뉴스 조회|
 
 <!-- game -->
-<h2 id="stocks"> :small_orange_diamond: /game</h2>
+<h2 id="game"> :small_orange_diamond: /game</h2>
 
+
+|메소드|엔드포인트|설명|
+|:---:|:---|:---|
+|GET|/v1/stocks|종목 순위 리스트|
+|GET|/v1/stocks/market|코스피, 코스닥 지수|
+|GET|/v1/stocks/search|종목 검색|
+|GET|/v1/stocks/{code}|종목 조회|
+|GET|/v1/stocks/{code}/chart|차트 조회|
+|GET|/v1/stocks/{code}/skrrr|스껄계산기|
 
