@@ -126,7 +126,7 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- main -->
-<h2 id="stocks"> :small_orange_diamond: /stocks</h2>
+<h2 id="stocks"> <img src="images/unlock.256x256.png" height="30px" width="30px"/> /stocks</h2>
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
@@ -162,7 +162,7 @@
 |GET|/v1/news/user|나만의 뉴스 조회|
 
 <!-- game -->
-<h2 id="game"> :small_orange_diamond: /game</h2>
+<h2 id="game"> <img src="images/springsecurity.png" height="30px" width="30px"/> /game</h2>
 
 
 |메소드|엔드포인트|설명|
