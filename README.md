@@ -49,7 +49,7 @@
 |DB|<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white"> <img src="https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white"> <img src="https://img.shields.io/badge/redis-B71C1C?style=for-the-badge&logo=redis&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20ElastiCache-C925D1?style=for-the-badge&logo=amazonelasticache&logoColor=white">|
 |Server|<img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white"> <img src="https://img.shields.io/badge/nginx-green?style=for-the-badge&logo=nginx&logoColor=white">|
 |DevOps|<img src="https://img.shields.io/badge/docker-0066ff?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/docker%20compose-0099ff?style=for-the-badge&logo=docker_compose&logoColor=white"> <img src="https://img.shields.io/badge/Github%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">|
-|Monitoring|<img src="https://img.shields.io/badge/Grafana-f46800?style=for-the-badge&logo=Grafana&logoColor=white"> <img src="https://img.shields.io/badge/Loki-f46800?style=for-the-badge&logo=&logoColor=white"> <img src="https://img.shields.io/badge/Promtail-f46800?style=for-the-badge&logo=&logoColor=white"> <img src="https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white">|
+|Monitoring|<img src="https://img.shields.io/badge/Grafana-f46800?style=for-the-badge&logo=Grafana&logoColor=white"> <img src="https://img.shields.io/badge/Loki-f46800?style=for-the-badge&logo=&logoColor=white"> <img src="https://img.shields.io/badge/Promtail-f46800?style=for-the-badge&logo=&logoColor=white"> <img src="https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white"> <img src="https://img.shields.io/badge/Sentry-362d59?style=for-the-badge&logo=Sentry&logoColor=white">|
 
 <hr>
 <!-- BE 디렉토리 구조 -->
@@ -117,19 +117,25 @@
 <!-- 트러블 슈팅 -->
 <h2 id="trouble"> 💡 기술적 어려움 및 트러블 슈팅</h2>
 
-<h3> 🔸 종목 검색 최적화</h3>
-
-<hr>
 <h3> 🔸 토큰 값 불일치</h3>
+<p align="justify">
+  OAuth2 로직을 구현할 때 api 요청시 항상 token을 refresh 하도록 구현하였다.
+</p>
 
 <hr>
 <h3> 🔸 API 20회 제한</h3>
 
 <hr>
-<h3> 🔸 게임 AI 응답값 문제</h3>
+<h3> 🔸 중복된 뉴스 데이터 처리</h3>
 
 <hr>
-<h3> 🔸 중복된 뉴스 데이터 처리</h3>
+<h3> 🔸 뉴스 데이터 편향 문제</h3>
+
+<hr>
+<h3> 🔸 게임정보 저장 문제</h3>
+
+<hr>
+<h3> 🔸 게임 AI 응답값 문제</h3>
 
 <hr>
 <h3> 🔸 </h3>
@@ -146,6 +152,24 @@
 
 <hr>
 <h3> 🔸 모니터링 툴 도입</h3>
+
+<hr>
+<h3> 🔸 Swagger 도입</h3>
+
+<hr>
+<h3> 🔸 스케줄러 도입</h3> 
+
+<hr>
+<h3> 🔸 종목 코드와 종목명 둘 다 검색</h3>
+
+<hr>
+<h3> 🔸 종목 검색 최적화</h3>
+
+<hr>
+<h3> 🔸 쿼리 최적화</h3>
+
+<hr>
+<h3> 🔸 Redis 직렬화/역직렬화</h3>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
