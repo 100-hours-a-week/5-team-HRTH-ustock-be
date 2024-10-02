@@ -46,8 +46,6 @@
 |Server|<img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white"> <img src="https://img.shields.io/badge/nginx-green?style=for-the-badge&logo=nginx&logoColor=white">|
 |DevOps|<img src="https://img.shields.io/badge/docker-0066ff?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/docker%20compose-0099ff?style=for-the-badge&logo=docker_compose&logoColor=white"> <img src="https://img.shields.io/badge/Github%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">|
 
-![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
-
 <!-- BE 디렉토리 구조 -->
 <h2 id="directory"> :small_orange_diamond: 디렉토리 구조</h2>
 
@@ -111,7 +109,7 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- api 개요 -->
-<h2 id="api"> :small_orange_diamond: api 개요</h2>
+<h2 id="api"> <img src="https://img.shields.io/badge/REST%20API-008FC7?style=for-the-badge&logo=&logoColor=white"/> api 개요</h2>
 
 <h3>메인 서비스</h3>
 
@@ -128,12 +126,10 @@
 <!-- main -->
 <h2 id="stocks"> :small_orange_diamond: /stocks</h2>
 
-![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- main -->
 <h2 id="stocks"> <img src="images/springsecurity.png" height="40px" width="40px"/> /portfolio</h2>
 
-![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- main -->
 <h2 id="stocks"> :small_orange_diamond: /news</h2>
