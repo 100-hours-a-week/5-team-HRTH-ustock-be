@@ -33,20 +33,6 @@
 
 ```
   .
-  ├── Dockerfile
-  ├── HELP.md
-  ├── README.md
-  ├── build.gradle
-  ├── gradle
-  │   └── wrapper
-  │       ├── gradle-wrapper.jar
-  │       └── gradle-wrapper.properties
-  ├── gradlew
-  ├── gradlew.bat
-  ├── images
-  │   ├── README.md
-  │   └── ustock logo.webp
-  ├── settings.gradle
   └── src
       └── main
           └── java
