@@ -138,7 +138,7 @@
 |GET|/v1/stocks/{code}/skrrr|스껄계산기|
 
 <!-- main -->
-<h2 id="portfolio"> <img src="images/springsecurity.png" height="30px" width="30px"/> /portfolio</h2>
+<h2 id="portfolio"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /portfolio</h2>
 
 
 |메소드|엔드포인트|설명|
@@ -154,7 +154,7 @@
 |PATCH|/v1/portfolio/{pfid}/holding/{code}|포트폴리오 보유 여부 확인|
 
 <!-- main -->
-<h2 id="news"> <img src="images/springsecurity.png" height="30px" width="30px"/> /news</h2>
+<h2 id="news"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /news</h2>
 
 
 |메소드|엔드포인트|설명|
@@ -162,7 +162,7 @@
 |GET|/v1/news/user|나만의 뉴스 조회|
 
 <!-- game -->
-<h2 id="game"> <img src="images/springsecurity.png" height="30px" width="30px"/> /game</h2>
+<h2 id="game"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /game</h2>
 
 
 |메소드|엔드포인트|설명|
