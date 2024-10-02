@@ -164,6 +164,7 @@
 <!-- game -->
 <h2 id="game"> <img src="images/system-lock-screen.256x256.png" height="30px" width="30px"/> /game</h2>
 
+<span style="width: 20; height:20; background-color=white;">
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
