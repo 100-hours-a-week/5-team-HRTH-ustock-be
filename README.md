@@ -125,7 +125,8 @@
 
 <!-- main -->
 <h2 id="stocks"> :small_orange_diamond: /stocks</h2>
-<button aria-expanded="true" class="opblock-summary-control"><span class="opblock-summary-method">GET</span><div class="opblock-summary-path-description-wrapper"><span class="opblock-summary-path" data-path="/v1/news/user"><a class="nostyle" href="#/News/myHoldingsNews"><span>/v1<wbr>/news<wbr>/user</span></a></span><div class="opblock-summary-description">나만의 뉴스 조회</div></div></button>
+<span background="#61affe" border-radius="3px" font-weight="700" min-width="80px" align="center">GET</span>
+  <div class="opblock-summary-path-description-wrapper"><span class="opblock-summary-path" data-path="/v1/news/user"><a class="nostyle" href="#/News/myHoldingsNews"><span>/v1<wbr>/news<wbr>/user</span></a></span><div class="opblock-summary-description">나만의 뉴스 조회</div></div>
 
 <!-- main -->
 <h2 id="stocks"> <img src="images/springsecurity.png" height="40px" width="40px"/> /portfolio</h2>
