@@ -30,7 +30,7 @@
 
 <!-- 아키텍쳐 -->
 <h2 id="architecture"> :small_orange_diamond: 아키텍쳐 소개</h2>
-```
+
 📦5-HRTH-ustock-be
  ┣ 📂src
  ┃ ┣ 📂main
@@ -139,7 +139,7 @@
  ┣ 📜gradlew
  ┣ 📜gradlew.bat
  ┗ 📜settings.gradle
-```
+
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
