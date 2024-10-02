@@ -31,9 +31,7 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- 서비스 소개 -->
-<h2 id="about-the-project"> :pencil: 서비스 소개</h2>
-
-<h3>📈 뉴스 중심의 차트 분석 서비스, U'STOCK을 소개합니다 🚀</h3>
+<h2 id="about-the-project">📈 뉴스 중심의 차트 분석 서비스, U'STOCK을 소개합니다 🚀</h3>
 <p align="justify"> 
 
 주식을 거래를 하고 계신 여러분, "아 그 때 살걸~ 아 그 때 팔걸 ~" 을 외치는 껄무새 한 마리쯤 마음 속에 품고 계시지 않습니까?
