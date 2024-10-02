@@ -30,7 +30,7 @@
 
 <!-- 아키텍쳐 -->
 <h2 id="architecture"> :small_orange_diamond: 아키텍쳐 소개</h2>
-<p>
+```
   .
   ├── Dockerfile
   ├── HELP.md
@@ -99,7 +99,7 @@
                           │   ├── game
                           │   └── main
                           └── util
-</p>
+```
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
