@@ -141,118 +141,197 @@
  ┗ 📜settings.gradle
 </p>
 <p align="justify">
-.
-├── Dockerfile
-├── HELP.md
-├── README.md
-├── build.gradle
-├── gradle
-│   └── wrapper
-│       ├── gradle-wrapper.jar
-│       └── gradle-wrapper.properties
-├── gradlew
-├── gradlew.bat
-├── settings.gradle
-└── src
-    ├── main
-        ├── java
-        │   └── com
-        │       └── hrth
-        │           └── ustock
-        │               ├── UstockApplication.java
-        │               ├── config
-        │               │   ├── AppConfig.java
-        │               │   ├── CorsMvcConfig.java
-        │               │   ├── RedisRepositoryConfig.java
-        │               │   ├── SecurityConfig.java
-        │               │   └── SentryConfiguration.java
-        │               ├── controller
-        │               │   ├── CronController.java
-        │               │   ├── HealthController.java
-        │               │   ├── NewsController.java
-        │               │   ├── PortfolioController.java
-        │               │   ├── StockController.java
-        │               │   └── UserController.java
-        │               ├── dto
-        │               │   ├── chart
-        │               │   │   ├── ChartDto.java
-        │               │   │   └── ChartResponseDto.java
-        │               │   ├── holding
-        │               │   │   ├── HoldingEmbedDto.java
-        │               │   │   └── HoldingRequestDto.java
-        │               │   ├── news
-        │               │   │   ├── NewsEmbedDto.java
-        │               │   │   ├── NewsRequestDto.java
-        │               │   │   └── NewsResponseDto.java
-        │               │   ├── oauth2
-        │               │   │   ├── CustomOAuth2User.java
-        │               │   │   ├── GoogleResponse.java
-        │               │   │   ├── OAuth2Response.java
-        │               │   │   ├── UserOauthDto.java
-        │               │   │   └── UserResponseDto.java
-        │               │   ├── portfolio
-        │               │   │   ├── PortfolioEmbedDto.java
-        │               │   │   ├── PortfolioListDto.java
-    │   │               │   │   ├── PortfolioRequestDto.java
-    │   │               │   │   ├── PortfolioResponseDto.java
-    │   │               │   │   └── PortfolioUpdateDto.java
-    │   │               │   └── stock
-    │   │               │       ├── MarketResponseDto.java
-    │   │               │       ├── SkrrrCalculatorRequestDto.java
-    │   │               │       ├── SkrrrCalculatorResponseDto.java
-    │   │               │       ├── StockDto.java
-    │   │               │       ├── StockListDTO.java
-    │   │               │       └── StockResponseDto.java
-    │   │               ├── entity
-    │   │               │   ├── User.java
-    │   │               │   └── portfolio
-    │   │               │       ├── Chart.java
-    │   │               │       ├── Holding.java
-    │   │               │       ├── News.java
-    │   │               │       ├── Portfolio.java
-    │   │               │       └── Stock.java
-    │   │               ├── exception
-    │   │               │   ├── ChartNotFoundException.java
-    │   │               │   ├── CurrentNotFoundException.java
-    │   │               │   ├── HoldingNotFoundException.java
-    │   │               │   ├── InputNotValidException.java
-    │   │               │   ├── PortfolioNotFoundException.java
-    │   │               │   ├── StockNotFoundException.java
-    │   │               │   ├── StockNotPublicException.java
-    │   │               │   └── UserNotFoundException.java
-    │   │               ├── jwt
-    │   │               │   ├── CustomLogoutFilter.java
-    │   │               │   ├── JWTFilter.java
-    │   │               │   └── JWTUtil.java
-    │   │               ├── oauth2
-    │   │               │   ├── CustomSuccessHandler.java
-    │   │               │   └── OAuth2FailureHandler.java
-    │   │               ├── repository
-    │   │               │   ├── ChartRepository.java
-    │   │               │   ├── HoldingRepository.java
-    │   │               │   ├── NewsRepository.java
-    │   │               │   ├── PortfolioRepository.java
-    │   │               │   ├── StockRepository.java
-    │   │               │   └── UserRepository.java
-    │   │               ├── service
-    │   │               │   ├── CustomOAuth2UserService.java
-    │   │               │   ├── NewsService.java
-    │   │               │   ├── PortfolioService.java
-    │   │               │   ├── StockService.java
-    │   │               │   ├── StockServiceConst.java
-    │   │               │   └── cron
-    │   │               │       └── StockCronService.java
-    │   │               └── util
-    │   │                   ├── DateConverter.java
-    │   │                   ├── KisApiAuthManager.java
-    │   │                   ├── RedisJsonManager.java
-    │   │                   ├── RedisTTLCalculator.java
-    │   │                   └── TimeDelay.java
-    │   └── resources
-    │       ├── application.yml
-    │       ├── static
-    │       └── template
-
+  .
+  ├── Dockerfile
+  ├── HELP.md
+  ├── README.md
+  ├── build.gradle
+  ├── gradle
+  │   └── wrapper
+  │       ├── gradle-wrapper.jar
+  │       └── gradle-wrapper.properties
+  ├── gradlew
+  ├── gradlew.bat
+  ├── images
+  │   ├── README.md
+  │   └── ustock logo.webp
+  ├── settings.gradle
+  └── src
+      └── main
+          └── java
+              └── com
+                  └── hrth
+                      └── ustock
+                          ├── UstockApplication.java
+                          ├── config
+                          │   ├── AppConfig.java
+                          │   ├── CorsMvcConfig.java
+                          │   ├── RedisRepositoryConfig.java
+                          │   ├── SchedulerConfig.java
+                          │   ├── SecurityConfig.java
+                          │   ├── SentryConfiguration.java
+                          │   └── SwaggerConfig.java
+                          ├── controller
+                          │   ├── api
+                          │   │   ├── GameApi.java
+                          │   │   ├── NewsApi.java
+                          │   │   ├── PortfolioApi.java
+                          │   │   ├── StockApi.java
+                          │   │   └── UserApi.java
+                          │   ├── common
+                          │   │   ├── CronController.java
+                          │   │   ├── HealthController.java
+                          │   │   └── UserController.java
+                          │   ├── game
+                          │   │   └── GameController.java
+                          │   └── main
+                          │       ├── NewsController.java
+                          │       ├── PortfolioController.java
+                          │       └── StockController.java
+                          ├── dto
+                          │   ├── game
+                          │   │   ├── ai
+                          │   │   │   ├── GameAiSelectDto.java
+                          │   │   │   └── GameAiStockDto.java
+                          │   │   ├── hint
+                          │   │   │   ├── GameHintRequestDto.java
+                          │   │   │   └── GameHintResponseDto.java
+                          │   │   ├── interim
+                          │   │   │   └── GameInterimResponseDto.java
+                          │   │   ├── redis
+                          │   │   │   ├── GameHintCheckDto.java
+                          │   │   │   ├── GameHoldingsInfoDto.java
+                          │   │   │   ├── GameStocksRedisDto.java
+                          │   │   │   └── GameUserInfoDto.java
+                          │   │   ├── result
+                          │   │   │   ├── GameRankingDto.java
+                          │   │   │   ├── GameResultChartDto.java
+                          │   │   │   ├── GameResultNewsDto.java
+                          │   │   │   ├── GameResultResponseDto.java
+                          │   │   │   ├── GameResultStockDto.java
+                          │   │   │   └── GameYearlyResultDto.java
+                          │   │   ├── stock
+                          │   │   │   ├── GameStockInfoResponseDto.java
+                          │   │   │   └── GameTradeRequestDto.java
+                          │   │   └── user
+                          │   │       └── GameUserResponseDto.java
+                          │   ├── main
+                          │   │   ├── chart
+                          │   │   │   ├── ChartDto.java
+                          │   │   │   └── ChartResponseDto.java
+                          │   │   ├── holding
+                          │   │   │   ├── HoldingEmbedDto.java
+                          │   │   │   └── HoldingRequestDto.java
+                          │   │   ├── news
+                          │   │   │   ├── NewsEmbedDto.java
+                          │   │   │   └── NewsResponseDto.java
+                          │   │   ├── portfolio
+                          │   │   │   ├── PortfolioEmbedDto.java
+                          │   │   │   ├── PortfolioListDto.java
+                          │   │   │   ├── PortfolioRequestDto.java
+                          │   │   │   ├── PortfolioResponseDto.java
+                          │   │   │   └── PortfolioUpdateDto.java
+                          │   │   └── stock
+                          │   │       ├── AllMarketResponseDto.java
+                          │   │       ├── MarketResponseDto.java
+                          │   │       ├── SkrrrCalculatorRequestDto.java
+                          │   │       ├── SkrrrCalculatorResponseDto.java
+                          │   │       └── StockResponseDto.java
+                          │   └── oauth2
+                          │       ├── CustomOAuth2User.java
+                          │       ├── GoogleResponse.java
+                          │       ├── OAuth2Response.java
+                          │       ├── UserOauthDto.java
+                          │       └── UserResponseDto.java
+                          ├── entity
+                          │   ├── game
+                          │   │   ├── GameActing.java
+                          │   │   ├── GameHint.java
+                          │   │   ├── GameNews.java
+                          │   │   ├── GameResult.java
+                          │   │   ├── GameStockIndustry.java
+                          │   │   ├── GameStockInfo.java
+                          │   │   ├── GameStockYearly.java
+                          │   │   ├── HintLevel.java
+                          │   │   └── PlayerType.java
+                          │   └── main
+                          │       ├── Chart.java
+                          │       ├── Holding.java
+                          │       ├── News.java
+                          │       ├── Portfolio.java
+                          │       ├── Stock.java
+                          │       └── User.java
+                          ├── exception
+                          │   ├── common
+                          │   │   ├── CustomException.java
+                          │   │   ├── CustomExceptionType.java
+                          │   │   ├── ExceptionResponse.java
+                          │   │   └── GlobalExceptionHandler.java
+                          │   ├── domain
+                          │   │   ├── chart
+                          │   │   │   ├── ChartException.java
+                          │   │   │   └── ChartExceptionType.java
+                          │   │   ├── game
+                          │   │   │   ├── GameException.java
+                          │   │   │   └── GameExceptionType.java
+                          │   │   ├── portfolio
+                          │   │   │   ├── PortfolioException.java
+                          │   │   │   └── PortfolioExceptionType.java
+                          │   │   ├── stock
+                          │   │   │   ├── StockException.java
+                          │   │   │   └── StockExceptionType.java
+                          │   │   └── user
+                          │   │       ├── UserException.java
+                          │   │       └── UserExceptionType.java
+                          │   ├── kisapi
+                          │   │   ├── KisApiException.java
+                          │   │   └── KisApiExceptionType.java
+                          │   └── redis
+                          │       ├── RedisException.java
+                          │       └── RedisExceptionType.java
+                          ├── jwt
+                          │   ├── CustomLogoutFilter.java
+                          │   ├── JWTFilter.java
+                          │   └── JWTUtil.java
+                          ├── oauth2
+                          │   ├── CustomSuccessHandler.java
+                          │   └── OAuth2FailureHandler.java
+                          ├── repository
+                          │   ├── UserRepository.java
+                          │   ├── game
+                          │   │   ├── GameHintRepository.java
+                          │   │   ├── GameNewsRepository.java
+                          │   │   ├── GameResultRepository.java
+                          │   │   ├── GameStockInfoRepository.java
+                          │   │   └── GameStockYearlyRepository.java
+                          │   └── main
+                          │       ├── ChartBatchRepository.java
+                          │       ├── ChartRepository.java
+                          │       ├── HoldingRepository.java
+                          │       ├── NewsRepository.java
+                          │       ├── PortfolioRepository.java
+                          │       └── StockRepository.java
+                          ├── service
+                          │   ├── auth
+                          │   │   ├── CustomOAuth2UserService.java
+                          │   │   └── CustomUserService.java
+                          │   ├── cron
+                          │   │   └── StockCronService.java
+                          │   ├── game
+                          │   │   ├── GameAiService.java
+                          │   │   ├── GameInfoConst.java
+                          │   │   ├── GamePlayService.java
+                          │   │   └── GameRankingService.java
+                          │   └── main
+                          │       ├── NewsService.java
+                          │       ├── PortfolioService.java
+                          │       ├── StockService.java
+                          │       └── StockServiceConst.java
+                          └── util
+                              ├── DateConverter.java
+                              ├── KisApiAuthManager.java
+                              ├── RedisJsonManager.java
+                              └── TimeDelay.java
 </p>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
