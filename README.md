@@ -30,9 +30,7 @@
 
 <!-- 아키텍쳐 -->
 <h2 id="architecture"> :small_orange_diamond: 아키텍쳐 소개</h2>
-<p align="justify">
-
-<p align="justify">
+<p>
   .
   ├── Dockerfile
   ├── HELP.md
