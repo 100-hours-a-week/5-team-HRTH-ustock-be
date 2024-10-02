@@ -115,13 +115,13 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- 트러블 슈팅 -->
-<h2 id="trouble"> 💡 기술적 어려움 및 트러블 슈팅</h2>
+<h2 id="trouble"> 💡 기술적 한계 및 트러블 슈팅</h2>
 
 <h3> 🔸 API 20회 제한</h3>
 
 ```
 - 한국투자증권 API는 초당 20회 요청 제한이 있음
-- 해당 API를 데이터 크롤링, 과거 종목가격 확인 2곳에서 사용하는 중
+- 해당 API를 데이터 asdf, 과거 종목가격 확인 2곳에서 사용하는 중
 ```
 
 <hr>
