@@ -130,7 +130,7 @@
 
 |메소드|엔드포인트|설명|
 |:---:|:---|:---|
-|<span style="background-color: #61affe">GET</span>|/v1/stocks|종목 순위 리스트|
+|<span style="background-color: #61affe" width="50" height="20">GET</span>|/v1/stocks|종목 순위 리스트|
 |GET|/v1/stocks/market|코스피, 코스닥 지수|
 |GET|/v1/stocks/search|종목 검색|
 |GET|/v1/stocks/{code}|종목 조회|
