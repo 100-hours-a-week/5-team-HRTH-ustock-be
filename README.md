@@ -19,7 +19,7 @@
     <li><a href="#architecture"> ➤ 아키텍쳐</a></li>
     <li><a href="#tech"> ➤ 기술 스택</a></li>
     <li><a href="#directory"> ➤ 디렉토리 구조</a></li>
-    <li><a href="#api"> ➤ api 개요</a></li>
+    <li><a href="#api"> ➤ REST API 개요</a></li>
     <li><a href="#stocks"> ➤ /v1/stocks</a></li>
     <li><a href="#portfolio"> ➤ /v1/portfolio</a></li>
     <li><a href="#news"> ➤ /v1/news</a></li>
@@ -109,7 +109,7 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- api 개요 -->
-<h2 id="api"> <img src="https://img.shields.io/badge/REST%20API-008FC7?style=for-the-badge&logo=&logoColor=white"/> api 개요</h2>
+<h2 id="api"> REST API 개요</h2>
 
 <h3>메인 서비스</h3>
 
@@ -133,8 +133,6 @@
 
 <!-- main -->
 <h2 id="stocks"> :small_orange_diamond: /news</h2>
-
-![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 <!-- game -->
 <h2 id="stocks"> :small_orange_diamond: /game</h2>
