@@ -35,7 +35,7 @@
 <!-- 아키텍쳐 -->
 <h2 id="architecture"> 🏙️ 아키텍쳐</h2>
 
-<img src="images/be-architecture.png"/>
+<img src="images/be-architecture-spring.png"/>
 
 # DevOps 구조도 추가 예정 - tree 위 or 아래에 추가
 
