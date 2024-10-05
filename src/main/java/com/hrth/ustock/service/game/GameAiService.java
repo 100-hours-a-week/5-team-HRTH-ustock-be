@@ -103,8 +103,6 @@ public class GameAiService {
             buyInfoMap.put(ai.getNickname(), requestMap);
         }
 
-        log.info("buyInfoMap: {}", buyInfoMap);
-
         return buyInfoMap;
     }
 
@@ -117,8 +115,6 @@ public class GameAiService {
             AiInformation aiInformation = getAiInformation(ai);
             sellInfoMap.put(ai.getNickname(), aiInformation);
         }
-
-        log.info("sellInfoMap: {}", sellInfoMap);
 
         return sellInfoMap;
     }
@@ -168,7 +164,6 @@ public class GameAiService {
 
         ChatResponse response = openAiChatModel.call(new Prompt(List.of(systemMessage, userMessage), chatModel));
         String responseJson = response.getResult().getOutput().getContent();
-        log.info("responseJson: {}", responseJson);
 
         if (responseJson.startsWith("```"))
             responseJson = responseJson.replace("```", "").replace("json", "");

@@ -180,6 +180,11 @@ public class GamePlayService {
             case BUY -> buyHolding(userId, stockId, quantity, playerId);
             case SELL -> sellHolding(userId, stockId, quantity, playerId);
         }
+
+        if (playerId == 0) {
+            userRepository.findById(userId)
+                    .ifPresent(user -> log.info("id: {}, name: {}, trade: {}", userId, user.getProviderName(), requestDto));
+        }
     }
 
     public GameHintResponseDto getSingleHint(long userId, long stockId, HintLevel hintLevel) {
@@ -597,7 +602,7 @@ public class GamePlayService {
         List<String> adjectives = new ArrayList<>(List.of(
                 "주식왕", "주린이", "파산각", "인생역전", "지갑텅텅", "가보자고", "잔고파괴왕",
                 "이걸지네", "이게되네", "운빨왕", "주식바보", "주식천재", "존버왕", "재능충", "웃음만개", "미소왕",
-                "울지마", "껄무새", "우상향", "우량주", "아살껄", "아팔껄", "귀요미", "테마주", "팔랑귀", "왜안돼요"
+                "울지마", "껄무새", "우상향", "우량주", "아살껄", "아팔껄", "귀요미", "테마주", "팔랑귀"
         ));
 
         List<String> names = new ArrayList<>(List.of(
@@ -633,7 +638,7 @@ public class GamePlayService {
                 case "루시" -> "왜안돼요 루시";
                 case "베로니카" -> "GOD 베로니카";
                 case "엘" -> "테트리스킹 엘";
-                case "케빈" -> "그냥 케빈";
+                case "케빈" -> "그냥 케빈유";
                 default -> "";
             };
 

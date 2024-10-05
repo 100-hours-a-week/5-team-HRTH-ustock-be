@@ -31,7 +31,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ExceptionResponse> handleCustomException(CustomException ex) {
         Sentry.captureException(ex);
-        log.warn(ex.getMessage(), ex);
+
+        log.info(ex.getMessage());
+        for (StackTraceElement element : ex.getStackTrace()) {
+            if (element.getClassName().startsWith("com.hrth.ustock"))
+                log.info(element.toString());
+        }
 
         CustomExceptionType exceptionType = ex.getExceptionType();
         return ResponseEntity
