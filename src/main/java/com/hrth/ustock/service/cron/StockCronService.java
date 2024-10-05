@@ -11,7 +11,6 @@ import com.hrth.ustock.repository.main.StockRepository;
 import com.hrth.ustock.util.DateConverter;
 import com.hrth.ustock.util.KisApiAuthManager;
 import com.hrth.ustock.util.RedisJsonManager;
-import com.hrth.ustock.util.TimeDelay;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -110,8 +109,6 @@ public class StockCronService {
 
             String jsonString = redisJsonManager.mapStringConvert(chart);
             redisTemplate.opsForHash().put(code, REDIS_CHART_KEY, jsonString);
-
-            TimeDelay.delay(200);
         }
         log.info("현재가 크론잡 종료");
     }
@@ -212,8 +209,6 @@ public class StockCronService {
                     .build();
 
             chartList.add(chart);
-
-            TimeDelay.delay(100);
         }
         chartBatchRepository.batchInsert(chartList);
         log.info("차트 크론잡 종료");
