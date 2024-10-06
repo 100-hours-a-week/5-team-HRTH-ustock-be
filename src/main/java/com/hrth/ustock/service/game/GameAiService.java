@@ -49,7 +49,7 @@ public class GameAiService {
         for (int i = 1; i <= NUMBERS_OF_AI; i++) {
             String aiNickname = playerList.get(i).getNickname();
             if (sellResponse.get(aiNickname).toString().equals("{}")) {
-                continue;
+                sellResponse.put(aiNickname, new HashMap<>());
             }
 
             List<GameAiStockDto> stocks = ((List<Map<String, Object>>) sellResponse.get(aiNickname)).stream()
@@ -67,7 +67,7 @@ public class GameAiService {
         for (int i = 1; i <= NUMBERS_OF_AI; i++) {
             String aiNickname = playerList.get(i).getNickname();
             if (buyResponse.get(aiNickname).toString().equals("{}")) {
-                continue;
+                buyResponse.put(aiNickname, new HashMap<>());
             }
 
             Map<String, Object> buyMap = (Map<String, Object>) buyResponse.get(aiNickname);
