@@ -201,7 +201,8 @@
 <h3> 🔸 전역 예외처리 (AOP)</h3>
 
 ```
-- Controller에서 try-catch로 처리하던 방식에서 
+- Controller에서 try-catch로 처리하니 컨트롤러 코드가 복잡해짐
+- AOP를 활용한 전역 예외처리 코드를 도입
 ```
 
 <hr>
