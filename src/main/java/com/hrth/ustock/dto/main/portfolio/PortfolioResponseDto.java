@@ -10,14 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class PortfolioResponseDto {
     private String name;
     private long budget;
     private long principal;
-    private long ret;
-    private double ror;
+    private long profit;
+    private double profitRate;
     private List<HoldingEmbedDto> stocks = new ArrayList<>();
 }

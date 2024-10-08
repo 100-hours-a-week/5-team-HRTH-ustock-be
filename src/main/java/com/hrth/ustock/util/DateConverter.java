@@ -1,17 +1,34 @@
 package com.hrth.ustock.util;
 
 import org.springframework.data.util.Pair;
+import org.springframework.stereotype.Component;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class DateConverter {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+    private static final DateTimeFormatter redisFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd/HH/mm");
+
+    public String minuteFormatter(int addMinute) {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+
+        // 현재 분을 00분 또는 30분으로 맞춤
+        int minute = now.getMinute() + addMinute;
+        if (minute >= 30) {
+            now = now.withMinute(30);
+        } else {
+            now = now.withMinute(0);
+        }
+        return now.format(redisFormatter);
+    }
 
     public List<Pair<String, String>> getDailyRanges(String start, String end) {
         List<Pair<String, String>> ranges = new ArrayList<>();

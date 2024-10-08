@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.game;
+package com.hrth.ustock.dto.game.result;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameHintResponseDto {
-    private String hint;
+public class GameResultChartDto {
+    private String x;
+    private int y;
 }

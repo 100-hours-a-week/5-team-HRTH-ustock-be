@@ -1,5 +1,7 @@
 package com.hrth.ustock.entity.game;
 
+import com.hrth.ustock.dto.game.result.GameRankingDto;
+import com.hrth.ustock.entity.main.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,11 +22,20 @@ public class GameResult {
 
     private long budget;
 
-    @Column(name = "player_type")
-    @Enumerated(EnumType.STRING)
-    private PlayerType playerType;
+    private String nickname;
 
     @ManyToOne
-    @JoinColumn(name = "game_id")
-    private GameInfo gameInfo;
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    public GameRankingDto toDto() {
+        final long START_BUDGET = 500_000L;
+
+        return GameRankingDto.builder()
+                .userId(user.getUserId())
+                .nickname(nickname)
+                .total(budget)
+                .profitRate((double) (budget - START_BUDGET) / START_BUDGET * 100)
+                .build();
+    }
 }

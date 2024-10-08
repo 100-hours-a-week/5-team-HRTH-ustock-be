@@ -1,6 +1,6 @@
-package com.hrth.ustock.dto.game;
+package com.hrth.ustock.dto.game.user;
 
-import com.hrth.ustock.entity.game.PlayerType;
+import com.hrth.ustock.dto.game.redis.GameHoldingsInfoDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,12 +12,15 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameInterimResponseDto {
+public class GameUserResponseDto {
+    // TODO: 디버깅이 종료되면 year 삭제
+    private int year;
+    private String nickname;
+    private long total;
     private long budget;
     private long changeFromLast;
     private double changeRateFromLast;
     private long changeFromStart;
     private double changeRateFromStart;
-    private PlayerType playerType;
-    private List<GameHoldingDto> holdingList;
+    private List<GameHoldingsInfoDto> holdingList;
 }

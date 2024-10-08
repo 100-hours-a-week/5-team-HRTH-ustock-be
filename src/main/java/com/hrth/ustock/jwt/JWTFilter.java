@@ -24,8 +24,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
     public static final long ACCESS_EXPIRE = 600000L;
-    public static final long REFRESH_EXPIRE = 86400000L;
-    public static final int COOKIE_EXPIRE = 360000;
+    public static final long REFRESH_EXPIRE = 604800000L;
+    public static final int COOKIE_EXPIRE = (int) TimeUnit.MILLISECONDS.toSeconds(REFRESH_EXPIRE);
 
     private final String domain;
     private final JWTUtil jwtUtil;
@@ -65,6 +65,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 log.info("access category not match, url: {}", request.getRequestURL());
                 PrintWriter writer = response.getWriter();
                 writer.print("access category not match");
+                response.addCookie(setLogoutCookie("access"));
 
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
@@ -75,6 +76,8 @@ public class JWTFilter extends OncePerRequestFilter {
                 log.info("refresh not valid, url: {}", request.getRequestURL());
                 PrintWriter writer = response.getWriter();
                 writer.print("refresh not valid");
+                response.addCookie(setLogoutCookie("access"));
+                response.addCookie(setLogoutCookie("refresh"));
 
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
@@ -132,6 +135,16 @@ public class JWTFilter extends OncePerRequestFilter {
     private Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(COOKIE_EXPIRE);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setDomain(domain);
+        return cookie;
+    }
+
+    private Cookie setLogoutCookie(String str) {
+        Cookie cookie = new Cookie(str, null);
+        cookie.setMaxAge(0);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(true);

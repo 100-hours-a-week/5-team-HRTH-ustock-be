@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.game;
+package com.hrth.ustock.dto.game.redis;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,12 +7,13 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class GameHoldingDto {
+@NoArgsConstructor
+public class GameHoldingsInfoDto {
     private String stockName;
+    private long average;
+    private int price;
+    private double profitRate;
     private int quantity;
-    private int purchasePrice;
-    private int currentPrice;
-    private double ret;
+    private long stockId;
 }

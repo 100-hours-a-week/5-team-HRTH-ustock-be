@@ -56,12 +56,12 @@ public class PortfolioService {
             refreshPortfolio(p);
             portfolioListDto.setBudget(portfolioListDto.getBudget() + p.getBudget());
             portfolioListDto.setPrincipal(portfolioListDto.getPrincipal() + p.getPrincipal());
-            portfolioListDto.setRet(portfolioListDto.getRet() + p.getRet());
+            portfolioListDto.setProfit(portfolioListDto.getProfit() + p.getProfit());
             portfolioListDto.getList().add(p.toPortfolioDto());
         });
 
-        double ror = portfolioListDto.getPrincipal() == 0L ? 0.0 : (double) portfolioListDto.getRet() / portfolioListDto.getPrincipal() * 100;
-        portfolioListDto.setRor(ror);
+        double profitRate = portfolioListDto.getPrincipal() == 0L ? 0.0 : (double) portfolioListDto.getProfit() / portfolioListDto.getPrincipal() * 100;
+        portfolioListDto.setProfitRate(profitRate);
 
         return portfolioListDto;
     }
@@ -89,7 +89,7 @@ public class PortfolioService {
             int quantity = h.getQuantity();
             long average = h.getAverage();
             int current = Integer.parseInt(redisMap.get(REDIS_CURRENT_KEY));
-            long ret = (long) quantity * current - (long) quantity * average;
+            long profit = (long) quantity * current - (long) quantity * average;
 
             Stock stock = h.getStock();
             HoldingEmbedDto holdingEmbedDto = HoldingEmbedDto.builder()
@@ -98,7 +98,7 @@ public class PortfolioService {
                     .logo(stock.getLogo())
                     .quantity(quantity)
                     .average(average)
-                    .ror((quantity * average == 0) ? 0.0 : (double) ret / ((long) quantity * average) * 100)
+                    .profitRate((quantity * average == 0) ? 0.0 : (double) profit / ((long) quantity * average) * 100)
                     .build();
 
             portfolioResponseDto.getStocks().add(holdingEmbedDto);
@@ -107,8 +107,8 @@ public class PortfolioService {
         portfolioResponseDto.setName(portfolio.getName());
         portfolioResponseDto.setBudget(portfolio.getBudget());
         portfolioResponseDto.setPrincipal(portfolio.getPrincipal());
-        portfolioResponseDto.setRet(portfolio.getRet());
-        portfolioResponseDto.setRor((portfolio.getPrincipal() == 0L) ? 0.0 : (double) portfolio.getRet() / portfolio.getPrincipal() * 100);
+        portfolioResponseDto.setProfit(portfolio.getProfit());
+        portfolioResponseDto.setProfitRate((portfolio.getPrincipal() == 0L) ? 0.0 : (double) portfolio.getProfit() / portfolio.getPrincipal() * 100);
 
         return portfolioResponseDto;
     }
@@ -123,7 +123,7 @@ public class PortfolioService {
                 .user(user)
                 .budget(0L)
                 .principal(0L)
-                .ret(0L)
+                .profit(0L)
                 .build();
 
         Portfolio findPortfolio = portfolioRepository.findByNameAndUserUserId(portfolio.getName(), userId).orElse(null);
@@ -237,7 +237,7 @@ public class PortfolioService {
             return;
         }
 
-        // budget = 원금+수익, principal = 갯수+평단가, ret = 갯수+현재가
+        // budget = 원금+수익, principal = 갯수+평단가, profit = 갯수+현재가
         for (Holding h : list) {
             Map<String, String> redisMap = stockService.getCurrentChangeChangeRate(h.getStock().getCode());
 
@@ -248,10 +248,10 @@ public class PortfolioService {
             long before = (long) h.getQuantity() * h.getAverage();
             long after = (long) h.getQuantity() * current;
             portfolioUpdateDto.setPrincipal(portfolioUpdateDto.getPrincipal() + before);
-            portfolioUpdateDto.setRet(portfolioUpdateDto.getRet() + after - before);
+            portfolioUpdateDto.setProfit(portfolioUpdateDto.getProfit() + after - before);
         }
 
-        portfolioUpdateDto.setBudget(portfolioUpdateDto.getPrincipal() + portfolioUpdateDto.getRet());
+        portfolioUpdateDto.setBudget(portfolioUpdateDto.getPrincipal() + portfolioUpdateDto.getProfit());
         portfolio.updatePortfolio(portfolioUpdateDto);
         portfolioRepository.save(portfolio);
     }

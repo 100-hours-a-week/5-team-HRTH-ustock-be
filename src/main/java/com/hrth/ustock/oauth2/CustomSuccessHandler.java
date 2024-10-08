@@ -29,8 +29,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private String domain;
 
     public static final long ACCESS_EXPIRE = 600000L;
-    public static final long REFRESH_EXPIRE = 2592000000L;
-    public static final int COOKIE_EXPIRE = 2592000;
+    public static final long REFRESH_EXPIRE = 604800000L;
+    public static final int COOKIE_EXPIRE = (int) TimeUnit.MILLISECONDS.toSeconds(REFRESH_EXPIRE);
 
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;

@@ -15,5 +15,5 @@ public class HoldingEmbedDto {
     private String logo;
     private int quantity;
     private long average;
-    private double ror;
+    private double profitRate;
 }

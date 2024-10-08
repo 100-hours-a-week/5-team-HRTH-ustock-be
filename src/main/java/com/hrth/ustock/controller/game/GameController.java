@@ -1,100 +1,110 @@
 package com.hrth.ustock.controller.game;
 
-import com.hrth.ustock.dto.game.*;
+import com.hrth.ustock.controller.api.GameApi;
+import com.hrth.ustock.dto.game.hint.GameHintResponseDto;
+import com.hrth.ustock.dto.game.interim.GameInterimResponseDto;
+import com.hrth.ustock.dto.game.result.GameRankingDto;
+import com.hrth.ustock.dto.game.result.GameResultResponseDto;
+import com.hrth.ustock.dto.game.result.GameResultStockDto;
+import com.hrth.ustock.dto.game.stock.GameStockInfoResponseDto;
+import com.hrth.ustock.dto.game.stock.GameTradeRequestDto;
+import com.hrth.ustock.dto.game.user.GameUserResponseDto;
+import com.hrth.ustock.entity.game.HintLevel;
 import com.hrth.ustock.service.auth.CustomUserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import com.hrth.ustock.service.game.GamePlayService;
+import com.hrth.ustock.service.game.GameRankingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/game")
-@Tag(name = "Skrrr Game", description = "Skrrr 게임 관련 API")
-public class GameController {
+public class GameController implements GameApi {
 
+    private final GamePlayService gamePlayService;
+    private final GameRankingService gameRankingService;
     private final CustomUserService customUserService;
 
     @GetMapping("/start")
-    @Operation(summary = "게임 정보 초기화", description = "게임을 시작할 때 반드시 호출")
-    public ResponseEntity<GameInitResponseDto> startGame(@RequestParam String nickname) {
+    public ResponseEntity<List<GameStockInfoResponseDto>> startGame(@RequestParam String nickname) {
         Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        return ResponseEntity.ok(new GameInitResponseDto());
+        return ResponseEntity.ok(gamePlayService.startGame(userId, nickname));
     }
 
-    @GetMapping("/stock")
-    @Operation(summary = "종목 리스트 조회", description = "년도를 기반으로 종목 리스트를 조회, 첫 해에는 change, changeRate가 null")
-    public ResponseEntity<List<GameStockInfoResponseDto>> showStockList(@RequestParam int year) {
+    @GetMapping("/user")
+    public ResponseEntity<GameUserResponseDto> showUser() {
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        List<GameStockInfoResponseDto> stockList = new ArrayList<>();
-
-        return ResponseEntity.ok(stockList);
+        return ResponseEntity.ok(gamePlayService.getUserInfo(userId));
     }
 
     @PostMapping("/stock")
-    @Operation(summary = "종목 거래 요청",
-            description = "종목 아이디, 수량, 매도/매수 여부를 바탕으로 거래를 진행 (매도: SELL, 매수: BUY)")
     public ResponseEntity<Void> tradeStock(@RequestBody GameTradeRequestDto requestDto) {
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
+        gamePlayService.tradeHolding(userId, requestDto, 0);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/interim")
-    @Operation(summary = "회차별 결과 조회",
-            description = "중간 결과를 순위대로 반환, 플레이어일 경우 보유 종목도 반환하지만 AI는 반환하지 않음 (사용자: USER, AI: COM)")
-    public ResponseEntity<GameInterimResponseDto> showInterimResult(@RequestParam Long gameId) {
+    public ResponseEntity<GameInterimResponseDto> showInterimResult() {
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        return ResponseEntity.ok(new GameInterimResponseDto());
+        return ResponseEntity.ok(gamePlayService.getUserInterim(userId));
     }
 
     @GetMapping("/hint")
-    @Operation(summary = "정보 거래소 힌트 조회",
-            description = "년도, 종목 아이디, 레벨을 받으면 힌트를 반환, 레벨은 반드시 ONE, TWO, THREE 중 하나를 사용해주세요.")
-    public ResponseEntity<GameHintResponseDto> showHint(@RequestBody GameHintRequestDto requestDto) {
+    public ResponseEntity<GameHintResponseDto> showHint(@RequestParam long stockId, @RequestParam HintLevel hintLevel) {
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        return ResponseEntity.ok(new GameHintResponseDto());
+        GameHintResponseDto hint = gamePlayService.getSingleHint(userId, stockId, hintLevel);
+
+        return ResponseEntity.ok(hint);
     }
 
     @GetMapping("/result")
-    @Operation(summary = "최종 결과 조회", description = "최종 결과를 순위대로 반환 (사용자: USER, AI: COM)")
-    public ResponseEntity<List<GameResultResponseDto>> showResult(@RequestParam long gameId) {
+    public ResponseEntity<List<GameResultResponseDto>> showResult() {
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        List<GameResultResponseDto> resultList = new ArrayList<>();
-
-        return ResponseEntity.ok(resultList);
+        return ResponseEntity.ok(gamePlayService.getGameResultList(userId));
     }
 
-    @GetMapping("/result/holding")
-    @Operation(summary = "게임 내 종목 리스트 조회",
-            description = "게임에 사용된 종목의 리스트를 반환, 차트는 /v1/stocks/{code}/chart를 이용해주세요. " +
-                    "stockName은 원래의 종목명을 의미하며, inGame은 게임에서 사용된 종목명을 의미합니다.")
-    public ResponseEntity<List<GameResultHoldingResponseDto>> showResultHolding(@RequestParam long gameId) {
+    @GetMapping("/result/stock")
+    public ResponseEntity<List<GameResultStockDto>> showResultStockList() {
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        List<GameResultHoldingResponseDto> holdingList = new ArrayList<>();
-
-        return ResponseEntity.ok(holdingList);
+        return ResponseEntity.ok(gamePlayService.getGameResultStock(userId));
     }
 
-    @GetMapping("/news")
-    @Operation(summary = "게임 종목별 뉴스 조회", description = "종목 아이디를 바탕으로 뉴스 리스트를 반환")
-    public ResponseEntity<List<GameNewsResponseDto>> showHoldingNews(@RequestParam long stockId) {
+    @PostMapping("/result/save")
+    public ResponseEntity<?> saveRanking() {
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
 
-        List<GameNewsResponseDto> newsList = new ArrayList<>();
-
-        return ResponseEntity.ok(newsList);
+        gamePlayService.saveRankInfo(userId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/ranking")
-    @Operation(summary = "게임 랭킹 리스트 조회", description = "게임의 최종 금액을 기준으로 내림차순 정렬된 리스트 반환 (10위까지)")
     public ResponseEntity<List<GameRankingDto>> showRanking() {
 
-        List<GameRankingDto> ranking = new ArrayList<>();
+        List<GameRankingDto> ranking;
+        ranking = gameRankingService.getRankingList();
 
         return ResponseEntity.ok(ranking);
+    }
+
+    @GetMapping("/stop")
+    public ResponseEntity<?> stopGame() {
+        Long userId = customUserService.getCurrentUserDetails().getUserId();
+
+        gamePlayService.deleteRedis(userId);
+
+        return ResponseEntity.ok().build();
     }
 }

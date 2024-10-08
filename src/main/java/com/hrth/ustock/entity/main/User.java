@@ -1,7 +1,7 @@
 package com.hrth.ustock.entity.main;
 
 import com.hrth.ustock.dto.oauth2.UserOauthDto;
-import com.hrth.ustock.entity.game.GameInfo;
+import com.hrth.ustock.entity.game.GameResult;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,8 +46,8 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Holding> holdings;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<GameInfo> gameInfos;
+    @OneToMany(mappedBy = "user")
+    private List<GameResult> gameResults;
 
     public UserOauthDto toOAuthDto() {
         return UserOauthDto.builder()

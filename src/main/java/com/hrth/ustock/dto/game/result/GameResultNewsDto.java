@@ -1,4 +1,4 @@
-package com.hrth.ustock.dto.game;
+package com.hrth.ustock.dto.game.result;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameNewsResponseDto {
-    private String date;
+public class GameResultNewsDto {
     private String title;
     private String url;
     private String publisher;
+    private String date;
 }
