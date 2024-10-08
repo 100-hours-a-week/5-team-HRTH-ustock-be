@@ -131,7 +131,13 @@
 
 --해결--
 - resilience4j의 RateLimiter를 활용해 사용자 10회, 서버 10회로 분리
-- 사용자와 서버를 분리한 이유: 서버의 데이터 수집과 사용자의 요청이 겹칠 시, 요청이 지연되는 현상을 방지
+- 사용자와 서버를 분리한 이유
+- 1. 서버의 데이터 수집과 사용자의 요청이 겹칠 시, 요청이 지연되는 현상을 방지
+- 2. 스레드 인터럽트로 인해 발생하는 예외 회피
+
+--단점--
+- 사용자 요청이 초당 10회로 제한되고, 서버가 요청 횟수 10회를 전부 사용할 때가 몇 없음
+- 우선순위 큐를 통해 api 요청 횟수를 최대한 활용할 수 있을것으로 보임
 ```
 
 <hr>
@@ -140,6 +146,9 @@
 ```
 --문제--
 - 뉴스 크롤링 중 제목 또는 내용이 유사한 뉴스들이 대거 들어와 데이터 품질을 떨어뜨림
+
+--해결--
+- 형태소 분석 라이브러리인 Komoran을 사용해 유사한 뉴스를 제거함
 ```
 
 <hr>
@@ -150,13 +159,36 @@
 - 뉴스 데이터 전송 시, 인기종목의 뉴스만 조회되어 비인기종목의 뉴스가 소외되는 현상
 
 --해결--
+- 종목별 n개씩 뉴스를 가져온 뒤 랜덤으로 섞고, 상위 n개만 날짜별로 정렬
 ```
 
 <hr>
 <h3> 🔸 게임정보 저장 문제</h3>
 
+```
+--문제--
+- MySQL에 게임 진행상황을 저장하려니 읽기/쓰기가 너무 많아져 효율이 떨어지고, 스키마가 복잡해짐
+
+--해결--
+- Redis의 HashMap형태 자료구조로 데이터를 Dto형태로 저장
+```
+
 <hr>
 <h3> 🔸 게임 AI 응답값 문제</h3>
+
+```
+--문제--
+- OpenAI gpt-4o-mini의 응답값에서 예외가 발생
+- 1. 응답값의 금액이 맞지 않아 예수금을 초과하는 문제
+- 2. 응답 맨 위에 ```나 json 등 문자열이 추가되거나, []가 {}로 대체되는 등의 문제
+
+--해결--
+- 1.
+- sell과 buy 요청을 동시에 진행해 프롬프트가 길어짐에 따라 발생한 문제
+- sell요청과 buy요청을 분리하여 프롬프트를 단축하고, ai가 복잡한 계산을 진행하지 않도록 조치
+- 2.
+- ```과 json등 맞지 않는 문자들을 예외 처리, []자리에 {}가 오면 []로 대체하여 해결
+```
 
 <hr>
 <h3> 🔸 </h3>
@@ -168,20 +200,72 @@
 
 <h3> 🔸 전역 예외처리 (AOP)</h3>
 
+
 <hr>
 <h3> 🔸 운영, 개발서버 분리</h3>
+
+```
+- main branch를 배포용 서버로, develop branch를 개발용 서버로 분리함
+- profile을 다르게 하여 스케줄러 등 main과 develop의 기능을 나눔
+```
 
 <hr>
 <h3> 🔸 모니터링 툴 도입</h3>
 
+<img width="627" alt="image" src="https://github.com/user-attachments/assets/3b755afb-d7f0-43dc-8a7e-2f54ea69b9d6">
+
+```
+- Prometheus와 Grafana를 활용해 모니터링 대시보드 도입
+- Loki와 Promtail으로 로그를 마운트하여 로그 모니터링 도입
+```
+
 <hr>
 <h3> 🔸 Swagger 도입</h3>
+
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/264e6465-c928-4925-af70-b623554a6eb1">
+
+```
+- 기존 Notion으로 진행하던 api 명세서 작성을 Swagger로 대체
+- spring 코드로 명세서를 작성하고, springdoc-opanAPI 라이브러리를 통해 api명세서를 조회할 수 있음
+```
 
 <hr>
 <h3> 🔸 스케줄러 도입</h3> 
 
+```
+- 현재가, 순위, 차트 데이터를 매일 갱신하기 위해 spring scheduler 도입
+- 크론 표현식을 지정하여 원하는 시간에 로직이 동작하도록 처리
+- SchedulerConfig 파일으로 병렬 처리 설정
+```
+- SchedulerConfig
+```
+@Configuration
+@EnableScheduling
+public class SchedulerConfig implements SchedulingConfigurer {
+
+    @Override
+    public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+        taskRegistrar.setTaskScheduler(taskScheduler());
+    }
+
+    @Bean
+    public ThreadPoolTaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+        taskScheduler.setPoolSize(10);
+        taskScheduler.setThreadNamePrefix("scheduled-task-pool-");
+        taskScheduler.initialize();
+        return taskScheduler;
+    }
+}
+```
+
+
 <hr>
 <h3> 🔸 종목 코드와 종목명 둘 다 검색</h3>
+
+```
+
+```
 
 <hr>
 <h3> 🔸 종목 검색 최적화</h3>
