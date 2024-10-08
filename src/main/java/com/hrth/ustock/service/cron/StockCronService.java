@@ -216,10 +216,30 @@ public class StockCronService {
 
     public void saveRankData(int addMinute) {
         log.info("랭킹 크론잡 시작");
+        saveTopRank(addMinute);
         saveTradeRank(addMinute);
         saveCapitalRank(addMinute);
         saveChangeRank(addMinute);
         log.info("랭킹 크론잡 종료");
+    }
+
+    public List<StockResponseDto> saveTopRank(int addMinute) {
+        String queryParams = "?fid_cond_mrkt_div_code=J" +
+                "&fid_cond_scr_div_code=20171" +
+                "&fid_div_cls_code=1" +
+                "&fid_input_iscd=0000" +
+                "&fid_trgt_cls_code=0" +
+                "&fid_blng_cls_code=0" +
+                "&fid_trgt_cls_code=111111111" +
+                "&fid_trgt_exls_cls_code=0111001101" +
+                "&fid_input_price_1=" +
+                "&fid_input_price_2=" +
+                "&fid_vol_cnt=" +
+                "&fid_input_date_1=";
+
+        String apiUri = "/uapi/domestic-stock/v1/quotations/volume-rank";
+        Map response = authManager.getCronData(apiUri, queryParams, "FHPST01710000");
+        return saveToRedis(response, "top", addMinute);
     }
 
     public List<StockResponseDto> saveTradeRank(int addMinute) {
@@ -238,7 +258,7 @@ public class StockCronService {
 
         String apiUri = "/uapi/domestic-stock/v1/quotations/volume-rank";
         Map response = authManager.getCronData(apiUri, queryParams, "FHPST01710000");
-        return saveToRedis(response, "change", addMinute);
+        return saveToRedis(response, "trade", addMinute);
     }
 
     public List<StockResponseDto> saveCapitalRank(int addMinute) {
@@ -304,7 +324,6 @@ public class StockCronService {
         List<StockResponseDto> stockList = new ArrayList<>();
         for (int i = 0; i < range; i++) {
             Map<String, String> responseMap = responseList.get(i);
-
             stockList.add(StockResponseDto.builder()
                     .name(responseMap.get(STOCK_NAME))
                     .code(responseMap.get(stockCodeKey))

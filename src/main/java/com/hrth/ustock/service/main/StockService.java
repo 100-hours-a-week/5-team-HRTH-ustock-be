@@ -247,7 +247,8 @@ public class StockService {
 
     public List<StockResponseDto> getStockList(String order) {
         return switch (order) {
-            case "top", "trade" -> requestOrderByTrade(order);
+            case "top" -> requestOrderByTop(order);
+            case "trade" -> requestOrderByTrade(order);
             case "capital" -> requestOrderByCapital();
             case "change" -> requestOrderByChange();
             default -> throw new StockException(ORDER_NOT_VALID);
@@ -270,9 +271,17 @@ public class StockService {
         );
     }
 
+    private List<StockResponseDto> requestOrderByTop(String order) {
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + "top" + "_" + dateConverter.minuteFormatter(0));
+
+        if (redisResult != null)
+            return redisJsonManager.deserializeList(redisResult, StockResponseDto[].class);
+
+        return stockCronService.saveTopRank(0);
+    }
+
     private List<StockResponseDto> requestOrderByTrade(String order) {
-        String redis_key = order.equals(REDIS_ORDER_TOP) ? REDIS_ORDER_TOP : REDIS_ORDER_TRADE;
-        String redisResult = redisTemplate.opsForValue().get("ranking_" + redis_key + "_" + dateConverter.minuteFormatter(0));
+        String redisResult = redisTemplate.opsForValue().get("ranking_" + "trade" + "_" + dateConverter.minuteFormatter(0));
 
         if (redisResult != null)
             return redisJsonManager.deserializeList(redisResult, StockResponseDto[].class);
