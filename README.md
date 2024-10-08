@@ -200,6 +200,9 @@
 
 <h3> 🔸 전역 예외처리 (AOP)</h3>
 
+```
+- Controller에서 try-catch로 처리하던 방식에서 
+```
 
 <hr>
 <h3> 🔸 운영, 개발서버 분리</h3>
@@ -237,6 +240,7 @@
 - 크론 표현식을 지정하여 원하는 시간에 로직이 동작하도록 처리
 - SchedulerConfig 파일으로 병렬 처리 설정
 ```
+
 - SchedulerConfig
 ```
 @Configuration
@@ -264,17 +268,33 @@ public class SchedulerConfig implements SchedulingConfigurer {
 <h3> 🔸 종목 코드와 종목명 둘 다 검색</h3>
 
 ```
+- 종목 코드 검색시 종목 코드 기준으로, 종목명 검색시 종목명 기준으로 검색하도록 구현
+- stockCodeRegex 기준으로 실행할 쿼리를 구분함
+```
 
+- code
+```
+        String stockCodeRegex = "^\\d{1,6}$|^Q\\d{1,6}$";
+
+        List<Stock> list;
+        if (query.matches(stockCodeRegex)) {
+            list = stockRepository.findByCodeStartingWith(query);
+            list.addAll(stockRepository.findByCodeContainingButNotStartingWith(query));
+        } else {
+            list = stockRepository.findByNameStartingWith(query);
+            list.addAll(stockRepository.findByNameContainingButNotStartingWith(query));
+        }
 ```
 
 <hr>
 <h3> 🔸 종목 검색 최적화</h3>
 
-<hr>
-<h3> 🔸 쿼리 최적화</h3>
-
-<hr>
-<h3> 🔸 Redis 직렬화/역직렬화</h3>
+```
+- 종목 검색칸 클릭 시 첫 응답까지 시간이 오래 걸림(약 3~4초)
+- 검색칸에서 스페이스바를 입력하면 공백이 입력되는데, 첫 응답과 동일한 시간이 소요됨
+- 한 글자라도 입력하면 응답속도가 빠름
+- 공백을 입력하면 LIKE 쿼리의 소요 시간이 늘어나므로, 공백이 입력되지 않도록 예외처리 진행
+```
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
