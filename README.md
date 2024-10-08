@@ -3,7 +3,7 @@
 </p>
 <h1 align="center"> U'STOCK </h1>
 <h3 align="center"> 뉴스 중심의 차트 분석 서비스 U'STOCK의 backend repository </h3>
-<h5 align="center"> 카카오테크부트캠프 클라우드 in JEJU 2팀 HRTH (2024-07-02 ~ 2024-10-11) </h5>
+<h5 align="center"> 카카오테크 부트캠프 클라우드 네이티브 제주 1기 2팀 HRTH (2024-07-02 ~ 2024-10-11) </h5>
 
 # TODO: 프로젝트 영상 추가?
 <p align="center"> 
