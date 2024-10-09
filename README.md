@@ -35,7 +35,7 @@
 <!-- 아키텍쳐 -->
 <h2 id="architecture"> 🏙️ 아키텍쳐</h2>
 
-<img src="images/be-architecture-spring.png"/>
+![Architecture (7)](https://github.com/user-attachments/assets/e6b635ae-bed8-461d-9eef-742bdb44f841)
 
 # DevOps 구조도 추가 예정 - tree 위 or 아래에 추가
 
@@ -200,8 +200,11 @@
 
 <h3> 🔸 전역 예외처리 (AOP)</h3>
 
+![Architecture (1)](https://github.com/user-attachments/assets/7b5ecd1e-bb44-4110-917b-707369c4a2b0)
+
 ```
-- Controller에서 try-catch로 처리하던 방식에서 
+- Controller에서 try-catch로 처리하니 컨트롤러 코드가 복잡해짐
+- AOP를 활용한 전역 예외처리 코드를 도입
 ```
 
 <hr>
@@ -294,6 +297,31 @@ public class SchedulerConfig implements SchedulingConfigurer {
 - 검색칸에서 스페이스바를 입력하면 공백이 입력되는데, 첫 응답과 동일한 시간이 소요됨
 - 한 글자라도 입력하면 응답속도가 빠름
 - 공백을 입력하면 LIKE 쿼리의 소요 시간이 늘어나므로, 공백이 입력되지 않도록 예외처리 진행
+```
+
+- code
+```
+    private boolean isQueryInvalid(String query) {
+        if (query.isBlank()) return true;
+
+        String[] words = query.split("");
+
+        Map<String, Integer> indexMap = new HashMap<>();
+        int[] counts = new int[1000];
+        int idx = 0;
+
+        for (String word : words) {
+            if (!indexMap.containsKey(word))
+                indexMap.put(word, idx++);
+
+            int wordIndex = indexMap.get(word);
+
+            if (idx >= counts.length) return true;
+            if (++counts[wordIndex] >= 10) return true;
+        }
+
+        return false;
+    }
 ```
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
