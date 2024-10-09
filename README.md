@@ -5,11 +5,6 @@
 <h3 align="center"> 뉴스 중심의 차트 분석 서비스 U'STOCK의 backend repository </h3>
 <h5 align="center"> 카카오테크 부트캠프 클라우드 네이티브 제주 1기 2팀 HRTH (2024-07-02 ~ 2024-10-11) </h5>
 
-# TODO: 프로젝트 영상 추가?
-<p align="center"> 
-  <img src="images/ustock demo.gif" alt="U'STOCK 시연 영상" height="282px" width="637">
-</p>
-
 <!-- 목차 -->
 <h2 id="table-of-contents"> :book: 목차</h2>
 
@@ -21,6 +16,7 @@
     <li><a href="#directory"> ➤ 디렉토리 구조</a></li>
     <li><a href="#trouble"> ➤ 트러블 슈팅</a></li>
     <li><a href="#refactor"> ➤ 리팩토링</a></li>
+    <li><a href="#auth"> ➤ Google OAuth</a></li>
     <li><a href="#api"> ➤ REST API 개요</a></li>
     <li><a href="#stocks"> ➤ /v1/stocks</a></li>
     <li><a href="#portfolio"> ➤ /v1/portfolio</a></li>
@@ -415,27 +411,23 @@ public class SchedulerConfig implements SchedulingConfigurer {
 
 ![회원가입](https://github.com/user-attachments/assets/9f1bdb0f-0117-4282-bc99-1b747e8451a1)
 
-```
 1. 로그인 요청이 들어오면 구글 인증 서버로 리다이렉트 후 auth code 발급
 2. 발급한 auth code로 구글 리소스 서버 access token 발급
 3. 리소스 서버에 유저 정보 요청
 4. 해당 정보를 mysql에 저장, access/refresh token 발급 후 사용자에게 cookie로 전송
 5. 이후 인증/인가를 위해 Redis에 refresh token을 저장
-```
 
 <hr>
 <h3> 🔸 인증/인가 로직</h3>
 
 ![인증인가](https://github.com/user-attachments/assets/9f79de39-c741-4f56-8613-57b1876a92a5)
 
-```
 1. 사용자가 보내준 cookie중 카테고리고 access또는 refresh인 cookie에서 토큰 값 추출
 2. access token 검증
 3. access token이 유효하지 않을 시 refresh token 검증
 4. refresh token 검증 시 Redis에 캐싱된 refresh token 비교 로직 추가
 5. 유효성 검사 실패시 회원가입 로직 실행
 6. 유효성 검사 성공시 access, refresh token을 새로 발급+캐싱한 뒤 사용자에게 cookie로 전송
-```
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
