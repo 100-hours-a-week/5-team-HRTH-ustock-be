@@ -6,6 +6,7 @@ import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
+
 import java.time.Duration;
 
 
@@ -20,13 +21,24 @@ public class AppConfig {
     }
 
     @Bean
-    public RateLimiter kisApiRateLimiter() {
+    public RateLimiter cronRateLimiter() {
         RateLimiterConfig config = RateLimiterConfig.custom()
                 .limitRefreshPeriod(Duration.ofSeconds(1))
-                .limitForPeriod(19)
-                .timeoutDuration(Duration.ofSeconds(1))
+                .limitForPeriod(10)
+                .timeoutDuration(Duration.ofSeconds(5))
                 .build();
         RateLimiterRegistry rateLimiterRegistry = RateLimiterRegistry.of(config);
-        return rateLimiterRegistry.rateLimiter("kisApiRateLimiter", config);
+        return rateLimiterRegistry.rateLimiter("cronRateLimiter", config);
+    }
+
+    @Bean
+    public RateLimiter userRateLimiter() {
+        RateLimiterConfig config = RateLimiterConfig.custom()
+                .limitRefreshPeriod(Duration.ofSeconds(1))
+                .limitForPeriod(10)
+                .timeoutDuration(Duration.ofSeconds(5))
+                .build();
+        RateLimiterRegistry rateLimiterRegistry = RateLimiterRegistry.of(config);
+        return rateLimiterRegistry.rateLimiter("userRateLimiter", config);
     }
 }
