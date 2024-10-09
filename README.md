@@ -37,7 +37,8 @@
 
 ![Architecture (7)](https://github.com/user-attachments/assets/e6b635ae-bed8-461d-9eef-742bdb44f841)
 
-# DevOps 구조도 추가 예정 - tree 위 or 아래에 추가
+- 배포 파이프라인
+![유스톡](https://github.com/user-attachments/assets/23805821-7d22-4479-94ae-5e5f0dad531e)
 
 <hr>
 <!-- 기술 스택 -->
