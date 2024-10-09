@@ -35,11 +35,11 @@
 <!-- 아키텍쳐 -->
 <h2 id="architecture"> 🏙️ 아키텍쳐</h2>
 
-![Architecture (13)](https://github.com/user-attachments/assets/bd0dab82-682c-4659-acd6-bf38408da045)
+![백엔드 아키텍쳐](https://github.com/user-attachments/assets/0ca0f14f-915f-42ee-b4dd-b5f376b9fe47)
 
 - 배포 파이프라인
 
-![유스톡](https://github.com/user-attachments/assets/23805821-7d22-4479-94ae-5e5f0dad531e)
+![배포 파이프라인](https://github.com/user-attachments/assets/983e0d8a-becc-4108-87cd-45cbb54080f2)
 
 <hr>
 <!-- 기술 스택 -->
@@ -123,7 +123,7 @@
 
 <h3> 🔸 API 20회 제한</h3>
 
-![Architecture (14)](https://github.com/user-attachments/assets/f3aec312-d2c1-4195-a4a0-75c0124082b0)
+![api 현재](https://github.com/user-attachments/assets/06d43d0c-12f4-40d5-8835-e157d9aa19af)
 
 <h5 align="center">한국투자증권 api 요청 분배</h5>
 
@@ -146,7 +146,7 @@
 
 <h5 align="center">개선점</h5>
 
-![Architecture (15)](https://github.com/user-attachments/assets/7d6b2410-a5ac-4faa-9554-cbc4262a6f2d)
+![api 개선점](https://github.com/user-attachments/assets/510b9f18-6e19-4de3-8279-0099e30e42f9)
 
 <hr>
 <h3> 🔸 중복된 뉴스 데이터 처리</h3>
@@ -203,31 +203,6 @@ public class RedisJsonManager {
             throw new RedisException(DESERIALIZE_FAILED);
         }
     }
-
-    public String mapStringConvert(Map<String, Object> data) {
-        try {
-            return objectMapper.writeValueAsString(data);
-        } catch (JsonProcessingException e) {
-            throw new RedisException(SERIALIZE_FAILED);
-        }
-    }
-
-    public Map<String, Object> stringMapConvert(String data) {
-        try {
-            return objectMapper.readValue(data, new TypeReference<>() {
-            });
-        } catch (JsonProcessingException e) {
-            throw new RedisException(DESERIALIZE_FAILED);
-        }
-    }
-
-    public <T> T deserializeObject(String jsonString, Class<T> clazz) {
-        try {
-            return objectMapper.readValue(jsonString, clazz);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
 ```
 
@@ -255,7 +230,7 @@ public class RedisJsonManager {
 
 <h3> 🔸 전역 예외처리 (AOP)</h3>
 
-![Architecture (1)](https://github.com/user-attachments/assets/7b5ecd1e-bb44-4110-917b-707369c4a2b0)
+![전역 예외처리](https://github.com/user-attachments/assets/ea010d22-332e-4041-ad68-c51b0fa3493b)
 
 ```
 - Controller에서 try-catch로 처리하니 컨트롤러 코드가 복잡해짐
