@@ -341,6 +341,8 @@ public class NewsController implements NewsApi {
 <hr>
 <h3> 🔸 스케줄러 도입</h3> 
 
+![스케줄러](https://github.com/user-attachments/assets/2cbc705d-32c7-4a8e-bb29-f26320f828f8)
+
 ```
 - 현재가, 순위, 차트 데이터를 매일 갱신하기 위해 spring scheduler 도입
 - 크론 표현식을 지정하여 원하는 시간에 로직이 동작하도록 처리
