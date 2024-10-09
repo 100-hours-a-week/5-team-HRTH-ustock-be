@@ -35,7 +35,7 @@
 <!-- 아키텍쳐 -->
 <h2 id="architecture"> 🏙️ 아키텍쳐</h2>
 
-![Architecture (7)](https://github.com/user-attachments/assets/e6b635ae-bed8-461d-9eef-742bdb44f841)
+![Architecture (13)](https://github.com/user-attachments/assets/bd0dab82-682c-4659-acd6-bf38408da045)
 
 - 배포 파이프라인
 
@@ -288,6 +288,54 @@ public class RedisJsonManager {
 ```
 - 기존 Notion으로 진행하던 api 명세서 작성을 Swagger로 대체
 - spring 코드로 명세서를 작성하고, springdoc-opanAPI 라이브러리를 통해 api명세서를 조회할 수 있음
+- Controller와 swagger 명세를 분리하기 위해 interface를 분리
+```
+
+- swagger interface
+```
+@Tag(name = "News", description = "뉴스 관련 API")
+public interface NewsApi {
+
+    @Operation(
+            summary = "나만의 뉴스 조회",
+            description = "사용자가 보유 종목을 가지고 있다면 해당 종목에 대한 뉴스를 반환"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    content = @Content(schema = @Schema(implementation = NewsResponseDto.class))),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "해당 사용자를 찾을 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "보유중인 종목이 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "서버에 오류가 발생하였습니다.",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    ResponseEntity<?> myHoldingsNews();
+}
+```
+
+- controller
+```
+public class NewsController implements NewsApi {
+
+    private final NewsService newsService;
+    private final CustomUserService customUserService;
+
+    @GetMapping("/user")
+    public ResponseEntity<List<NewsResponseDto>> myHoldingsNews() {
+
+        List<NewsResponseDto> list = newsService.findHoldingNews(customUserService.getCurrentUserDetails().getUserId());
+
+        return ResponseEntity.ok(list);
+    }
+}
 ```
 
 <hr>
