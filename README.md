@@ -248,7 +248,7 @@ public class RedisJsonManager {
 <hr>
 <h3> 🔸 모니터링 툴 도입</h3>
 
-<img width="627" alt="image" src="https://github.com/user-attachments/assets/3b755afb-d7f0-43dc-8a7e-2f54ea69b9d6">
+![image](https://github.com/user-attachments/assets/5f47b6a1-c418-4f57-ba72-687e33a80756)
 
 ```
 - Prometheus와 Grafana를 활용해 모니터링 대시보드 도입
