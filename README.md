@@ -373,10 +373,11 @@ public class SchedulerConfig implements SchedulingConfigurer {
 <h3> 🔸 종목 검색 최적화</h3>
 
 ```
-- 종목 검색칸 클릭 시 첫 응답까지 시간이 오래 걸림(약 3~4초)
-- 검색칸에서 스페이스바를 입력하면 공백이 입력되는데, 첫 응답과 동일한 시간이 소요됨
+- 검색어로 공백이 입력되면 응답이 지연되는 현상 발생
 - 한 글자라도 입력하면 응답속도가 빠름
-- 공백을 입력하면 LIKE 쿼리의 소요 시간이 늘어나므로, 공백이 입력되지 않도록 예외처리 진행
+- LIKE 조회시 공백을 입력하면 전체 종목을 조회하였기 때문에 발생하는 현상
+- 공백이 입력되지 않도록 예외처리 진행
+- 추가로 무의미한 입력(ex. rrrrr)이 반복되면 DB를 조회하지 않도록 예외처리 진행
 ```
 
 - code
@@ -409,18 +410,19 @@ public class SchedulerConfig implements SchedulingConfigurer {
 <!-- api 개요 -->
 <h2 id="api"> 📜 REST API 개요</h2>
 <p>
-  /stocks 제외 모든 endpoint는 OAuth2 로그인이 필요합니다.
+  
+  `/stocks` 제외 모든 endpoint는 OAuth2 로그인이 필요합니다.
 </p>
 
 <h3> 🔸 메인 서비스</h3>
 
-- /stocks
-- /portfolio
-- /news
+- `/stocks`
+- `/portfolio`
+- `/news`
 
 <h3> 🔸 스껄 게임</h3>
 
-- /game
+- `/game`
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
