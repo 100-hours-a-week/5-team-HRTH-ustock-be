@@ -316,7 +316,7 @@ public class NewsController implements NewsApi {
 <hr>
 <h3> 🔸 스케줄러 도입</h3> 
 
-![스케줄러](https://github.com/user-attachments/assets/8e446a38-f81d-4ced-a781-da24e07e71b2)
+![스케줄러](https://github.com/user-attachments/assets/14183adb-b531-4f9e-b95f-580ee733c571)
 
 ```
 - 현재가, 순위, 차트 데이터를 매일 갱신하기 위해 spring scheduler 도입
@@ -403,6 +403,38 @@ public class SchedulerConfig implements SchedulingConfigurer {
 
         return false;
     }
+```
+
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+
+<!-- 리팩토링 -->
+<h2 id="auth"> 🔐 Google OAuth</h2>
+
+<hr>
+<h3> 🔸 회원가입 로직</h3>
+
+![회원가입](https://github.com/user-attachments/assets/9f1bdb0f-0117-4282-bc99-1b747e8451a1)
+
+```
+1. 로그인 요청이 들어오면 구글 인증 서버로 리다이렉트 후 auth code 발급
+2. 발급한 auth code로 구글 리소스 서버 access token 발급
+3. 리소스 서버에 유저 정보 요청
+4. 해당 정보를 mysql에 저장, access/refresh token 발급 후 사용자에게 cookie로 전송
+5. 이후 인증/인가를 위해 Redis에 refresh token을 저장
+```
+
+<hr>
+<h3> 🔸 인증/인가 로직</h3>
+
+![인증인가](https://github.com/user-attachments/assets/9f79de39-c741-4f56-8613-57b1876a92a5)
+
+```
+1. 사용자가 보내준 cookie중 카테고리고 access또는 refresh인 cookie에서 토큰 값 추출
+2. access token 검증
+3. access token이 유효하지 않을 시 refresh token 검증
+4. refresh token 검증 시 Redis에 캐싱된 refresh token 비교 로직 추가
+5. 유효성 검사 실패시 회원가입 로직 실행
+6. 유효성 검사 성공시 access, refresh token을 새로 발급+캐싱한 뒤 사용자에게 cookie로 전송
 ```
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
