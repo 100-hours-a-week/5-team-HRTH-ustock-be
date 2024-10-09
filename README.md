@@ -424,7 +424,7 @@ public class SchedulerConfig implements SchedulingConfigurer {
 
 1. 사용자가 보내준 cookie중 카테고리고 access또는 refresh인 cookie에서 토큰 값 추출
 2. access token 검증
-3. access token이 유효하지 않을 시 refresh token 검증
+3. refresh token 검증
 4. refresh token 검증 시 Redis에 캐싱된 refresh token 비교 로직 추가
 5. 유효성 검사 실패시 회원가입 로직 실행
 6. 유효성 검사 성공시 access, refresh token을 새로 발급+캐싱한 뒤 사용자에게 cookie로 전송
