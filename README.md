@@ -121,6 +121,7 @@
 
 <h3> 🔸 API 20회 제한</h3>
 ![Architecture (14)](https://github.com/user-attachments/assets/f3aec312-d2c1-4195-a4a0-75c0124082b0)
+
 <h5 align="center">한국투자증권 api 요청 분배</h5>
 
 ```
