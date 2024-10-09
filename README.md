@@ -406,7 +406,6 @@ public class SchedulerConfig implements SchedulingConfigurer {
 <!-- 리팩토링 -->
 <h2 id="auth"> 🔐 Google OAuth</h2>
 
-<hr>
 <h3> 🔸 회원가입 로직</h3>
 
 ![회원가입](https://github.com/user-attachments/assets/9f1bdb0f-0117-4282-bc99-1b747e8451a1)
