@@ -142,6 +142,10 @@
 - 우선순위 큐를 통해 api 요청 횟수를 최대한 활용할 수 있을것으로 보임
 ```
 
+<h5 align="center">개선점</h5>
+
+![Architecture (15)](https://github.com/user-attachments/assets/7d6b2410-a5ac-4faa-9554-cbc4262a6f2d)
+
 <hr>
 <h3> 🔸 중복된 뉴스 데이터 처리</h3>
 
@@ -173,6 +177,56 @@
 
 --해결--
 - Redis의 HashMap형태 자료구조로 데이터를 Dto형태로 저장
+- 제네릭 타입을 이용해 dto list를 직렬화
+```
+
+- 직렬화, 역직렬화 코드
+```
+public class RedisJsonManager {
+    private final ObjectMapper objectMapper;
+
+    public <T> String serializeList(List<T> selectedList) {
+        try {
+            return objectMapper.writeValueAsString(selectedList);
+        } catch (JsonProcessingException e) {
+            throw new RedisException(SERIALIZE_FAILED);
+        }
+    }
+
+    public <T> List<T> deserializeList(String jsonString, Class<T[]> clazz) {
+        try {
+            T[] array = objectMapper.readValue(jsonString, clazz);
+            return Arrays.asList(array);
+        } catch (JsonProcessingException e) {
+            throw new RedisException(DESERIALIZE_FAILED);
+        }
+    }
+
+    public String mapStringConvert(Map<String, Object> data) {
+        try {
+            return objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            throw new RedisException(SERIALIZE_FAILED);
+        }
+    }
+
+    public Map<String, Object> stringMapConvert(String data) {
+        try {
+            return objectMapper.readValue(data, new TypeReference<>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new RedisException(DESERIALIZE_FAILED);
+        }
+    }
+
+    public <T> T deserializeObject(String jsonString, Class<T> clazz) {
+        try {
+            return objectMapper.readValue(jsonString, clazz);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
 ```
 
 <hr>
@@ -191,9 +245,6 @@
 - 2.
 - ```과 json등 맞지 않는 문자들을 예외 처리, []자리에 {}가 오면 []로 대체하여 해결
 ```
-
-<hr>
-<h3> 🔸 </h3>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
