@@ -368,6 +368,14 @@ public class SchedulerConfig implements SchedulingConfigurer {
 <hr>
 <h3> 🔸 종목 검색 최적화</h3>
 
+<h5 align="center">최적화 전</h5>
+
+<img width="730" alt="검색개선전" src="https://github.com/user-attachments/assets/afa912dd-bbe2-451b-90a0-a92e3fdde3a2">
+
+<h5 align="center">최적화 후</h5>
+
+<img width="740" alt="검색개선후" src="https://github.com/user-attachments/assets/e2d9874a-892e-488c-ba44-5cfcdff1c8d1">
+
 ```
 - 검색어로 공백이 입력되면 응답이 지연되는 현상 발생
 - 한 글자라도 입력하면 응답속도가 빠름
